@@ -1,0 +1,404 @@
+# AI-SOC Phase 1: Core SIEM Stack
+# Production-ready deployment of Wazuh, OpenSearch, Suricata, and Zeek
+# Based on: https://github.com/wazuh/wazuh-docker (single-node configuration)
+# Compatible with: Docker Engine 23.0.15+, Docker Compose 2.20.2+
+
+version: '3.8'
+
+services:
+  # ============================================================================
+  # WAZUH INDEXER (OpenSearch-based)
+  # ============================================================================
+  # Stores security events, alerts, and metrics
+  # Minimum: 2GB RAM | Recommended: 4GB RAM
+  wazuh-indexer:
+    image: wazuh/wazuh-indexer:4.8.2
+    container_name: wazuh-indexer
+    hostname: wazuh-indexer
+    restart: unless-stopped
+
+    ports:
+      - "9200:9200"  # REST API
+      - "9600:9600"  # Performance Analyzer
+
+    environment:
+      - "OPENSEARCH_JAVA_OPTS=-Xms2g -Xmx2g"  # 2GB heap (adjust based on available RAM)
+      - "bootstrap.memory_lock=true"
+      - "discovery.type=single-node"
+      - "network.host=0.0.0.0"
+      - "plugins.security.ssl.http.enabled=true"
+      - "plugins.security.ssl.transport.enabled=true"
+      - "INDEXER_PASSWORD=${INDEXER_PASSWORD}"
+      - "INDEXER_USERNAME=${INDEXER_USERNAME:-admin}"
+
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+
+    volumes:
+      - wazuh-indexer-data:/var/lib/wazuh-indexer
+      - ./config/wazuh-indexer/certs:/usr/share/wazuh-indexer/certs:ro
+      - ./config/wazuh-indexer/opensearch.yml:/usr/share/wazuh-indexer/opensearch.yml:ro
+
+    networks:
+      - siem-backend
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k -u ${INDEXER_USERNAME:-admin}:${INDEXER_PASSWORD} https://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=50s || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+
+  # ============================================================================
+  # WAZUH MANAGER
+  # ============================================================================
+  # Core security event processing engine
+  # Minimum: 2GB RAM | Recommended: 4GB RAM
+  wazuh-manager:
+    image: wazuh/wazuh-manager:4.8.2
+    container_name: wazuh-manager
+    hostname: wazuh-manager
+    restart: unless-stopped
+
+    ports:
+      - "1514:1514"     # Agent connections (TCP)
+      - "1515:1515"     # Agent enrollment
+      - "514:514/udp"   # Syslog
+      - "55000:55000"   # API
+
+    environment:
+      - "INDEXER_URL=https://wazuh-indexer:9200"
+      - "INDEXER_USERNAME=${INDEXER_USERNAME:-admin}"
+      - "INDEXER_PASSWORD=${INDEXER_PASSWORD}"
+      - "FILEBEAT_SSL_VERIFICATION_MODE=full"
+      - "SSL_CERTIFICATE_AUTHORITIES=/etc/ssl/root-ca.pem"
+      - "SSL_CERTIFICATE=/etc/ssl/filebeat.pem"
+      - "SSL_KEY=/etc/ssl/filebeat-key.pem"
+      - "API_USERNAME=${API_USERNAME:-wazuh-wui}"
+      - "API_PASSWORD=${API_PASSWORD}"
+
+    volumes:
+      - wazuh-manager-data:/var/ossec/data
+      - wazuh-manager-logs:/var/ossec/logs
+      - wazuh-manager-etc:/var/ossec/etc
+      - ./config/wazuh-manager/certs:/etc/ssl:ro
+      - ./config/wazuh-manager/ossec.conf:/wazuh-config-mount/etc/ossec.conf:ro
+      # Custom rules and decoders
+      - ./config/wazuh-manager/rules:/var/ossec/etc/rules:rw
+      - ./config/wazuh-manager/decoders:/var/ossec/etc/decoders:rw
+      # Dataset replay logs
+      - ./datasets/logs:/var/log/external:ro
+
+    networks:
+      - siem-backend
+      - siem-frontend
+
+    depends_on:
+      wazuh-indexer:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:55000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+
+  # ============================================================================
+  # WAZUH DASHBOARD
+  # ============================================================================
+  # Web UI for visualization and management
+  # Minimum: 1GB RAM | Recommended: 2GB RAM
+  wazuh-dashboard:
+    image: wazuh/wazuh-dashboard:4.8.2
+    container_name: wazuh-dashboard
+    hostname: wazuh-dashboard
+    restart: unless-stopped
+
+    ports:
+      - "443:5601"  # HTTPS dashboard access
+
+    environment:
+      - "INDEXER_USERNAME=${INDEXER_USERNAME:-admin}"
+      - "INDEXER_PASSWORD=${INDEXER_PASSWORD}"
+      - "WAZUH_API_URL=https://wazuh-manager"
+      - "API_USERNAME=${API_USERNAME:-wazuh-wui}"
+      - "API_PASSWORD=${API_PASSWORD}"
+      - "SERVER_SSL_ENABLED=true"
+      - "SERVER_SSL_CERTIFICATE=/usr/share/wazuh-dashboard/certs/dashboard.pem"
+      - "SERVER_SSL_KEY=/usr/share/wazuh-dashboard/certs/dashboard-key.pem"
+
+    volumes:
+      - ./config/wazuh-dashboard/certs:/usr/share/wazuh-dashboard/certs:ro
+      - ./config/wazuh-dashboard/opensearch_dashboards.yml:/usr/share/wazuh-dashboard/config/opensearch_dashboards.yml:ro
+
+    networks:
+      - siem-frontend
+
+    depends_on:
+      wazuh-manager:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k https://localhost:5601/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+
+  # ============================================================================
+  # SURICATA (IDS/IPS)
+  # ============================================================================
+  # Real-time intrusion detection and prevention
+  # Minimum: 2GB RAM | Recommended: 4GB RAM
+  suricata:
+    image: jasonish/suricata:7.0.3
+    container_name: suricata
+    hostname: suricata
+    restart: unless-stopped
+
+    network_mode: host  # Required for packet capture
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+
+    environment:
+      - "SURICATA_OPTIONS=-i ${MONITOR_INTERFACE:-eth0}"
+
+    volumes:
+      - suricata-logs:/var/log/suricata
+      - suricata-rules:/var/lib/suricata/rules
+      - ./config/suricata/suricata.yaml:/etc/suricata/suricata.yaml:ro
+      - ./config/suricata/rules:/etc/suricata/rules:ro
+
+    command: >
+      /bin/sh -c "
+        suricata-update &&
+        suricata -c /etc/suricata/suricata.yaml -i ${MONITOR_INTERFACE:-eth0} -v
+      "
+
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep suricata || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+
+  # ============================================================================
+  # ZEEK (Passive Network Monitor)
+  # ============================================================================
+  # Passive network traffic analysis and metadata extraction
+  # Minimum: 2GB RAM | Recommended: 4GB RAM
+  zeek:
+    image: zeek/zeek:6.0.3
+    container_name: zeek
+    hostname: zeek
+    restart: unless-stopped
+
+    network_mode: host  # Required for packet capture
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+    environment:
+      - "ZEEK_INTERFACE=${MONITOR_INTERFACE:-eth0}"
+
+    volumes:
+      - zeek-logs:/usr/local/zeek/logs
+      - zeek-spool:/usr/local/zeek/spool
+      - ./config/zeek/site:/usr/local/zeek/share/zeek/site:ro
+      - ./config/zeek/local.zeek:/usr/local/zeek/share/zeek/site/local.zeek:ro
+
+    command: >
+      /bin/sh -c "
+        zeekctl deploy &&
+        zeekctl status &&
+        tail -f /dev/null
+      "
+
+    healthcheck:
+      test: ["CMD-SHELL", "zeekctl status | grep -q 'running' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+
+  # ============================================================================
+  # FILEBEAT (Log Forwarder)
+  # ============================================================================
+  # Forwards Suricata and Zeek logs to Wazuh Indexer
+  # Minimum: 512MB RAM | Recommended: 1GB RAM
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.11.3
+    container_name: filebeat
+    hostname: filebeat
+    restart: unless-stopped
+    user: root
+
+    environment:
+      - "ELASTICSEARCH_HOSTS=https://wazuh-indexer:9200"
+      - "ELASTICSEARCH_USERNAME=${INDEXER_USERNAME:-admin}"
+      - "ELASTICSEARCH_PASSWORD=${INDEXER_PASSWORD}"
+      - "KIBANA_HOST=https://wazuh-dashboard:5601"
+
+    volumes:
+      - ./config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./config/filebeat/certs:/usr/share/filebeat/certs:ro
+      - suricata-logs:/var/log/suricata:ro
+      - zeek-logs:/var/log/zeek:ro
+      - filebeat-data:/usr/share/filebeat/data
+
+    networks:
+      - siem-backend
+
+    depends_on:
+      wazuh-indexer:
+        condition: service_healthy
+
+    command: filebeat -e -strict.perms=false
+
+    healthcheck:
+      test: ["CMD-SHELL", "filebeat test config || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+
+# ==============================================================================
+# NETWORKS
+# ==============================================================================
+networks:
+  # Backend network: Internal service communication
+  siem-backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${BACKEND_SUBNET:-172.20.0.0/24}
+
+  # Frontend network: User-facing services
+  siem-frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${FRONTEND_SUBNET:-172.21.0.0/24}
+
+# ==============================================================================
+# VOLUMES
+# ==============================================================================
+# Persistent storage for data and logs
+volumes:
+  wazuh-indexer-data:
+    driver: local
+  wazuh-manager-data:
+    driver: local
+  wazuh-manager-logs:
+    driver: local
+  wazuh-manager-etc:
+    driver: local
+  suricata-logs:
+    driver: local
+  suricata-rules:
+    driver: local
+  zeek-logs:
+    driver: local
+  zeek-spool:
+    driver: local
+  filebeat-data:
+    driver: local
+
+# ==============================================================================
+# DEPLOYMENT NOTES
+# ==============================================================================
+#
+# SYSTEM REQUIREMENTS:
+# - Minimum: 16GB RAM, 4 CPU cores, 100GB disk
+# - Recommended: 32GB RAM, 8 CPU cores, 250GB SSD
+# - Docker Engine: 23.0.15+
+# - Docker Compose: 2.20.2+
+#
+# LINUX KERNEL TUNING (required for OpenSearch):
+# sudo sysctl -w vm.max_map_count=262144
+# echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+#
+# BEFORE FIRST RUN:
+# 1. Copy .env.example to .env
+# 2. Generate secure passwords in .env
+# 3. Run certificate generation script: ./scripts/generate-certs.sh
+# 4. Configure network interface: MONITOR_INTERFACE in .env
+#
+# QUICK START:
+# docker-compose -f phase1-siem-core.yml up -d
+#
+# ACCESS DASHBOARD:
+# https://localhost:443 (default: admin / INDEXER_PASSWORD)
+#
+# LOGS:
+# docker-compose -f phase1-siem-core.yml logs -f [service-name]
+#
+# STOP:
+# docker-compose -f phase1-siem-core.yml down
+#
+# REMOVE DATA:
+# docker-compose -f phase1-siem-core.yml down -v
+#
+# ==============================================================================

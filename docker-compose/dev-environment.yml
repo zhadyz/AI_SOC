@@ -1,0 +1,406 @@
+# AI-SOC Development Environment
+# Supporting services for data analysis, caching, and container management
+# Compatible with: Docker Engine 23.0.15+, Docker Compose 2.20.2+
+
+version: '3.8'
+
+services:
+  # ============================================================================
+  # POSTGRESQL
+  # ============================================================================
+  # Relational database for metadata, user management, and structured data
+  # Minimum: 512MB RAM | Recommended: 2GB RAM
+  postgres:
+    image: postgres:16.2-alpine
+    container_name: ai-soc-postgres
+    hostname: postgres
+    restart: unless-stopped
+
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+    environment:
+      - "POSTGRES_USER=${POSTGRES_USER:-aisoc}"
+      - "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}"
+      - "POSTGRES_DB=${POSTGRES_DB:-aisoc_metadata}"
+      - "POSTGRES_INITDB_ARGS=--encoding=UTF8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8"
+      - "PGDATA=/var/lib/postgresql/data/pgdata"
+
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./config/postgres/init-scripts:/docker-entrypoint-initdb.d:ro
+      # Backup directory
+      - ./backups/postgres:/backups
+
+    networks:
+      - dev-backend
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aisoc} -d ${POSTGRES_DB:-aisoc_metadata}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+
+    # PostgreSQL tuning for analytical workloads
+    command: >
+      postgres
+      -c max_connections=100
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=128MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=4MB
+      -c min_wal_size=1GB
+      -c max_wal_size=4GB
+
+  # ============================================================================
+  # REDIS
+  # ============================================================================
+  # In-memory cache for session management, rate limiting, and temporary data
+  # Minimum: 256MB RAM | Recommended: 1GB RAM
+  redis:
+    image: redis:7.2.4-alpine
+    container_name: ai-soc-redis
+    hostname: redis
+    restart: unless-stopped
+
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+
+    environment:
+      - "REDIS_PASSWORD=${REDIS_PASSWORD}"
+
+    volumes:
+      - redis-data:/data
+      - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+
+    networks:
+      - dev-backend
+
+    # Redis configuration optimized for caching
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      --appendfsync everysec
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.1'
+
+  # ============================================================================
+  # JUPYTER LAB
+  # ============================================================================
+  # Interactive notebook environment for data analysis and model development
+  # Minimum: 2GB RAM | Recommended: 4GB RAM
+  jupyter:
+    image: jupyter/scipy-notebook:python-3.11
+    container_name: ai-soc-jupyter
+    hostname: jupyter
+    restart: unless-stopped
+    user: root
+
+    ports:
+      - "${JUPYTER_PORT:-8888}:8888"
+
+    environment:
+      - "JUPYTER_ENABLE_LAB=yes"
+      - "JUPYTER_TOKEN=${JUPYTER_TOKEN}"
+      - "GRANT_SUDO=yes"
+      - "NB_USER=${JUPYTER_USER:-jovyan}"
+      - "NB_UID=1000"
+      - "NB_GID=100"
+      # Database connections
+      - "POSTGRES_HOST=postgres"
+      - "POSTGRES_USER=${POSTGRES_USER:-aisoc}"
+      - "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}"
+      - "POSTGRES_DB=${POSTGRES_DB:-aisoc_metadata}"
+      - "REDIS_HOST=redis"
+      - "REDIS_PASSWORD=${REDIS_PASSWORD}"
+
+    volumes:
+      - jupyter-data:/home/${JUPYTER_USER:-jovyan}/work
+      # Mount project directories
+      - ../datasets:/home/${JUPYTER_USER:-jovyan}/work/datasets:ro
+      - ../notebooks:/home/${JUPYTER_USER:-jovyan}/work/notebooks
+      - ../services:/home/${JUPYTER_USER:-jovyan}/work/services:ro
+      # Custom requirements
+      - ./config/jupyter/requirements.txt:/tmp/requirements.txt:ro
+
+    networks:
+      - dev-backend
+      - dev-frontend
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    # Install custom packages
+    command: >
+      bash -c "
+        pip install --quiet --no-cache-dir -r /tmp/requirements.txt &&
+        start-notebook.sh --NotebookApp.token='${JUPYTER_TOKEN}' --NotebookApp.password=''
+      "
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/api"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+
+  # ============================================================================
+  # PORTAINER
+  # ============================================================================
+  # Docker container management UI
+  # Minimum: 256MB RAM | Recommended: 512MB RAM
+  portainer:
+    image: portainer/portainer-ce:2.19.5-alpine
+    container_name: ai-soc-portainer
+    hostname: portainer
+    restart: unless-stopped
+
+    ports:
+      - "${PORTAINER_HTTP_PORT:-9000}:9000"
+      - "${PORTAINER_HTTPS_PORT:-9443}:9443"
+      # Edge agent port
+      - "8000:8000"
+
+    environment:
+      - "PORTAINER_ADMIN_PASSWORD=${PORTAINER_ADMIN_PASSWORD}"
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer-data:/data
+
+    networks:
+      - dev-frontend
+
+    command: >
+      --admin-password='${PORTAINER_ADMIN_PASSWORD}'
+      --host=unix:///var/run/docker.sock
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9000/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.1'
+
+  # ============================================================================
+  # ADMINER (Optional)
+  # ============================================================================
+  # Lightweight database management UI for PostgreSQL
+  # Minimum: 128MB RAM | Recommended: 256MB RAM
+  adminer:
+    image: adminer:4.8.1-standalone
+    container_name: ai-soc-adminer
+    hostname: adminer
+    restart: unless-stopped
+    profiles: ["optional"]  # Only start if explicitly requested
+
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+
+    environment:
+      - "ADMINER_DEFAULT_SERVER=postgres"
+      - "ADMINER_DESIGN=nette"
+
+    networks:
+      - dev-backend
+      - dev-frontend
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "php", "-r", "if (file_get_contents('http://localhost:8080') === false) exit(1);"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+  # ============================================================================
+  # REDIS COMMANDER (Optional)
+  # ============================================================================
+  # Web UI for Redis database management
+  # Minimum: 128MB RAM | Recommended: 256MB RAM
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: ai-soc-redis-commander
+    hostname: redis-commander
+    restart: unless-stopped
+    profiles: ["optional"]  # Only start if explicitly requested
+
+    ports:
+      - "${REDIS_COMMANDER_PORT:-8081}:8081"
+
+    environment:
+      - "REDIS_HOSTS=local:redis:6379:0:${REDIS_PASSWORD}"
+      - "HTTP_USER=${REDIS_COMMANDER_USER:-admin}"
+      - "HTTP_PASSWORD=${REDIS_COMMANDER_PASSWORD}"
+
+    networks:
+      - dev-backend
+      - dev-frontend
+
+    depends_on:
+      redis:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8081"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+# ==============================================================================
+# NETWORKS
+# ==============================================================================
+networks:
+  # Backend network: Database and cache services
+  dev-backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${DEV_BACKEND_SUBNET:-172.22.0.0/24}
+
+  # Frontend network: Web UIs and external access
+  dev-frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${DEV_FRONTEND_SUBNET:-172.23.0.0/24}
+
+# ==============================================================================
+# VOLUMES
+# ==============================================================================
+# Persistent storage for development data
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  jupyter-data:
+    driver: local
+  portainer-data:
+    driver: local
+
+# ==============================================================================
+# DEPLOYMENT NOTES
+# ==============================================================================
+#
+# SYSTEM REQUIREMENTS:
+# - Minimum: 4GB RAM, 2 CPU cores, 20GB disk
+# - Recommended: 8GB RAM, 4 CPU cores, 50GB SSD
+# - Docker Engine: 23.0.15+
+# - Docker Compose: 2.20.2+
+#
+# BEFORE FIRST RUN:
+# 1. Copy .env.example to .env
+# 2. Generate secure passwords in .env
+# 3. Create required directories:
+#    mkdir -p config/{postgres/init-scripts,redis,jupyter} notebooks backups/postgres
+# 4. Create Jupyter requirements.txt:
+#    echo "pandas scikit-learn matplotlib seaborn" > config/jupyter/requirements.txt
+#
+# QUICK START:
+# docker-compose -f dev-environment.yml up -d
+#
+# WITH OPTIONAL SERVICES:
+# docker-compose -f dev-environment.yml --profile optional up -d
+#
+# ACCESS SERVICES:
+# - Jupyter Lab: http://localhost:8888 (token: JUPYTER_TOKEN)
+# - Portainer: https://localhost:9443 (admin / PORTAINER_ADMIN_PASSWORD)
+# - Adminer: http://localhost:8080 (optional)
+# - Redis Commander: http://localhost:8081 (optional)
+#
+# DATABASE CONNECTIONS:
+# - PostgreSQL: postgres:5432 (user: aisoc, pass: POSTGRES_PASSWORD)
+# - Redis: redis:6379 (pass: REDIS_PASSWORD)
+#
+# LOGS:
+# docker-compose -f dev-environment.yml logs -f [service-name]
+#
+# STOP:
+# docker-compose -f dev-environment.yml down
+#
+# BACKUP POSTGRESQL:
+# docker exec ai-soc-postgres pg_dump -U aisoc aisoc_metadata > backup.sql
+#
+# RESTORE POSTGRESQL:
+# docker exec -i ai-soc-postgres psql -U aisoc aisoc_metadata < backup.sql
+#
+# ==============================================================================
