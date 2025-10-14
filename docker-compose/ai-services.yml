@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  # ML Inference API
+  ml-inference:
+    build:
+      context: ../ml_training
+      dockerfile: Dockerfile
+    container_name: ml-inference
+    hostname: ml-inference
+    restart: unless-stopped
+    ports:
+      - "8500:8000"
+    volumes:
+      - ../models:/app/models:ro
+    environment:
+      - MODEL_PATH=/app/models
+      - LOG_LEVEL=INFO
+    networks:
+      - ai-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  # Alert Triage Service (existing)
+  alert-triage:
+    image: alert-triage:latest
+    container_name: alert-triage
+    hostname: alert-triage
+    restart: unless-stopped
+    ports:
+      - "8100:8000"
+    environment:
+      - TRIAGE_OLLAMA_HOST=http://ollama-server:11434
+      - TRIAGE_PRIMARY_MODEL=llama3.1:8b
+      - ML_INFERENCE_URL=http://ml-inference:8000
+      - RAG_SERVICE_URL=http://rag-service:8000
+    networks:
+      - ai-network
+    depends_on:
+      ml-inference:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # RAG Service (existing)
+  rag-service:
+    image: rag-service:latest
+    container_name: rag-service
+    hostname: rag-service
+    restart: unless-stopped
+    ports:
+      - "8300:8000"
+    environment:
+      - RAG_CHROMADB_HOST=chromadb
+      - RAG_CHROMADB_PORT=8000
+    networks:
+      - ai-network
+    depends_on:
+      - chromadb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ChromaDB
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: chromadb
+    hostname: chromadb
+    restart: unless-stopped
+    ports:
+      - "8200:8000"
+    volumes:
+      - chromadb-data:/chroma/chroma
+    networks:
+      - ai-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  ai-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+
+volumes:
+  chromadb-data:
+    driver: local

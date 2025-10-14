@@ -47,6 +47,11 @@ credentials/
 secrets/
 config/secrets.yaml
 
+# Internal development files
+.internal/
+*.pyc
+__pycache__/
+
 # Datasets (large files)
 datasets/**/*.csv
 datasets/**/*.pcap
