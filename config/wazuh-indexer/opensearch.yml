@@ -1,0 +1,49 @@
+# ============================================================================
+# Wazuh Indexer (OpenSearch) Configuration
+# ============================================================================
+# Production-ready configuration for single-node deployment
+# Based on: https://documentation.wazuh.com/current/installation-guide/wazuh-indexer/index.html
+
+network.host: "0.0.0.0"
+node.name: "wazuh-indexer"
+cluster.name: "ai-soc-cluster"
+node.max_local_storage_nodes: "1"
+
+# Discovery settings for single-node
+discovery.type: "single-node"
+
+# SSL/TLS configuration
+plugins.security.ssl.transport.pemcert_filepath: /usr/share/wazuh-indexer/certs/indexer.pem
+plugins.security.ssl.transport.pemkey_filepath: /usr/share/wazuh-indexer/certs/indexer-key.pem
+plugins.security.ssl.transport.pemtrustedcas_filepath: /usr/share/wazuh-indexer/certs/root-ca.pem
+plugins.security.ssl.transport.enforce_hostname_verification: false
+plugins.security.ssl.transport.resolve_hostname: false
+
+plugins.security.ssl.http.enabled: true
+plugins.security.ssl.http.pemcert_filepath: /usr/share/wazuh-indexer/certs/indexer.pem
+plugins.security.ssl.http.pemkey_filepath: /usr/share/wazuh-indexer/certs/indexer-key.pem
+plugins.security.ssl.http.pemtrustedcas_filepath: /usr/share/wazuh-indexer/certs/root-ca.pem
+
+# Security plugin settings
+plugins.security.allow_unsafe_democertificates: false
+plugins.security.allow_default_init_securityindex: true
+plugins.security.audit.type: internal_opensearch
+plugins.security.enable_snapshot_restore_privilege: true
+plugins.security.check_snapshot_restore_write_privileges: true
+plugins.security.restapi.roles_enabled: ["all_access", "security_rest_api_access"]
+
+# Admin DN (adjust if needed)
+plugins.security.authcz.admin_dn:
+  - "CN=admin,OU=Security,O=AI-SOC,L=Los Angeles,ST=California,C=US"
+
+# Node certificates DN
+plugins.security.nodes_dn:
+  - "CN=wazuh-indexer,OU=Security,O=AI-SOC,L=Los Angeles,ST=California,C=US"
+
+# Performance tuning
+indices.query.bool.max_clause_count: 100000
+path.data: /var/lib/wazuh-indexer
+path.logs: /var/log/wazuh-indexer
+
+# Compatibility
+compatibility.override_main_response_version: true

@@ -1,0 +1,119 @@
+# ============================================================================
+# Filebeat Configuration for AI-SOC
+# ============================================================================
+# Forwards Suricata and Zeek logs to Wazuh Indexer (OpenSearch)
+# Reference: https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-reference-yml.html
+
+filebeat.inputs:
+  # Suricata EVE JSON logs
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/suricata/eve.json
+    json.keys_under_root: true
+    json.add_error_key: true
+    json.message_key: log
+    fields:
+      type: suricata
+      source: ids
+    fields_under_root: true
+
+  # Zeek connection logs
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/zeek/current/conn.log
+    fields:
+      type: zeek
+      source: nsm
+      log_type: conn
+    fields_under_root: true
+
+  # Zeek DNS logs
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/zeek/current/dns.log
+    fields:
+      type: zeek
+      source: nsm
+      log_type: dns
+    fields_under_root: true
+
+  # Zeek HTTP logs
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/zeek/current/http.log
+    fields:
+      type: zeek
+      source: nsm
+      log_type: http
+    fields_under_root: true
+
+  # Zeek SSL/TLS logs
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/zeek/current/ssl.log
+    fields:
+      type: zeek
+      source: nsm
+      log_type: ssl
+    fields_under_root: true
+
+# Output to OpenSearch (Wazuh Indexer)
+output.elasticsearch:
+  hosts: ["https://wazuh-indexer:9200"]
+  protocol: "https"
+  username: "${ELASTICSEARCH_USERNAME}"
+  password: "${ELASTICSEARCH_PASSWORD}"
+  index: "filebeat-%{[agent.version]}-%{+yyyy.MM.dd}"
+
+  # SSL configuration
+  ssl.enabled: true
+  ssl.certificate_authorities: ["/usr/share/filebeat/certs/root-ca.pem"]
+  ssl.certificate: "/usr/share/filebeat/certs/filebeat.pem"
+  ssl.key: "/usr/share/filebeat/certs/filebeat-key.pem"
+  ssl.verification_mode: certificate
+
+# Index lifecycle management
+setup.ilm.enabled: false
+setup.template.name: "filebeat"
+setup.template.pattern: "filebeat-*"
+setup.template.settings:
+  index.number_of_shards: 1
+  index.number_of_replicas: 0
+
+# Kibana/Dashboard endpoint (optional)
+setup.kibana:
+  host: "${KIBANA_HOST}"
+  protocol: "https"
+  ssl.enabled: true
+  ssl.certificate_authorities: ["/usr/share/filebeat/certs/root-ca.pem"]
+  ssl.verification_mode: certificate
+
+# Processors
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~
+  - add_fields:
+      target: ''
+      fields:
+        environment: development
+        project: ai-soc
+
+# Logging
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644
+
+# Monitoring
+monitoring.enabled: false

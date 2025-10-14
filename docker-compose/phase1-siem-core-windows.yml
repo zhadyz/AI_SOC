@@ -1,0 +1,219 @@
+# AI-SOC Phase 1: Core SIEM Stack (Windows Compatible)
+# Production-ready deployment of Wazuh components ONLY
+# Suricata and Zeek EXCLUDED due to Windows Docker limitations (network_mode: host not supported)
+# Based on: https://github.com/wazuh/wazuh-docker (single-node configuration)
+
+version: '3.8'
+
+services:
+  # ============================================================================
+  # WAZUH INDEXER (OpenSearch-based)
+  # ============================================================================
+  wazuh-indexer:
+    image: wazuh/wazuh-indexer:4.8.2
+    container_name: wazuh-indexer
+    hostname: wazuh-indexer
+    restart: unless-stopped
+
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+
+    environment:
+      - "OPENSEARCH_JAVA_OPTS=-Xms2g -Xmx2g"
+      - "bootstrap.memory_lock=true"
+      - "discovery.type=single-node"
+      - "network.host=0.0.0.0"
+      - "plugins.security.ssl.http.enabled=true"
+      - "plugins.security.ssl.transport.enabled=true"
+      - "INDEXER_PASSWORD=${INDEXER_PASSWORD}"
+      - "INDEXER_USERNAME=${INDEXER_USERNAME:-admin}"
+
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+
+    volumes:
+      - wazuh-indexer-data:/var/lib/wazuh-indexer
+      - ../config/wazuh-indexer/certs:/usr/share/wazuh-indexer/certs:ro
+      - ../config/wazuh-indexer/opensearch.yml:/usr/share/wazuh-indexer/opensearch.yml:ro
+
+    networks:
+      - siem-backend
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k -u ${INDEXER_USERNAME:-admin}:${INDEXER_PASSWORD} https://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=50s || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+
+  # ============================================================================
+  # WAZUH MANAGER
+  # ============================================================================
+  wazuh-manager:
+    image: wazuh/wazuh-manager:4.8.2
+    container_name: wazuh-manager
+    hostname: wazuh-manager
+    restart: unless-stopped
+
+    ports:
+      - "1514:1514"
+      - "1515:1515"
+      - "514:514/udp"
+      - "55000:55000"
+
+    environment:
+      - "INDEXER_URL=https://wazuh-indexer:9200"
+      - "INDEXER_USERNAME=${INDEXER_USERNAME:-admin}"
+      - "INDEXER_PASSWORD=${INDEXER_PASSWORD}"
+      - "FILEBEAT_SSL_VERIFICATION_MODE=full"
+      - "SSL_CERTIFICATE_AUTHORITIES=/etc/ssl/root-ca.pem"
+      - "SSL_CERTIFICATE=/etc/ssl/filebeat.pem"
+      - "SSL_KEY=/etc/ssl/filebeat-key.pem"
+      - "API_USERNAME=${API_USERNAME:-wazuh-wui}"
+      - "API_PASSWORD=${API_PASSWORD}"
+
+    volumes:
+      - wazuh-manager-data:/var/ossec/data
+      - wazuh-manager-logs:/var/ossec/logs
+      - wazuh-manager-etc:/var/ossec/etc
+      - ../config/wazuh-manager/certs:/etc/ssl:ro
+      - ../config/wazuh-manager/ossec.conf:/wazuh-config-mount/etc/ossec.conf:ro
+      - ../config/wazuh-manager/rules:/var/ossec/etc/rules:rw
+      - ../config/wazuh-manager/decoders:/var/ossec/etc/decoders:rw
+      - ../datasets/logs:/var/log/external:ro
+
+    networks:
+      - siem-backend
+      - siem-frontend
+
+    depends_on:
+      wazuh-indexer:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:55000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+
+  # ============================================================================
+  # WAZUH DASHBOARD
+  # ============================================================================
+  wazuh-dashboard:
+    image: wazuh/wazuh-dashboard:4.8.2
+    container_name: wazuh-dashboard
+    hostname: wazuh-dashboard
+    restart: unless-stopped
+
+    ports:
+      - "443:5601"
+
+    environment:
+      - "INDEXER_USERNAME=${INDEXER_USERNAME:-admin}"
+      - "INDEXER_PASSWORD=${INDEXER_PASSWORD}"
+      - "WAZUH_API_URL=https://wazuh-manager"
+      - "API_USERNAME=${API_USERNAME:-wazuh-wui}"
+      - "API_PASSWORD=${API_PASSWORD}"
+      - "SERVER_SSL_ENABLED=true"
+      - "SERVER_SSL_CERTIFICATE=/usr/share/wazuh-dashboard/certs/dashboard.pem"
+      - "SERVER_SSL_KEY=/usr/share/wazuh-dashboard/certs/dashboard-key.pem"
+
+    volumes:
+      - ../config/wazuh-dashboard/certs:/usr/share/wazuh-dashboard/certs:ro
+      - ../config/wazuh-dashboard/opensearch_dashboards.yml:/usr/share/wazuh-dashboard/config/opensearch_dashboards.yml:ro
+
+    networks:
+      - siem-frontend
+
+    depends_on:
+      wazuh-manager:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k https://localhost:5601/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+
+# ==============================================================================
+# NETWORKS
+# ==============================================================================
+networks:
+  siem-backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${BACKEND_SUBNET:-172.20.0.0/24}
+
+  siem-frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${FRONTEND_SUBNET:-172.21.0.0/24}
+
+# ==============================================================================
+# VOLUMES
+# ==============================================================================
+volumes:
+  wazuh-indexer-data:
+    driver: local
+  wazuh-manager-data:
+    driver: local
+  wazuh-manager-logs:
+    driver: local
+  wazuh-manager-etc:
+    driver: local
+
+# ==============================================================================
+# DEPLOYMENT NOTES
+# ==============================================================================
+#
+# WINDOWS COMPATIBILITY:
+# - This configuration EXCLUDES Suricata and Zeek (network_mode: host not supported)
+# - For network traffic analysis on Windows, consider:
+#   1. Running Suricata/Zeek on a Linux VM or WSL2
+#   2. Using Windows native packet capture tools (npcap, Wireshark)
+#   3. Deploying sensors on dedicated Linux hosts
+#
+# QUICK START:
+# docker-compose -f phase1-siem-core-windows.yml up -d
+#
+# ACCESS DASHBOARD:
+# https://localhost:443 (default: admin / INDEXER_PASSWORD from .env)
+#
+# ==============================================================================

@@ -48,11 +48,16 @@ secrets/
 config/secrets.yaml
 
 # Datasets (large files)
-datasets/*.csv
-datasets/*.pcap
-datasets/*.json
+datasets/**/*.csv
+datasets/**/*.pcap
+datasets/**/*.json
+datasets/**/*.zip
 !datasets/README.md
 !datasets/.gitkeep
+!datasets/**/README.md
+!datasets/**/DATASET_VALIDATION_REPORT.md
+!datasets/**/*.py
+!datasets/**/*.md5
 
 # Models (large files)
 models/*.bin

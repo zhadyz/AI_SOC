@@ -1,0 +1,147 @@
+# ============================================================================
+# Suricata IDS/IPS Configuration
+# ============================================================================
+# Production-ready configuration for AI-SOC network monitoring
+# Reference: https://suricata.readthedocs.io/en/latest/configuration/suricata-yaml.html
+
+%YAML 1.1
+---
+
+# Network interfaces
+af-packet:
+  - interface: eth0
+    cluster-id: 99
+    cluster-type: cluster_flow
+    defrag: yes
+    use-mmap: yes
+    tpacket-v3: yes
+
+# Outputs
+outputs:
+  - fast:
+      enabled: yes
+      filename: fast.log
+      append: yes
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: eve.json
+      types:
+        - alert:
+            payload: yes
+            payload-buffer-size: 4kb
+            payload-printable: yes
+            packet: yes
+            metadata: yes
+            http-body: yes
+            http-body-printable: yes
+        - http:
+            extended: yes
+        - dns:
+            query: yes
+            answer: yes
+        - tls:
+            extended: yes
+        - files:
+            force-magic: no
+        - smtp:
+        - ssh
+        - stats:
+            totals: yes
+            threads: yes
+            deltas: yes
+        - flow
+
+# Application layer protocols
+app-layer:
+  protocols:
+    http:
+      enabled: yes
+      memcap: 64mb
+    tls:
+      enabled: yes
+      detection-ports:
+        dp: 443
+    dns:
+      tcp:
+        enabled: yes
+        detection-ports:
+          dp: 53
+      udp:
+        enabled: yes
+        detection-ports:
+          dp: 53
+    ssh:
+      enabled: yes
+
+# Stream engine
+stream:
+  memcap: 64mb
+  checksum-validation: yes
+  inline: auto
+  reassembly:
+    memcap: 256mb
+    depth: 1mb
+    toserver-chunk-size: 2560
+    toclient-chunk-size: 2560
+
+# Detection engine
+detect:
+  profile: medium
+  custom-values:
+    toclient-groups: 3
+    toserver-groups: 25
+  sgh-mpm-context: auto
+  inspection-recursion-limit: 3000
+
+# Performance
+threading:
+  set-cpu-affinity: no
+  cpu-affinity:
+    - management-cpu-set:
+        cpu: [ 0 ]
+    - receive-cpu-set:
+        cpu: [ 0 ]
+    - worker-cpu-set:
+        cpu: [ "all" ]
+        mode: "exclusive"
+        prio:
+          low: [ 0 ]
+          medium: [ "1-2" ]
+          high: [ 3 ]
+          default: "medium"
+
+# Logging
+logging:
+  default-log-level: notice
+  outputs:
+  - console:
+      enabled: yes
+  - file:
+      enabled: yes
+      level: info
+      filename: /var/log/suricata/suricata.log
+  - syslog:
+      enabled: no
+
+# Rule reloading
+detect-engine:
+  - rule-reload: true
+
+# Statistics
+stats:
+  enabled: yes
+  interval: 60
+
+# Packet capture
+pcap:
+  - interface: eth0
+
+# Rule path
+default-rule-path: /var/lib/suricata/rules
+rule-files:
+  - suricata.rules
+
+# Classification and reference files
+classification-file: /etc/suricata/classification.config
+reference-config-file: /etc/suricata/reference.config

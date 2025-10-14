@@ -1,0 +1,42 @@
+# ============================================================================
+# Wazuh Dashboard (OpenSearch Dashboards) Configuration
+# ============================================================================
+# Production-ready configuration for AI-SOC SIEM visualization
+# Reference: https://documentation.wazuh.com/current/installation-guide/wazuh-dashboard/index.html
+
+server.host: "0.0.0.0"
+server.port: 5601
+opensearch.hosts: ["https://wazuh-indexer:9200"]
+opensearch.ssl.verificationMode: certificate
+
+# SSL/TLS configuration
+server.ssl.enabled: true
+server.ssl.certificate: "/usr/share/wazuh-dashboard/certs/dashboard.pem"
+server.ssl.key: "/usr/share/wazuh-dashboard/certs/dashboard-key.pem"
+
+opensearch.ssl.certificateAuthorities: ["/usr/share/wazuh-dashboard/certs/root-ca.pem"]
+opensearch.requestHeadersWhitelist: ["securitytenant","Authorization"]
+
+# Wazuh plugin configuration
+opensearch_security.multitenancy.enabled: false
+opensearch_security.readonly_mode.roles: ["kibana_read_only"]
+
+# Disable telemetry
+telemetry.enabled: false
+telemetry.optIn: false
+
+# Logging
+logging.dest: stdout
+logging.silent: false
+logging.quiet: false
+logging.verbose: false
+
+# Performance
+opensearch.requestTimeout: 60000
+opensearch.shardTimeout: 60000
+
+# Wazuh app configuration
+wazuh.monitoring.enabled: true
+wazuh.monitoring.frequency: 900
+wazuh.monitoring.shards: 1
+wazuh.monitoring.replicas: 0
