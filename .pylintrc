@@ -1,0 +1,43 @@
+[MASTER]
+# Use multiple processes for faster linting
+jobs=4
+
+# Python version
+py-version=3.11
+
+# Ignore patterns
+ignore=CVS,.git,__pycache__,venv,env,datasets,models
+
+[MESSAGES CONTROL]
+# Disable specific warnings
+disable=
+    C0111,  # missing-docstring
+    C0103,  # invalid-name
+    R0913,  # too-many-arguments
+    R0914,  # too-many-locals
+    R0915,  # too-many-statements
+    W0511,  # fixme
+    W0212,  # protected-access
+    E1101,  # no-member (false positives with Pydantic)
+
+[FORMAT]
+# Maximum line length
+max-line-length=120
+
+# Indent string
+indent-string='    '
+
+[BASIC]
+# Good variable names
+good-names=i,j,k,ex,Run,_,id,e,f,logger
+
+[DESIGN]
+# Maximum complexity
+max-complexity=15
+
+# Maximum attributes
+max-attributes=10
+
+[SIMILARITIES]
+# Minimum lines of similar code
+min-similarity-lines=6

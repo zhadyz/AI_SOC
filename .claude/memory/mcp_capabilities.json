@@ -1,0 +1,114 @@
+{
+  "firecrawl": {
+    "description": "Advanced web scraping with JS rendering",
+    "use_cases": [
+      "Scrape websites",
+      "Extract structured data",
+      "Monitor changes"
+    ],
+    "category": "web_intelligence"
+  },
+  "puppeteer": {
+    "description": "Headless browser automation",
+    "use_cases": [
+      "UI testing",
+      "Screenshots",
+      "Form automation"
+    ],
+    "category": "browser_automation"
+  },
+  "playwright": {
+    "description": "Cross-browser testing framework",
+    "use_cases": [
+      "E2E testing",
+      "Multi-browser testing",
+      "Debugging"
+    ],
+    "category": "browser_automation"
+  },
+  "chrome-devtools": {
+    "description": "Live browser control and debugging",
+    "use_cases": [
+      "Real-time debugging",
+      "Performance analysis",
+      "Network inspection"
+    ],
+    "category": "browser_control"
+  },
+  "serena": {
+    "description": "Semantic code search and editing",
+    "use_cases": [
+      "Find code by meaning",
+      "Refactor across codebase",
+      "Code navigation"
+    ],
+    "category": "code_intelligence"
+  },
+  "context7": {
+    "description": "Real-time library documentation (any version)",
+    "use_cases": [
+      "Get accurate API docs",
+      "Version-specific examples",
+      "Library guidance"
+    ],
+    "category": "documentation"
+  },
+  "markitdown": {
+    "description": "Universal format conversion",
+    "use_cases": [
+      "PDF to text",
+      "Word to markdown",
+      "Audio transcription",
+      "Image analysis"
+    ],
+    "category": "format_conversion"
+  },
+  "github": {
+    "description": "Full GitHub API access",
+    "use_cases": [
+      "Create PRs",
+      "Manage issues",
+      "Search code",
+      "Release management"
+    ],
+    "category": "version_control"
+  },
+  "docker": {
+    "description": "Container orchestration",
+    "use_cases": [
+      "Build images",
+      "Run containers",
+      "Manage services",
+      "Deploy"
+    ],
+    "category": "infrastructure"
+  },
+  "huggingface": {
+    "description": "AI models, datasets, and papers",
+    "use_cases": [
+      "Load models",
+      "Access datasets",
+      "Research papers",
+      "ML resources"
+    ],
+    "category": "ai_ml"
+  },
+  "memory": {
+    "description": "Persistent MCP memory",
+    "use_cases": [
+      "Store data",
+      "Retrieve context",
+      "Cross-session persistence"
+    ],
+    "category": "persistence"
+  },
+  "filesystem": {
+    "description": "Direct file system access",
+    "use_cases": [
+      "Read/write files",
+      "Directory operations",
+      "File search"
+    ],
+    "category": "file_operations"
+  }
+}

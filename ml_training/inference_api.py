@@ -26,8 +26,9 @@ from pydantic import BaseModel, Field
 import uvicorn
 
 # Constants
-PROJECT_ROOT = Path(r"C:\Users\Abdul\Desktop\Bari 2025 Portfolio\AI_SOC")
-MODEL_PATH = PROJECT_ROOT / "models"
+# Support both local and Docker paths
+MODEL_PATH_ENV = os.getenv("MODEL_PATH", "/app/models")
+MODEL_PATH = Path(MODEL_PATH_ENV)
 
 # Initialize FastAPI
 app = FastAPI(

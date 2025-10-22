@@ -1,0 +1,30 @@
+{
+  "the_didact": [
+    "firecrawl",
+    "puppeteer",
+    "context7",
+    "markitdown",
+    "huggingface",
+    "memory"
+  ],
+  "hollowed_eyes": [
+    "serena",
+    "context7",
+    "github",
+    "filesystem",
+    "memory"
+  ],
+  "loveless": [
+    "playwright",
+    "chrome-devtools",
+    "docker",
+    "github",
+    "memory"
+  ],
+  "zhadyz": [
+    "github",
+    "docker",
+    "filesystem",
+    "memory"
+  ]
+}

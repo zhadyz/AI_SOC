@@ -1,0 +1,190 @@
+# ============================================================================
+# Prometheus Configuration for AI-SOC
+# ============================================================================
+# This configuration monitors all AI-SOC components:
+# - SIEM Stack (Wazuh)
+# - SOAR Stack (TheHive, Cortex, Shuffle)
+# - AI Services (ML Inference, Alert Triage, RAG)
+# - Infrastructure (Docker, Host)
+# ============================================================================
+
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'ai-soc'
+    environment: 'production'
+
+# AlertManager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+
+# Load alert rules
+rule_files:
+  - '/etc/prometheus/alerts/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # ============================================================================
+  # Prometheus self-monitoring
+  # ============================================================================
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          component: 'monitoring'
+          service: 'prometheus'
+
+  # ============================================================================
+  # Node Exporter (Host Metrics)
+  # ============================================================================
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          component: 'infrastructure'
+          service: 'host'
+
+  # ============================================================================
+  # cAdvisor (Container Metrics)
+  # ============================================================================
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          component: 'infrastructure'
+          service: 'containers'
+
+  # ============================================================================
+  # SIEM Stack
+  # ============================================================================
+  - job_name: 'wazuh-manager'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['wazuh-manager:55000']
+        labels:
+          component: 'siem'
+          service: 'wazuh-manager'
+
+  - job_name: 'wazuh-indexer'
+    static_configs:
+      - targets: ['wazuh-indexer:9200']
+        labels:
+          component: 'siem'
+          service: 'wazuh-indexer'
+    basic_auth:
+      username: 'admin'
+      password: 'IJqutA0oOhd/DuqDUnlNRhhHQHK3kXiuRwp9w7dMDg4='
+
+  # ============================================================================
+  # SOAR Stack
+  # ============================================================================
+  - job_name: 'thehive'
+    metrics_path: '/api/metrics'
+    static_configs:
+      - targets: ['thehive:9000']
+        labels:
+          component: 'soar'
+          service: 'thehive'
+
+  - job_name: 'cortex'
+    metrics_path: '/api/metrics'
+    static_configs:
+      - targets: ['cortex:9001']
+        labels:
+          component: 'soar'
+          service: 'cortex'
+
+  - job_name: 'shuffle-backend'
+    metrics_path: '/api/v1/metrics'
+    static_configs:
+      - targets: ['shuffle-backend:5001']
+        labels:
+          component: 'soar'
+          service: 'shuffle'
+
+  # ============================================================================
+  # AI Services
+  # ============================================================================
+  - job_name: 'ml-inference'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['ml-inference:8000']
+        labels:
+          component: 'ai-services'
+          service: 'ml-inference'
+
+  - job_name: 'alert-triage'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['alert-triage:8000']
+        labels:
+          component: 'ai-services'
+          service: 'alert-triage'
+
+  - job_name: 'rag-service'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['rag-service:8000']
+        labels:
+          component: 'ai-services'
+          service: 'rag-service'
+
+  - job_name: 'chromadb'
+    metrics_path: '/api/v1/metrics'
+    static_configs:
+      - targets: ['chromadb:8000']
+        labels:
+          component: 'ai-services'
+          service: 'chromadb'
+
+  # ============================================================================
+  # Database Services
+  # ============================================================================
+  - job_name: 'cassandra'
+    static_configs:
+      - targets: ['cassandra:9042']
+        labels:
+          component: 'database'
+          service: 'cassandra'
+
+  - job_name: 'minio'
+    metrics_path: '/minio/v2/metrics/cluster'
+    static_configs:
+      - targets: ['minio:9000']
+        labels:
+          component: 'storage'
+          service: 'minio'
+
+  - job_name: 'opensearch'
+    static_configs:
+      - targets: ['opensearch:9200']
+        labels:
+          component: 'database'
+          service: 'opensearch'
+
+  # ============================================================================
+  # Docker Engine Metrics (if enabled)
+  # ============================================================================
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['host.docker.internal:9323']
+        labels:
+          component: 'infrastructure'
+          service: 'docker-engine'
+
+# ============================================================================
+# Service Discovery (for dynamic container discovery)
+# ============================================================================
+# Uncomment to enable Docker service discovery
+#  - job_name: 'docker-containers'
+#    docker_sd_configs:
+#      - host: unix:///var/run/docker.sock
+#    relabel_configs:
+#      - source_labels: [__meta_docker_container_name]
+#        target_label: container_name
+#      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
+#        target_label: service

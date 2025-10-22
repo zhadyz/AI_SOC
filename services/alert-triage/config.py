@@ -37,6 +37,12 @@ class Settings(BaseSettings):
     medium_confidence_threshold: float = 0.70
     auto_action_threshold: float = 0.80  # Only auto-escalate if >80%
 
+    # ML Inference Configuration
+    ml_enabled: bool = True
+    ml_api_url: str = "http://ml-inference:8001"
+    ml_timeout: int = 10
+    ml_default_model: str = "random_forest"
+
     # RAG Configuration (for future Phase 3.2)
     rag_enabled: bool = False
     rag_service_url: Optional[str] = "http://rag-service:8001"

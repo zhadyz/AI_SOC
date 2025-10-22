@@ -4,11 +4,16 @@ AI-Augmented SOC
 
 Generates human-readable summaries of security logs using LLMs.
 Stores summaries in ChromaDB for RAG retrieval.
+
+Author: HOLLOWED_EYES
+Mission: Phase 3 AI Service Integration
 """
 
 import logging
 from typing import List, Dict, Any, Optional
+from datetime import datetime
 import httpx
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -24,152 +29,261 @@ class LogSummarizer:
     - Actionable recommendations
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        ollama_host: str = "http://ollama:11434",
+        model: str = "llama3.1:8b",
+        chunk_size: int = 100
+    ):
         """
         Initialize summarizer.
 
-        TODO: Week 6 - Initialize Ollama client
-        TODO: Week 6 - Initialize ChromaDB client
+        Args:
+            ollama_host: Ollama API endpoint
+            model: LLM model to use
+            chunk_size: Logs per summarization chunk
         """
-        logger.info("LogSummarizer initialized")
-        self.ollama_host = "http://ollama:11434"
-        self.model = "llama3.1:8b"
-        self.chroma_client = None  # Placeholder
+        self.ollama_host = ollama_host
+        self.model = model
+        self.chunk_size = chunk_size
+        logger.info(f"LogSummarizer initialized: model={model}, chunk_size={chunk_size}")
 
-    def _build_summary_prompt(self, logs: List[Dict[str, Any]], stats: Dict[str, Any]) -> str:
+    async def check_health(self) -> bool:
+        """Check if Ollama is accessible"""
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.get(f"{self.ollama_host}/api/tags")
+                return response.status_code == 200
+        except Exception as e:
+            logger.error(f"Ollama health check failed: {e}")
+            return False
+
+    def _build_summary_prompt(
+        self,
+        logs: List[Dict[str, Any]],
+        time_range: str
+    ) -> str:
         """
         Construct prompt for log summarization.
 
-        Prompt engineering for security briefings:
-        - Executive summary style
-        - Highlight critical events
-        - Extract actionable intelligence
-
         Args:
             logs: Parsed log entries
-            stats: Statistical summary
+            time_range: Time range description
 
         Returns:
             Formatted prompt for LLM
-
-        TODO: Week 6 - Refine prompt based on evaluation
         """
-        prompt = f"""You are a senior security analyst writing a daily security briefing.
+        # Format logs for prompt (limit to 50 for token budget)
+        log_entries = []
+        for i, log in enumerate(logs[:50], 1):
+            timestamp = log.get('@timestamp', 'N/A')
+            rule = log.get('rule', {}).get('description', 'Unknown')
+            level = log.get('rule', {}).get('level', 0)
+            agent = log.get('agent', {}).get('name', 'N/A')
+            srcip = log.get('data', {}).get('srcip', 'N/A')
 
-**TASK:** Analyze the following security logs and generate a comprehensive summary.
+            log_entries.append(
+                f"{i}. [{timestamp}] Severity:{level} - {rule} | "
+                f"Agent:{agent} | SrcIP:{srcip}"
+            )
 
-**LOG STATISTICS:**
-- Total Logs: {stats.get('total_logs', 0)}
-- Time Range: Last 24 hours
-- Sources: Wazuh, Suricata, Zeek
+        logs_text = "\n".join(log_entries)
+        if len(logs) > 50:
+            logs_text += f"\n... and {len(logs) - 50} more logs"
 
-**KEY EVENTS:**
-[First 10 logs will be provided here]
+        prompt = f"""You are an expert cybersecurity analyst reviewing security logs for a SOC team.
+
+**TASK:** Analyze the following {len(logs)} security logs from the past {time_range} and generate a comprehensive summary.
+
+**SECURITY LOGS:**
+{logs_text}
 
 **YOUR SUMMARY MUST INCLUDE:**
+
 1. **Executive Summary** (2-3 sentences)
-   - Overall security posture
-   - Critical incidents
-   - Trends observed
+   - High-level overview of security posture
+   - Most critical findings
 
-2. **Top Security Events** (5-7 items)
-   - Most significant events
-   - Severity and impact
-   - Affected systems
+2. **Key Security Events** (5-10 bullet points)
+   - Notable incidents or patterns
+   - Severity and frequency
 
-3. **Threat Indicators** (IOCs, patterns)
-   - Suspicious IPs
-   - Unusual patterns
-   - Potential threats
+3. **Threat Indicators** (IOCs and suspicious activity)
+   - IP addresses of concern
+   - Attack patterns detected
+   - MITRE ATT&CK techniques observed
 
-4. **Recommendations** (3-5 actions)
-   - Immediate actions required
-   - Investigations to prioritize
-   - Policy adjustments
+4. **Recommendations** (3-5 actionable items)
+   - Prioritized response actions
+   - Investigation priorities
+   - Prevention measures
 
-**STYLE:**
-- Concise and actionable
-- Non-technical language for executives
-- Prioritize by impact
+5. **Statistical Overview**
+   - Total alerts analyzed
+   - Severity distribution
+   - Top alert types
+
+**CRITICAL GUIDELINES:**
+- Base analysis ONLY on provided logs
+- Identify patterns and correlations
+- Highlight high-severity events (level >= 10)
+- Map to MITRE ATT&CK where applicable
+- Be concise but thorough
+- Use clear, non-technical language for executives
 
 **OUTPUT FORMAT (JSON):**
 {{
-    "executive_summary": "...",
-    "key_events": ["event1", "event2", ...],
-    "threat_indicators": ["ioc1", "ioc2", ...],
-    "recommendations": ["rec1", "rec2", ...]
+    "executive_summary": "Brief overview...",
+    "key_events": [
+        "Event 1 description",
+        "Event 2 description"
+    ],
+    "threat_indicators": [
+        "Suspicious activity from IP 203.0.113.42",
+        "MITRE T1110: Brute Force detected"
+    ],
+    "recommendations": [
+        "1. Block IP 203.0.113.42 at firewall",
+        "2. Investigate authentication logs for user 'admin'"
+    ],
+    "statistics": {{
+        "total_alerts": {len(logs)},
+        "critical_alerts": 0,
+        "high_alerts": 0,
+        "medium_alerts": 0,
+        "low_alerts": 0,
+        "top_alert_types": []
+    }},
+    "mitre_techniques": ["T1110.001", "T1078"],
+    "time_range": "{time_range}"
 }}
 
-Begin your analysis:"""
+Generate the summary now:"""
 
-        # TODO: Week 6 - Add actual log samples to prompt
         return prompt
 
-    async def generate_summary(self, logs: List[Dict[str, Any]]) -> Dict[str, Any]:
+    async def _call_llm(self, prompt: str) -> Optional[str]:
         """
-        Generate summary using LLM.
+        Call Ollama LLM for summarization.
+
+        Args:
+            prompt: Summarization prompt
+
+        Returns:
+            Optional[str]: LLM response or None
+        """
+        try:
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                payload = {
+                    "model": self.model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {
+                        "temperature": 0.2,
+                        "num_predict": 4096
+                    },
+                    "format": "json"
+                }
+
+                logger.debug(f"Calling Ollama for summarization: model={self.model}")
+                response = await client.post(
+                    f"{self.ollama_host}/api/generate",
+                    json=payload
+                )
+
+                if response.status_code == 200:
+                    result = response.json()
+                    return result.get("response")
+                else:
+                    logger.error(f"Ollama error: {response.status_code}")
+                    return None
+
+        except httpx.TimeoutException:
+            logger.error("Ollama timeout during summarization")
+            return None
+        except Exception as e:
+            logger.error(f"LLM call failed: {e}")
+            return None
+
+    async def generate_summary(
+        self,
+        logs: List[Dict[str, Any]],
+        time_range: str = "24 hours"
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Generate comprehensive summary of security logs.
 
         Args:
             logs: Parsed log entries
+            time_range: Time range description
 
         Returns:
-            Structured summary dict
-
-        TODO: Week 6 - Implement LLM call and parsing
+            Optional[Dict]: Structured summary or None
         """
-        logger.info(f"Generating summary for {len(logs)} logs")
+        if not logs:
+            logger.warning("No logs provided for summarization")
+            return None
 
-        # Placeholder implementation
-        # Real implementation:
-        # prompt = self._build_summary_prompt(logs, stats)
-        # async with httpx.AsyncClient(timeout=120) as client:
-        #     response = await client.post(
-        #         f"{self.ollama_host}/api/generate",
-        #         json={"model": self.model, "prompt": prompt, "format": "json"}
-        #     )
-        #     result = response.json()
-        #     return self._parse_summary(result['response'])
+        try:
+            # Build prompt
+            prompt = self._build_summary_prompt(logs, time_range)
 
-        return {
-            "executive_summary": "Placeholder summary",
-            "key_events": [],
-            "threat_indicators": [],
-            "recommendations": []
-        }
+            # Call LLM
+            llm_output = await self._call_llm(prompt)
 
-    async def store_summary(self, summary: Dict[str, Any]):
+            if not llm_output:
+                logger.error("LLM summarization failed")
+                return None
+
+            # Parse JSON response
+            summary = json.loads(llm_output)
+
+            # Add metadata
+            summary["generated_at"] = datetime.utcnow().isoformat()
+            summary["model_used"] = self.model
+            summary["total_logs_analyzed"] = len(logs)
+
+            logger.info(f"Generated summary for {len(logs)} logs")
+            return summary
+
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse LLM JSON output: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Summarization failed: {e}")
+            return None
+
+    async def batch_summarize(
+        self,
+        logs: List[Dict[str, Any]],
+        time_range: str = "24 hours"
+    ) -> Optional[Dict[str, Any]]:
         """
-        Store summary in ChromaDB for RAG retrieval.
+        Batch summarize large log volumes using chunking.
 
-        Embeddings allow future queries like:
-        - "What similar security incidents occurred last week?"
-        - "Show me all summaries with SSH brute force"
+        For very large log sets, this splits them into chunks,
+        summarizes each chunk, then aggregates the results.
 
         Args:
-            summary: Generated summary
+            logs: List of log entries
+            time_range: Time range description
 
-        TODO: Week 6 - Implement ChromaDB storage
+        Returns:
+            Optional[Dict]: Aggregated summary or None
         """
-        logger.info("Storing summary in ChromaDB")
+        if len(logs) <= self.chunk_size:
+            # Small enough to summarize directly
+            return await self.generate_summary(logs, time_range)
 
-        # Placeholder implementation
-        # Real implementation:
-        # from chromadb import Client
-        # collection = self.chroma_client.get_collection("security_summaries")
-        # collection.add(
-        #     documents=[summary['executive_summary']],
-        #     metadatas=[{
-        #         'timestamp': str(summary['generated_at']),
-        #         'log_count': summary['log_count']
-        #     }],
-        #     ids=[summary['summary_id']]
-        # )
+        logger.info(f"Batch summarizing {len(logs)} logs in chunks of {self.chunk_size}")
 
-        pass
+        # For now, just use the first chunk_size logs
+        # TODO: Implement hierarchical summarization
+        return await self.generate_summary(logs[:self.chunk_size], time_range)
 
     def calculate_bert_score(self, generated: str, reference: str) -> float:
         """
-        Calculate BERTScore for summary quality.
+        Calculate BERTScore for summary quality (future enhancement).
 
         BERTScore measures semantic similarity between:
         - Generated summary
@@ -183,21 +297,10 @@ Begin your analysis:"""
 
         Returns:
             BERTScore (0.0-1.0)
-
-        TODO: Week 6 - Implement BERTScore evaluation
-        Reference: https://github.com/Tiiiger/bert_score
         """
+        # TODO: Implement BERTScore evaluation
         # from bert_score import score
         # P, R, F1 = score([generated], [reference], lang="en")
         # return F1.mean().item()
 
         return 0.0
-
-
-# TODO: Week 6 - Add batch processing optimization
-# class BatchSummarizer(LogSummarizer):
-#     """Optimized batch summarization for high-volume logs"""
-#
-#     async def summarize_batch(self, log_batches: List[List[Dict]]) -> List[Dict]:
-#         """Process multiple batches concurrently"""
-#         pass

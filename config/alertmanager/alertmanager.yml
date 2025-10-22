@@ -1,0 +1,151 @@
+# ============================================================================
+# AlertManager Configuration for AI-SOC
+# ============================================================================
+
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: '${SMTP_HOST:-smtp.gmail.com}:${SMTP_PORT:-587}'
+  smtp_from: '${SMTP_FROM:-ai-soc@example.com}'
+  smtp_auth_username: '${SMTP_USERNAME:-your-email@example.com}'
+  smtp_auth_password: '${SMTP_PASSWORD:-changeme}'
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+
+# Templates for notifications
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Route tree
+route:
+  group_by: ['alertname', 'cluster', 'component']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'default'
+
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 10s
+      repeat_interval: 1h
+
+    # Warning alerts - grouped notification
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 1m
+      repeat_interval: 4h
+
+    # Infrastructure alerts
+    - match:
+        component: infrastructure
+      receiver: 'infrastructure-team'
+
+    # SIEM alerts
+    - match:
+        component: siem
+      receiver: 'security-team'
+
+    # SOAR alerts
+    - match:
+        component: soar
+      receiver: 'security-team'
+
+    # AI services alerts
+    - match:
+        component: ai-services
+      receiver: 'ml-team'
+
+# Inhibition rules (suppress redundant alerts)
+inhibit_rules:
+  # Inhibit warning if critical alert is firing
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']
+
+  # Inhibit container alerts if service is down
+  - source_match:
+      alertname: 'ServiceDown'
+    target_match_re:
+      alertname: 'Container.*'
+    equal: ['instance']
+
+# Receivers
+receivers:
+  # Default receiver (console logging)
+  - name: 'default'
+    webhook_configs:
+      - url: 'http://localhost:5001/api/v1/hooks/alertmanager'
+        send_resolved: true
+
+  # Critical alerts - Email + Slack
+  - name: 'critical-alerts'
+    email_configs:
+      - to: '${SMTP_TO:-security-team@example.com}'
+        headers:
+          Subject: '[CRITICAL] AI-SOC Alert: {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>Critical Alert Fired</h2>
+          <p><strong>Alert:</strong> {{ .GroupLabels.alertname }}</p>
+          <p><strong>Component:</strong> {{ .GroupLabels.component }}</p>
+          <p><strong>Instance:</strong> {{ .CommonLabels.instance }}</p>
+          <p><strong>Summary:</strong> {{ .CommonAnnotations.summary }}</p>
+          <p><strong>Description:</strong> {{ .CommonAnnotations.description }}</p>
+          <p><strong>Time:</strong> {{ .StartsAt }}</p>
+        send_resolved: true
+
+    slack_configs:
+      - channel: '#ai-soc-alerts'
+        title: 'CRITICAL: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Summary:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Instance:* {{ .Labels.instance }}
+          *Component:* {{ .Labels.component }}
+          {{ end }}
+        color: 'danger'
+        send_resolved: true
+
+  # Warning alerts - Email only
+  - name: 'warning-alerts'
+    email_configs:
+      - to: '${SMTP_TO:-security-team@example.com}'
+        headers:
+          Subject: '[WARNING] AI-SOC Alert: {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>Warning Alert</h2>
+          <p><strong>Alert:</strong> {{ .GroupLabels.alertname }}</p>
+          <p><strong>Component:</strong> {{ .GroupLabels.component }}</p>
+          <p><strong>Summary:</strong> {{ .CommonAnnotations.summary }}</p>
+        send_resolved: true
+
+  # Infrastructure team
+  - name: 'infrastructure-team'
+    email_configs:
+      - to: 'infrastructure@example.com'
+        headers:
+          Subject: '[AI-SOC] Infrastructure Alert: {{ .GroupLabels.alertname }}'
+        send_resolved: true
+
+  # Security team
+  - name: 'security-team'
+    email_configs:
+      - to: 'security-team@example.com'
+        headers:
+          Subject: '[AI-SOC] Security Alert: {{ .GroupLabels.alertname }}'
+        send_resolved: true
+    slack_configs:
+      - channel: '#security-alerts'
+        send_resolved: true
+
+  # ML team
+  - name: 'ml-team'
+    email_configs:
+      - to: 'ml-team@example.com'
+        headers:
+          Subject: '[AI-SOC] ML Service Alert: {{ .GroupLabels.alertname }}'
+        send_resolved: true

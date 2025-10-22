@@ -139,6 +139,10 @@ class TriageResponse(BaseModel):
     model_used: str = Field(..., description="LLM model identifier")
     processing_time_ms: Optional[int] = Field(None, description="Analysis duration")
 
+    # ML Inference Metadata (Phase 3 integration)
+    ml_prediction: Optional[str] = Field(None, description="ML model prediction")
+    ml_confidence: Optional[float] = Field(None, description="ML model confidence")
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -160,4 +164,5 @@ class HealthResponse(BaseModel):
     service: str
     version: str
     ollama_connected: bool
+    ml_api_connected: bool = False
     timestamp: datetime = Field(default_factory=datetime.utcnow)

@@ -1,0 +1,257 @@
+# ============================================================================
+# AI-SOC Network Analysis Stack (Linux Only)
+# ============================================================================
+# Components:
+# - Suricata: IDS/IPS for network threat detection
+# - Zeek: Passive network traffic analyzer
+# - Filebeat: Log shipper to Wazuh
+#
+# IMPORTANT: This stack requires Linux host due to network_mode: host
+# Windows users should deploy this on WSL2, Linux VM, or dedicated sensor
+# ============================================================================
+
+version: '3.8'
+
+services:
+  # ============================================================================
+  # SURICATA IDS/IPS
+  # ============================================================================
+  suricata:
+    image: jasonish/suricata:7.0.2
+    container_name: network-suricata
+    hostname: suricata
+    restart: unless-stopped
+
+    # CRITICAL: network_mode: host required for packet capture
+    # Not supported on Windows Docker Desktop
+    network_mode: host
+
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+
+    environment:
+      - SURICATA_OPTIONS=-i ${MONITOR_INTERFACE:-eth0}
+
+    volumes:
+      - ../config/suricata/suricata.yaml:/etc/suricata/suricata.yaml:ro
+      - ../config/suricata/rules:/etc/suricata/rules:ro
+      - suricata-logs:/var/log/suricata
+      - suricata-data:/var/lib/suricata
+
+    command: ["-i", "${MONITOR_INTERFACE:-eth0}", "-v"]
+
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep suricata || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+
+  # ============================================================================
+  # ZEEK (Network Security Monitor)
+  # ============================================================================
+  zeek:
+    image: zeek/zeek:6.0.3
+    container_name: network-zeek
+    hostname: zeek
+    restart: unless-stopped
+
+    # CRITICAL: network_mode: host required for packet capture
+    network_mode: host
+
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+
+    environment:
+      - ZEEK_INTERFACE=${MONITOR_INTERFACE:-eth0}
+
+    volumes:
+      - ../config/zeek/local.zeek:/usr/local/zeek/share/zeek/site/local.zeek:ro
+      - ../config/zeek/node.cfg:/usr/local/zeek/etc/node.cfg:ro
+      - zeek-logs:/usr/local/zeek/logs
+      - zeek-spool:/usr/local/zeek/spool
+
+    command: ["zeekctl", "deploy"]
+
+    healthcheck:
+      test: ["CMD-SHELL", "zeekctl status || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+
+  # ============================================================================
+  # FILEBEAT (Log Shipper to Wazuh)
+  # ============================================================================
+  filebeat-network:
+    image: docker.elastic.co/beats/filebeat:8.11.3
+    container_name: network-filebeat
+    hostname: filebeat-network
+    restart: unless-stopped
+
+    user: root
+
+    volumes:
+      - ../config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ../config/filebeat/modules.d:/usr/share/filebeat/modules.d:ro
+      - suricata-logs:/var/log/suricata:ro
+      - zeek-logs:/var/log/zeek:ro
+      - filebeat-data:/usr/share/filebeat/data
+
+    command: filebeat -e -strict.perms=false
+
+    networks:
+      - network-analysis
+
+    depends_on:
+      - suricata
+      - zeek
+
+    healthcheck:
+      test: ["CMD-SHELL", "filebeat test output || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # ============================================================================
+  # SURICATA-UPDATE (Rule Management)
+  # ============================================================================
+  suricata-update:
+    image: jasonish/suricata:7.0.2
+    container_name: network-suricata-update
+    hostname: suricata-update
+
+    volumes:
+      - ../config/suricata/suricata.yaml:/etc/suricata/suricata.yaml:ro
+      - ../config/suricata/rules:/var/lib/suricata/rules
+
+    command: ["suricata-update", "--data-dir", "/var/lib/suricata"]
+
+    networks:
+      - network-analysis
+
+    deploy:
+      restart_policy:
+        condition: none
+
+# ==============================================================================
+# NETWORKS
+# ==============================================================================
+networks:
+  network-analysis:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${NETWORK_ANALYSIS_SUBNET:-172.29.0.0/24}
+
+# ==============================================================================
+# VOLUMES
+# ==============================================================================
+volumes:
+  suricata-logs:
+    driver: local
+  suricata-data:
+    driver: local
+  zeek-logs:
+    driver: local
+  zeek-spool:
+    driver: local
+  filebeat-data:
+    driver: local
+
+# ==============================================================================
+# DEPLOYMENT NOTES - CRITICAL WINDOWS INCOMPATIBILITY
+# ==============================================================================
+#
+# LINUX DEPLOYMENT ONLY:
+# This stack CANNOT run on Windows Docker Desktop due to network_mode: host
+# requirement for packet capture. Deploy using one of these options:
+#
+# OPTION 1: WSL2 with Docker (Recommended for Windows users)
+# 1. Install WSL2: wsl --install
+# 2. Install Docker in WSL2: curl -fsSL https://get.docker.com | sh
+# 3. Configure network interface: export MONITOR_INTERFACE=eth0
+# 4. Deploy: docker-compose -f network-analysis-stack.yml up -d
+#
+# OPTION 2: Linux Virtual Machine
+# 1. Deploy Ubuntu Server VM (min 4GB RAM, 2 CPU cores)
+# 2. Install Docker: sudo apt-get update && sudo apt-get install docker.io
+# 3. Configure promiscuous mode on network adapter
+# 4. Deploy stack
+#
+# OPTION 3: Physical Linux Sensor
+# 1. Deploy on dedicated Linux host with network tap/span port
+# 2. Best for production environments
+# 3. Minimal performance overhead
+#
+# PREREQUISITES:
+# 1. Identify network interface: ip addr show or ifconfig
+# 2. Set MONITOR_INTERFACE in .env file
+# 3. Ensure interface supports promiscuous mode
+# 4. Update Suricata rules: docker run --rm -v $(pwd)/config/suricata/rules:/rules \
+#    jasonish/suricata:7.0.2 suricata-update --data-dir /rules
+#
+# QUICK START (Linux):
+# export MONITOR_INTERFACE=eth0
+# docker-compose -f network-analysis-stack.yml up -d
+#
+# VERIFY PACKET CAPTURE:
+# docker logs network-suricata
+# docker logs network-zeek
+#
+# INTEGRATION WITH WAZUH:
+# Filebeat ships logs to Wazuh Manager (configured in filebeat.yml)
+# Wazuh processes and indexes network alerts
+# Dashboard displays IDS/IPS alerts and network anomalies
+#
+# RULE UPDATES:
+# Suricata rules auto-update from Emerging Threats (free)
+# Manual update: docker-compose run --rm suricata-update
+#
+# WINDOWS ALTERNATIVE:
+# For Windows-native packet capture and analysis:
+# 1. Use Npcap + Wireshark for packet capture
+# 2. Export PCAPs and analyze in AI-SOC ML pipeline
+# 3. Deploy Suricata/Zeek on Linux VM and forward to Windows SIEM
+#
+# RESOURCE REQUIREMENTS:
+# - RAM: 6-8GB (Suricata 4GB + Zeek 4GB + overhead)
+# - CPU: 4 cores minimum (traffic-dependent)
+# - Disk: 50GB+ for packet logs
+# - Network: Dedicated capture interface or tap/span port
+#
+# PERFORMANCE TUNING:
+# - Adjust AF_PACKET threads in suricata.yaml
+# - Tune Zeek cluster configuration in node.cfg
+# - Monitor packet drop stats: docker exec network-suricata suricata-update --dump-stats
+#
+# ==============================================================================

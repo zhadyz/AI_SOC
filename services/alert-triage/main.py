@@ -88,15 +88,23 @@ async def health_check():
     """
     Health check endpoint.
 
-    Returns service status and Ollama connectivity.
+    Returns service status, Ollama connectivity, and ML API status.
     """
     ollama_connected = await llm_client.check_health()
+    ml_connected = await llm_client.ml_client.check_health() if settings.ml_enabled else False
+
+    status = "healthy"
+    if not ollama_connected:
+        status = "degraded"
+    elif settings.ml_enabled and not ml_connected:
+        status = "partial"  # LLM works but ML is down
 
     return HealthResponse(
-        status="healthy" if ollama_connected else "degraded",
+        status=status,
         service=settings.service_name,
         version=settings.service_version,
-        ollama_connected=ollama_connected
+        ollama_connected=ollama_connected,
+        ml_api_connected=ml_connected
     )
 
 

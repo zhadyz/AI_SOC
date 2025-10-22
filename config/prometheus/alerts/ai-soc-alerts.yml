@@ -1,0 +1,250 @@
+# ============================================================================
+# AI-SOC Alert Rules for Prometheus
+# ============================================================================
+
+groups:
+  # ============================================================================
+  # Infrastructure Alerts
+  # ============================================================================
+  - name: infrastructure
+    interval: 30s
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 80% (current: {{ $value | humanize }}%)"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 85% (current: {{ $value | humanize }}%)"
+
+      - alert: DiskSpaceLow
+        expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|ramfs"} / node_filesystem_size_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Disk space low on {{ $labels.instance }}"
+          description: "Disk usage is above 90% on {{ $labels.mountpoint }} (current: {{ $value | humanize }}%)"
+
+      - alert: ServiceDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 2 minutes"
+
+  # ============================================================================
+  # Container Health Alerts
+  # ============================================================================
+  - name: containers
+    interval: 30s
+    rules:
+      - alert: ContainerHighCPU
+        expr: rate(container_cpu_usage_seconds_total{name!=""}[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: containers
+        annotations:
+          summary: "Container {{ $labels.name }} high CPU usage"
+          description: "Container CPU usage is above 80% (current: {{ $value | humanize }}%)"
+
+      - alert: ContainerHighMemory
+        expr: (container_memory_usage_bytes{name!=""} / container_spec_memory_limit_bytes{name!=""}) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          component: containers
+        annotations:
+          summary: "Container {{ $labels.name }} high memory usage"
+          description: "Container memory usage is above 90% (current: {{ $value | humanize }}%)"
+
+      - alert: ContainerRestarting
+        expr: rate(container_last_seen{name!=""}[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          component: containers
+        annotations:
+          summary: "Container {{ $labels.name }} is restarting frequently"
+          description: "Container has restarted multiple times in the last 5 minutes"
+
+  # ============================================================================
+  # SIEM Stack Alerts
+  # ============================================================================
+  - name: siem
+    interval: 30s
+    rules:
+      - alert: WazuhManagerDown
+        expr: up{job="wazuh-manager"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: siem
+        annotations:
+          summary: "Wazuh Manager is down"
+          description: "Wazuh Manager has been unreachable for more than 2 minutes"
+
+      - alert: WazuhIndexerDown
+        expr: up{job="wazuh-indexer"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: siem
+        annotations:
+          summary: "Wazuh Indexer is down"
+          description: "Wazuh Indexer has been unreachable for more than 2 minutes"
+
+      - alert: HighAlertRate
+        expr: rate(wazuh_alerts_total[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          component: siem
+        annotations:
+          summary: "High SIEM alert rate"
+          description: "Alert rate is above 1000/min (current: {{ $value | humanize }}/min)"
+
+  # ============================================================================
+  # SOAR Stack Alerts
+  # ============================================================================
+  - name: soar
+    interval: 30s
+    rules:
+      - alert: TheHiveDown
+        expr: up{job="thehive"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: soar
+        annotations:
+          summary: "TheHive is down"
+          description: "TheHive case management platform is unreachable"
+
+      - alert: CortexDown
+        expr: up{job="cortex"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: soar
+        annotations:
+          summary: "Cortex is down"
+          description: "Cortex analysis engine is unreachable"
+
+      - alert: ShuffleDown
+        expr: up{job="shuffle-backend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: soar
+        annotations:
+          summary: "Shuffle orchestration is down"
+          description: "Shuffle workflow automation platform is unreachable"
+
+  # ============================================================================
+  # AI Services Alerts
+  # ============================================================================
+  - name: ai-services
+    interval: 30s
+    rules:
+      - alert: MLInferenceDown
+        expr: up{job="ml-inference"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: ai-services
+        annotations:
+          summary: "ML Inference API is down"
+          description: "Machine learning inference service is unreachable"
+
+      - alert: MLInferenceHighLatency
+        expr: histogram_quantile(0.95, rate(ml_inference_duration_seconds_bucket[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: ai-services
+        annotations:
+          summary: "ML inference latency is high"
+          description: "95th percentile inference time is above 100ms (current: {{ $value | humanize }}s)"
+
+      - alert: AlertTriageDown
+        expr: up{job="alert-triage"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: ai-services
+        annotations:
+          summary: "Alert Triage service is down"
+          description: "AI-powered alert triage service is unreachable"
+
+      - alert: RAGServiceDown
+        expr: up{job="rag-service"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          component: ai-services
+        annotations:
+          summary: "RAG service is down"
+          description: "Retrieval-Augmented Generation service is unreachable"
+
+      - alert: ChromaDBDown
+        expr: up{job="chromadb"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          component: ai-services
+        annotations:
+          summary: "ChromaDB is down"
+          description: "Vector database for RAG is unreachable"
+
+  # ============================================================================
+  # Database Alerts
+  # ============================================================================
+  - name: databases
+    interval: 30s
+    rules:
+      - alert: CassandraDown
+        expr: up{job="cassandra"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Cassandra database is down"
+          description: "Cassandra backend for TheHive/Cortex is unreachable"
+
+      - alert: MinIODown
+        expr: up{job="minio"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: storage
+        annotations:
+          summary: "MinIO storage is down"
+          description: "S3-compatible object storage is unreachable"
+
+      - alert: OpenSearchDown
+        expr: up{job="opensearch"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "OpenSearch is down"
+          description: "OpenSearch database for Shuffle is unreachable"

@@ -1,31 +1,29 @@
-# Mission Context - project
+# Mission Context - Test
 
-**Last Updated**: 2025-10-13
+**Last Updated**: 2025-10-22
 
-## Current Mission
-Build and deploy project with excellence
+## Mission
+Build Test with augmented capabilities
 
 ## Phase
-**Phase 1 of 5: Foundation**
+Phase 1: Foundation
 
-## Active Objectives
-1. [TODO] Set up project structure
-2. [TODO] Establish development workflow
-3. [TODO] Implement core features
+## Tech Stack
+Python
 
-## Technical State
-- **Type**: ml-system
-- **Tech Stack**: Python/PyTorch
-- **Version**: 0.1.0
-
-## Blockers
-None currently
+## MCP Capabilities Active
+- firecrawl, puppeteer, playwright, chrome-devtools (web/browser)
+- serena (code intelligence)
+- context7 (documentation)
+- markitdown (format conversion)
+- github, docker (deployment)
+- huggingface (AI/ML)
+- memory, filesystem (persistence/files)
 
 ## Next Priorities
 1. Define requirements
-2. Set up environment
-3. Begin implementation
+2. Begin implementation
+3. Leverage MCP capabilities
 
 ---
-
-**mendicant_bias**: This context is maintained by the supreme orchestrator
+This context persists across sessions via /awaken

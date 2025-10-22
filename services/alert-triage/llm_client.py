@@ -12,6 +12,7 @@ from typing import Optional, Dict, Any
 import httpx
 from config import settings
 from models import SecurityAlert, TriageResponse, SeverityLevel, AlertCategory, IOC, TriageRecommendation
+from ml_client import MLInferenceClient, MLPrediction, enrich_llm_prompt_with_ml
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,13 @@ class OllamaClient:
         self.primary_model = settings.primary_model
         self.fallback_model = settings.fallback_model
         self.timeout = settings.llm_timeout
+
+        # Initialize ML inference client
+        self.ml_client = MLInferenceClient(
+            ml_api_url=settings.ml_api_url,
+            timeout=settings.ml_timeout,
+            enabled=settings.ml_enabled
+        )
 
     async def check_health(self) -> bool:
         """
@@ -230,12 +238,14 @@ Begin your analysis now:"""
 
     async def analyze_alert(self, alert: SecurityAlert) -> Optional[TriageResponse]:
         """
-        Main entrypoint: Analyze security alert using LLM.
+        Main entrypoint: Analyze security alert using LLM with ML enhancement.
 
-        Implements fallback logic:
-        1. Try primary model (Foundation-Sec-8B)
-        2. Fall back to secondary model (LLaMA 3.1) if primary fails
-        3. Return None if both fail
+        Workflow:
+        1. Attempt ML prediction for additional context
+        2. Enhance LLM prompt with ML results
+        3. Try primary model (Foundation-Sec-8B)
+        4. Fall back to secondary model (LLaMA 3.1) if primary fails
+        5. Return None if both fail
 
         Args:
             alert: SecurityAlert to analyze
@@ -243,12 +253,25 @@ Begin your analysis now:"""
         Returns:
             Optional[TriageResponse]: Analysis result or None
         """
-        prompt = self._build_triage_prompt(alert)
+        # Step 1: Get ML prediction (if available)
+        ml_prediction = None
+        if settings.ml_enabled:
+            logger.debug("Attempting ML prediction...")
+            ml_prediction = await self.ml_client.predict_with_fallback(alert)
+            if ml_prediction:
+                logger.info(
+                    f"ML prediction: {ml_prediction.prediction} "
+                    f"(confidence={ml_prediction.confidence:.2f})"
+                )
 
-        # Try primary model
+        # Step 2: Build prompt with ML enrichment
+        base_prompt = self._build_triage_prompt(alert)
+        enriched_prompt = enrich_llm_prompt_with_ml(base_prompt, ml_prediction)
+
+        # Step 3: Try primary model
         logger.info(f"Analyzing alert {alert.alert_id} with {self.primary_model}")
         llm_output = await self._call_ollama(
-            prompt,
+            enriched_prompt,
             self.primary_model,
             settings.llm_temperature
         )
@@ -256,13 +279,17 @@ Begin your analysis now:"""
         if llm_output:
             response = self._parse_llm_response(alert, llm_output, self.primary_model)
             if response:
+                # Add ML metadata to response
+                if ml_prediction:
+                    response.ml_prediction = ml_prediction.prediction
+                    response.ml_confidence = ml_prediction.confidence
                 logger.info(f"Alert {alert.alert_id} analyzed successfully")
                 return response
 
-        # Fallback to secondary model
+        # Step 4: Fallback to secondary model
         logger.warning(f"Primary model failed, trying fallback: {self.fallback_model}")
         llm_output = await self._call_ollama(
-            prompt,
+            enriched_prompt,
             self.fallback_model,
             settings.llm_temperature
         )
@@ -270,6 +297,10 @@ Begin your analysis now:"""
         if llm_output:
             response = self._parse_llm_response(alert, llm_output, self.fallback_model)
             if response:
+                # Add ML metadata to response
+                if ml_prediction:
+                    response.ml_prediction = ml_prediction.prediction
+                    response.ml_confidence = ml_prediction.confidence
                 logger.info(f"Alert {alert.alert_id} analyzed with fallback model")
                 return response
 

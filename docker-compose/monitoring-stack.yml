@@ -1,0 +1,376 @@
+# ============================================================================
+# AI-SOC Monitoring Stack
+# ============================================================================
+# Components:
+# - Prometheus: Metrics collection and alerting
+# - Grafana: Visualization and dashboards
+# - AlertManager: Alert routing and notification
+# - Node Exporter: Host metrics collection
+# - cAdvisor: Container metrics collection
+# ============================================================================
+
+version: '3.8'
+
+services:
+  # ============================================================================
+  # PROMETHEUS
+  # ============================================================================
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: monitoring-prometheus
+    hostname: prometheus
+    restart: unless-stopped
+
+    ports:
+      - "9090:9090"
+
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--storage.tsdb.retention.size=10GB'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+
+    volumes:
+      - ../config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../config/prometheus/alerts:/etc/prometheus/alerts:ro
+      - prometheus-data:/prometheus
+
+    networks:
+      - monitoring
+      # Add external networks when deploying with other stacks:
+      # - siem-frontend
+      # - soar-frontend
+      # - ai-network
+
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  # ============================================================================
+  # GRAFANA
+  # ============================================================================
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: monitoring-grafana
+    hostname: grafana
+    restart: unless-stopped
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin123}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,grafana-piechart-panel
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=true
+      - GF_LOG_LEVEL=info
+
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ../config/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../config/grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+    networks:
+      - monitoring
+
+    depends_on:
+      - prometheus
+
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  # ============================================================================
+  # ALERTMANAGER
+  # ============================================================================
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: monitoring-alertmanager
+    hostname: alertmanager
+    restart: unless-stopped
+
+    ports:
+      - "9093:9093"
+
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+
+    volumes:
+      - ../config/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+
+    networks:
+      - monitoring
+
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9093/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+  # ============================================================================
+  # NODE EXPORTER (Host Metrics)
+  # ============================================================================
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: monitoring-node-exporter
+    hostname: node-exporter
+    restart: unless-stopped
+
+    ports:
+      - "9100:9100"
+
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/host'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host:ro
+
+    networks:
+      - monitoring
+
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # ============================================================================
+  # CADVISOR (Container Metrics)
+  # ============================================================================
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: monitoring-cadvisor
+    hostname: cadvisor
+    restart: unless-stopped
+
+    ports:
+      - "8080:8080"
+
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+
+    networks:
+      - monitoring
+
+    privileged: true
+
+    devices:
+      - /dev/kmsg
+
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # ============================================================================
+  # LOKI (Log Aggregation - Optional)
+  # ============================================================================
+  loki:
+    image: grafana/loki:2.9.3
+    container_name: monitoring-loki
+    hostname: loki
+    restart: unless-stopped
+
+    ports:
+      - "3100:3100"
+
+    command: -config.file=/etc/loki/local-config.yaml
+
+    volumes:
+      - ../config/loki/loki-config.yaml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+
+    networks:
+      - monitoring
+
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3100/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  # ============================================================================
+  # PROMTAIL (Log Shipper for Loki)
+  # ============================================================================
+  promtail:
+    image: grafana/promtail:2.9.3
+    container_name: monitoring-promtail
+    hostname: promtail
+    restart: unless-stopped
+
+    volumes:
+      - ../config/promtail/promtail-config.yaml:/etc/promtail/config.yml:ro
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+
+    command: -config.file=/etc/promtail/config.yml
+
+    networks:
+      - monitoring
+
+    depends_on:
+      - loki
+
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+# ==============================================================================
+# NETWORKS
+# ==============================================================================
+networks:
+  monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${MONITORING_SUBNET:-172.28.0.0/24}
+
+  # External networks (connect to other stacks when available)
+  # Uncomment when deploying with other stacks
+  # siem-frontend:
+  #   external: true
+  # soar-frontend:
+  #   external: true
+  # ai-network:
+  #   external: true
+
+# ==============================================================================
+# VOLUMES
+# ==============================================================================
+volumes:
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  alertmanager-data:
+    driver: local
+  loki-data:
+    driver: local
+
+# ==============================================================================
+# DEPLOYMENT NOTES
+# ==============================================================================
+#
+# PREREQUISITES:
+# 1. Set GRAFANA_ADMIN_PASSWORD in .env file
+# 2. Create configuration files:
+#    - config/prometheus/prometheus.yml
+#    - config/prometheus/alerts/*.yml
+#    - config/grafana/provisioning/datasources/prometheus.yml
+#    - config/grafana/dashboards/*.json
+#    - config/alertmanager/alertmanager.yml
+#    - config/loki/loki-config.yaml
+#    - config/promtail/promtail-config.yaml
+#
+# QUICK START:
+# docker-compose -f monitoring-stack.yml up -d
+#
+# ACCESS POINTS:
+# - Grafana: http://localhost:3000 (default: admin / admin123)
+# - Prometheus: http://localhost:9090
+# - AlertManager: http://localhost:9093
+# - cAdvisor: http://localhost:8080
+#
+# INTEGRATION:
+# - Prometheus scrapes metrics from:
+#   - Node Exporter (host metrics)
+#   - cAdvisor (container metrics)
+#   - Wazuh Manager (port 55000)
+#   - TheHive (port 9010)
+#   - ML Inference API (port 8500)
+#   - All AI services
+#
+# DASHBOARDS INCLUDED:
+# - System Overview (CPU, Memory, Disk, Network)
+# - Docker Container Stats
+# - SIEM Stack Health
+# - SOAR Stack Performance
+# - ML Model Metrics (inference time, accuracy)
+# - Alert Rate Trends
+#
+# ALERTING:
+# - Service down alerts
+# - High resource usage (>80% CPU/Memory)
+# - Disk space low (<10% free)
+# - ML inference latency spikes
+# - SIEM log ingestion failures
+#
+# RESOURCE REQUIREMENTS:
+# - Total RAM: ~3-4GB
+# - Total CPU: ~3 cores recommended
+# - Disk: ~15GB (30 days retention)
+#
+# ==============================================================================
