@@ -128,16 +128,7 @@
             z-index: 1;
         }
 
-        #hero-gradient-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-        }
-
-        /* Animated gradient blob - reduced opacity to complement canvas mesh */
+        /* Animated gradient blob */
         .hero::before {
             content: '';
             position: absolute;
@@ -147,9 +138,9 @@
             height: 600px;
             background: radial-gradient(
                 circle at center,
-                rgba(138, 123, 168, 0.15) 0%,
-                rgba(90, 154, 168, 0.1) 35%,
-                rgba(77, 168, 168, 0.05) 60%,
+                rgba(138, 123, 168, 0.2) 0%,
+                rgba(90, 154, 168, 0.15) 35%,
+                rgba(77, 168, 168, 0.1) 60%,
                 transparent 100%
             );
             border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
@@ -188,8 +179,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            position: relative;
-            z-index: 2;
         }
 
         .hero p {
@@ -200,8 +189,6 @@
             line-height: 1.8;
             max-width: 800px;
             margin: 0 auto 3rem;
-            position: relative;
-            z-index: 2;
         }
 
         /* Projects Grid */
@@ -771,7 +758,6 @@
     </header>
 
     <section class="hero">
-        <canvas id="hero-gradient-canvas"></canvas>
         <h1>Research-Grade AI for Real-World Impact</h1>
         <p>
             Detecting network intrusions at 99.28% accuracy.
@@ -1095,9 +1081,6 @@
             init();
         })();
     </script>
-
-    <!-- Interactive Hero Canvas -->
-    <script src="interactive-orb.js" defer></script>
 
     <!-- Three.js Morphing Sphere (Sphere ↔ Logo) -->
     <script type="module" src="three-sphere-morph.js"></script>
