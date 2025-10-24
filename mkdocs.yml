@@ -36,6 +36,9 @@ theme:
 extra_css:
   - stylesheets/custom.css
 
+extra_javascript:
+  - javascripts/custom.js
+
 extra:
   social:
     - icon: fontawesome/brands/github
