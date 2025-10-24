@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="OnyxLab Research - Advanced AI research in security operations and healthcare equity">
+    <title>OnyxLab Research Portal</title>
+    <link rel="icon" type="image/x-icon" href="ai-soc/assets/favicon.ico">
+    <style>
+        /* Import refined font weights */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        /* CSS Variables */
+        :root {
+            --blue-primary: #0a84ff;
+            --purple-accent: #8b7ba8;
+            --teal-accent: #5a9aa8;
+            --gray-100: #ffffff;
+            --gray-200: #e0e0e0;
+            --gray-300: #b0b0b0;
+            --gray-400: #9a9a9a;
+            --gray-500: #808080;
+            --gray-900: #121212;
+            --overlay-light: rgba(255, 255, 255, 0.06);
+            --overlay-medium: rgba(255, 255, 255, 0.12);
+            --overlay-blue: rgba(10, 132, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #000000;
+            color: #e0e0e0;
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Background texture */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                radial-gradient(at 40% 20%, rgba(10, 132, 255, 0.03) 0px, transparent 50%),
+                radial-gradient(at 80% 80%, rgba(138, 123, 168, 0.03) 0px, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(30px) saturate(180%);
+            border-bottom: 1px solid var(--overlay-light);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.03);
+            padding: 1rem 2rem;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: #ffffff;
+            font-size: 1.3rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+        }
+
+        .logo img {
+            width: 40px;
+            height: 40px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #e0e0e0;
+            text-decoration: none;
+            font-size: 0.925rem;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 0.5rem 0;
+            border-bottom: 2px solid transparent;
+            display: inline-block;
+        }
+
+        .nav-links a:hover {
+            color: var(--blue-primary);
+            border-bottom-color: var(--blue-primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 80px;
+            padding: 6rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        /* Animated gradient blob - reduced opacity to complement canvas mesh */
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: 10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(
+                circle at center,
+                rgba(138, 123, 168, 0.15) 0%,
+                rgba(90, 154, 168, 0.1) 35%,
+                rgba(77, 168, 168, 0.05) 60%,
+                transparent 100%
+            );
+            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+            filter: blur(60px);
+            animation: blob-morph 20s ease-in-out infinite;
+            z-index: 0;
+            will-change: transform;
+        }
+
+        @keyframes blob-morph {
+            0%, 100% {
+                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+                transform: translate(30px, -30px) scale(1.05);
+            }
+            50% {
+                border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+                transform: translate(-20px, 20px) scale(0.95);
+            }
+            75% {
+                border-radius: 70% 30% 40% 60% / 40% 70% 50% 30%;
+                transform: translate(20px, 30px) scale(1.02);
+            }
+        }
+
+        /* Canvas gradient mesh */
+        #hero-gradient-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 1;
+        }
+
+        .hero h1,
+        .hero p {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 300;
+            letter-spacing: -0.04em;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-300) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            font-weight: 400;
+            color: var(--gray-400);
+            letter-spacing: -0.01em;
+            line-height: 1.8;
+            max-width: 800px;
+            margin: 0 auto 3rem;
+        }
+
+        /* Projects Grid */
+        .projects {
+            max-width: 1400px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 3rem;
+        }
+
+        .project-card {
+            background: rgba(18, 18, 18, 0.6);
+            border: 1px solid var(--overlay-light);
+            border-radius: 24px;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            will-change: transform;
+        }
+
+        /* Gradient overlay for depth */
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: linear-gradient(
+                135deg,
+                rgba(10, 132, 255, 0.08) 0%,
+                transparent 100%
+            );
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .project-card:hover {
+            transform: translateY(-8px) scale(1.01);
+            border-color: rgba(10, 132, 255, 0.3);
+            box-shadow:
+                0 20px 60px rgba(10, 132, 255, 0.15),
+                0 0 0 1px rgba(10, 132, 255, 0.1);
+            background: rgba(18, 18, 18, 0.8);
+        }
+
+        .project-card:hover::before {
+            opacity: 1;
+        }
+
+        /* Inner glow effect on hover */
+        .project-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 24px;
+            padding: 1px;
+            background: linear-gradient(
+                135deg,
+                rgba(10, 132, 255, 0.4),
+                transparent 50%,
+                rgba(10, 132, 255, 0.4)
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .project-card:hover::after {
+            opacity: 1;
+        }
+
+        /* Ensure content is above pseudo-elements */
+        .project-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .project-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .project-card:hover .project-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .project-title {
+            font-size: 1.8rem;
+            font-weight: 500;
+            color: #ffffff;
+            margin-bottom: 1rem;
+            letter-spacing: -0.03em;
+        }
+
+        .project-description {
+            font-size: 1.05rem;
+            font-weight: 400;
+            color: var(--gray-400);
+            line-height: 1.75;
+            margin-bottom: 1.5rem;
+        }
+
+        .project-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .meta-tag {
+            background: var(--overlay-blue);
+            border: 1px solid rgba(10, 132, 255, 0.2);
+            color: #0a84ff;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .project-card:hover .meta-tag {
+            background: rgba(10, 132, 255, 0.15);
+            border-color: rgba(10, 132, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .meta-tag:hover {
+            background: rgba(10, 132, 255, 0.2);
+            border-color: rgba(10, 132, 255, 0.4);
+        }
+
+        .project-stats {
+            display: flex;
+            gap: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .stat::before {
+            content: '';
+            position: absolute;
+            inset: -10px;
+            background: radial-gradient(circle, rgba(10, 132, 255, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
+        .project-card:hover .stat::before {
+            opacity: 1;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #808080;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #0a84ff 0%, #0066cc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Scroll animation classes */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .fade-in-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Stagger animation for cards */
+        .project-card:nth-child(1) {
+            transition-delay: 0.1s;
+        }
+
+        .project-card:nth-child(2) {
+            transition-delay: 0.2s;
+        }
+
+        /* Footer */
+        .footer {
+            max-width: 1400px;
+            margin: 6rem auto 2rem;
+            padding: 3rem 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #b0b0b0;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: #0a84ff;
+        }
+
+        .copyright {
+            color: #808080;
+            font-size: 0.9rem;
+        }
+
+        /* Accessibility: Reduce motion */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .hero::before {
+                animation: none;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .hero::before {
+                width: 400px;
+                height: 400px;
+                right: -100px;
+            }
+
+            .projects {
+                grid-template-columns: 1fr;
+            }
+
+            .project-card {
+                border-radius: 20px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .tech-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .research-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* New Section Styles */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .section-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--blue-primary);
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            font-size: 1.125rem;
+            color: var(--gray-400);
+            margin-bottom: 3rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+        /* Tech Stack Section */
+        .tech-stack {
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .tech-stack h2 {
+            font-size: 2rem;
+            font-weight: 300;
+            letter-spacing: -0.02em;
+            margin-bottom: 2rem;
+        }
+
+        .tech-list {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .tech-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--overlay-light);
+            border-radius: 12px;
+            padding: 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--gray-300);
+            transition: all 0.3s ease;
+        }
+
+        .tech-item:hover {
+            border-color: rgba(10, 132, 255, 0.3);
+            background: rgba(10, 132, 255, 0.05);
+            transform: translateY(-2px);
+        }
+
+        /* Impact Metrics Section */
+        .impact-metrics {
+            padding: 6rem 0;
+            background: linear-gradient(135deg, rgba(10, 132, 255, 0.03) 0%, rgba(10, 132, 255, 0.01) 100%);
+        }
+
+        .impact-metrics h2 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .metric-card {
+            background: rgba(18, 18, 18, 0.6);
+            border: 1px solid var(--overlay-light);
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(20px);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(10, 132, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(10, 132, 255, 0.15);
+        }
+
+        .metric-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric-value {
+            font-size: 3rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #0a84ff 0%, #0066cc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: var(--gray-200);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-detail {
+            font-size: 0.875rem;
+            color: var(--gray-400);
+        }
+
+        /* Research Highlights Section */
+        .research-highlights {
+            padding: 6rem 0;
+        }
+
+        .research-highlights h2 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .research-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .research-card {
+            background: rgba(18, 18, 18, 0.6);
+            border: 1px solid var(--overlay-light);
+            border-radius: 20px;
+            padding: 2.5rem;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(20px);
+            text-decoration: none;
+            display: block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .research-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 150px;
+            background: linear-gradient(
+                135deg,
+                rgba(10, 132, 255, 0.08) 0%,
+                transparent 100%
+            );
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .research-card:hover::before {
+            opacity: 1;
+        }
+
+        .research-card:hover {
+            transform: translateY(-8px) scale(1.01);
+            border-color: rgba(10, 132, 255, 0.3);
+            box-shadow: 0 20px 60px rgba(10, 132, 255, 0.15);
+        }
+
+        .research-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .research-tag {
+            display: inline-block;
+            background: var(--overlay-blue);
+            border: 1px solid rgba(10, 132, 255, 0.2);
+            color: #0a84ff;
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .research-card h3 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--gray-100);
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .research-card p {
+            font-size: 1rem;
+            color: var(--gray-400);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .read-more {
+            color: var(--blue-primary);
+            font-weight: 500;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .research-card:hover .read-more {
+            transform: translateX(5px);
+        }
+
+        /* Three.js Network Sphere Container - Research Section */
+        #sphere-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 3rem auto;
+            z-index: 1;
+            pointer-events: all;
+            cursor: pointer;
+        }
+
+        @media (max-width: 1024px) {
+            #sphere-container { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="https://onyxlab.ai" class="logo">
+                <img src="ai-soc/assets/logo.png" alt="OnyxLab">
+                <span>OnyxLab Research</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="https://onyxlab.ai">Main Site</a></li>
+                    <li><a href="https://github.com/zhadyz">GitHub</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <canvas id="hero-gradient-canvas"></canvas>
+        <h1>Research-Grade AI for Real-World Impact</h1>
+        <p>
+            Detecting network intrusions at 99.28% accuracy.
+            Diagnosing skin conditions fairly across all populations.
+            AI research solving real problems with measurable outcomes.
+        </p>
+    </section>
+
+    <!-- Social Proof: Technology Stack -->
+    <section class="tech-stack">
+        <div class="container">
+            <p class="section-label">BUILT ON PROVEN TECHNOLOGY</p>
+            <h2>Enterprise-Grade Security Stack</h2>
+            <div class="tech-list">
+                <div class="tech-item">Wazuh SIEM</div>
+                <div class="tech-item">Elastic Stack</div>
+                <div class="tech-item">Suricata IDS</div>
+                <div class="tech-item">MITRE ATT&CK</div>
+                <div class="tech-item">TensorFlow</div>
+                <div class="tech-item">PyTorch</div>
+                <div class="tech-item">Docker</div>
+                <div class="tech-item">NIST Framework</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Impact Metrics -->
+    <section class="impact-metrics">
+        <div class="container">
+            <p class="section-label">RESEARCH IMPACT</p>
+            <h2>Measurable Results</h2>
+            <p class="section-subtitle">Quantifiable improvements in threat detection and security operations</p>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-icon">🎯</div>
+                    <div class="metric-value">99.28%</div>
+                    <div class="metric-label">Detection Accuracy</div>
+                    <div class="metric-detail">On CICIDS2017 with 15 attack types</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon">⚡</div>
+                    <div class="metric-value">&lt;100ms</div>
+                    <div class="metric-label">Response Time</div>
+                    <div class="metric-detail">Real-time threat classification</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon">📊</div>
+                    <div class="metric-value">2.8M+</div>
+                    <div class="metric-label">Network Events</div>
+                    <div class="metric-detail">Processed and analyzed</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon">🛡️</div>
+                    <div class="metric-value">15+</div>
+                    <div class="metric-label">Attack Types</div>
+                    <div class="metric-detail">Detected and classified</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="projects">
+        <a href="/ai-soc/" class="project-card">
+            <div class="project-icon">🛡️</div>
+            <h2 class="project-title">AI-Augmented Security Operations Center</h2>
+            <p class="project-description">
+                Production-grade implementation of machine learning-enhanced intrusion detection and security automation.
+                Integrates enterprise SIEM with advanced ML models achieving 99.28% detection accuracy.
+            </p>
+            <div class="project-meta">
+                <span class="meta-tag">Cybersecurity</span>
+                <span class="meta-tag">Machine Learning</span>
+                <span class="meta-tag">Production Ready</span>
+            </div>
+            <div class="project-stats">
+                <div class="stat">
+                    <span class="stat-label">Accuracy</span>
+                    <span class="stat-value">99.28%</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">False Positives</span>
+                    <span class="stat-value">0.25%</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Services</span>
+                    <span class="stat-value">6</span>
+                </div>
+            </div>
+        </a>
+
+        <a href="/fairness/" class="project-card">
+            <div class="project-icon">🏥</div>
+            <h2 class="project-title">Fairness in Skin Cancer Detection</h2>
+            <p class="project-description">
+                Research-driven AI system for equitable dermatological diagnosis across all skin tones.
+                Implements bias mitigation techniques for fair healthcare outcomes across Fitzpatrick skin types.
+            </p>
+            <div class="project-meta">
+                <span class="meta-tag">Healthcare AI</span>
+                <span class="meta-tag">Fairness & Equity</span>
+                <span class="meta-tag">Medical Imaging</span>
+            </div>
+            <div class="project-stats">
+                <div class="stat">
+                    <span class="stat-label">Framework</span>
+                    <span class="stat-value">PyTorch</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Skin Types</span>
+                    <span class="stat-value">I-VI</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Status</span>
+                    <span class="stat-value">Active</span>
+                </div>
+            </div>
+        </a>
+    </section>
+
+    <!-- Research Highlights -->
+    <section class="research-highlights">
+        <div class="container">
+            <p class="section-label">RESEARCH OUTPUT</p>
+            <h2>Latest Research & Technical Analysis</h2>
+            <p class="section-subtitle">Deep-dive explorations of AI-powered security operations and fairness in healthcare</p>
+            
+            <!-- Interactive Logo Sphere -->
+            <div id="sphere-container"></div>
+
+            <div class="research-grid">
+                <a href="ai-soc/ml-accuracy.html" class="research-card">
+                    <div class="research-content">
+                        <span class="research-tag">Machine Learning</span>
+                        <h3>99.28% IDS Accuracy: ML Breakthrough</h3>
+                        <p>Comprehensive evaluation of ensemble models for network intrusion detection on CICIDS2017 dataset</p>
+                        <span class="read-more">Read Analysis →</span>
+                    </div>
+                </a>
+
+                <a href="ai-soc/architecture.html" class="research-card">
+                    <div class="research-content">
+                        <span class="research-tag">System Architecture</span>
+                        <h3>SIEM Integration Architecture</h3>
+                        <p>Enterprise-grade security operations center with AI-powered threat detection and automated response</p>
+                        <span class="read-more">Read Analysis →</span>
+                    </div>
+                </a>
+
+                <a href="fairness/methodology.html" class="research-card">
+                    <div class="research-content">
+                        <span class="research-tag">Healthcare AI</span>
+                        <h3>Bias Mitigation in Medical Imaging</h3>
+                        <p>Fairness-aware techniques for equitable skin cancer detection across all Fitzpatrick skin types</p>
+                        <span class="read-more">Read Analysis →</span>
+                    </div>
+                </a>
+
+                <a href="ai-soc/performance.html" class="research-card">
+                    <div class="research-content">
+                        <span class="research-tag">Performance</span>
+                        <h3>Real-Time Threat Classification</h3>
+                        <p>Optimizing ML inference for sub-100ms detection latency in production environments</p>
+                        <span class="read-more">Read Analysis →</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer" id="contact">
+        <div class="footer-links">
+            <a href="https://github.com/zhadyz">GitHub</a>
+            <a href="https://github.com/zhadyz/AI_SOC">AI-SOC Repository</a>
+            <a href="https://github.com/zhadyz/fairness-skin-cancer-detection">Fairness Repository</a>
+            <a href="mailto:abdul.bari8019@coyote.csusb.edu">Contact</a>
+        </div>
+        <p class="copyright">
+            © 2025 OnyxLab Research. Open source under Apache 2.0 License.
+        </p>
+    </footer>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // Scroll-triggered animations
+            function initScrollAnimations() {
+                const observerOptions = {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -100px 0px'
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('fade-in-visible');
+                        }
+                    });
+                }, observerOptions);
+
+                const projectCards = document.querySelectorAll('.project-card');
+                projectCards.forEach((card) => {
+                    card.classList.add('fade-in');
+                    observer.observe(card);
+                });
+
+                console.log(`[Portal] Initialized scroll animations for ${projectCards.length} cards`);
+            }
+
+            // Smooth scroll for anchor links
+            function initSmoothScroll() {
+                const links = document.querySelectorAll('a[href^="#"]');
+
+                links.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        const href = link.getAttribute('href');
+                        if (href === '#') return;
+
+                        const target = document.querySelector(href);
+                        if (target) {
+                            e.preventDefault();
+                            target.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
+                        }
+                    });
+                });
+
+                console.log('[Portal] Smooth scroll initialized');
+            }
+
+            // Stats value animation (counter)
+            function animateStats() {
+                const stats = document.querySelectorAll('.stat-value');
+
+                const observerOptions = {
+                    threshold: 0.5,
+                    rootMargin: '0px'
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting && !entry.target.dataset.animated) {
+                            animateValue(entry.target);
+                            entry.target.dataset.animated = 'true';
+                        }
+                    });
+                }, observerOptions);
+
+                stats.forEach(stat => observer.observe(stat));
+            }
+
+            function animateValue(element) {
+                const text = element.textContent;
+                const hasPercent = text.includes('%');
+                const value = parseFloat(text);
+
+                if (isNaN(value)) return;
+
+                const duration = 1500;
+                const steps = 60;
+                const increment = value / steps;
+                let current = 0;
+                let step = 0;
+
+                const timer = setInterval(() => {
+                    step++;
+                    current += increment;
+
+                    if (step >= steps) {
+                        current = value;
+                        clearInterval(timer);
+                    }
+
+                    const displayValue = hasPercent
+                        ? current.toFixed(2) + '%'
+                        : Math.round(current).toString();
+
+                    element.textContent = displayValue;
+                }, duration / steps);
+            }
+
+            // Initialize all enhancements
+            function init() {
+                console.log('[Portal] Initializing enhancements...');
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', init);
+                    return;
+                }
+
+                initScrollAnimations();
+                initSmoothScroll();
+                animateStats();
+
+                console.log('[Portal] All enhancements initialized successfully');
+            }
+
+            // Performance metrics logging
+            window.addEventListener('load', () => {
+                if ('performance' in window) {
+                    setTimeout(() => {
+                        const perfData = performance.getEntriesByType('navigation')[0];
+                        if (perfData) {
+                            console.log('[Portal] Performance Metrics:', {
+                                'DOM Content Loaded': (perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart).toFixed(2) + 'ms',
+                                'Page Load': (perfData.loadEventEnd - perfData.loadEventStart).toFixed(2) + 'ms',
+                                'Total Load Time': (perfData.loadEventEnd - perfData.fetchStart).toFixed(2) + 'ms'
+                            });
+                        }
+                    }, 0);
+                }
+            });
+
+            // Auto-initialize
+            init();
+        })();
+    </script>
+
+    <!-- Interactive Orb with Particle Network -->
+    <script src="interactive-orb.js" defer></script>
+    
+    <!-- Three.js Morphing Sphere (Sphere ↔ Logo) -->
+    <script type="module" src="three-sphere-morph.js"></script>
+</body>
+</html>
