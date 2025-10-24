@@ -36,7 +36,7 @@ class MorphingSphere {
             particleCount: 60,
             sphereRadius: 150,
             logoSize: 180,
-            morphSpeed: 0.12, // Faster for snap effect
+            morphSpeed: 0.06, // Slower, smoother transformation
             morphBounce: 0.15, // Bounce overshoot amount
             colors: {
                 blue: 0x0a84ff,
@@ -325,9 +325,9 @@ class MorphingSphere {
         const rect = researchGrid.getBoundingClientRect();
         const windowHeight = window.innerHeight;
 
-        // Trigger when research cards reach top 30% of viewport
-        // This ensures user has scrolled significantly down the page
-        const threshold = windowHeight * 0.3;
+        // Trigger when research cards reach middle 50% of viewport
+        // About 2 scroll wheel scrolls before cards are fully visible
+        const threshold = windowHeight * 0.5;
         const currentPosition = rect.top;
 
         // Simple threshold check - snap to diamond when crossed
