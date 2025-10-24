@@ -1,30 +1,55 @@
 # Authors & Acknowledgments
 
+---
+
 ## Survey Research Team
 
-**Student Researchers:**
-- Siddhant Srinivas
-- Brandon Kirk  
-- Julissa Zendejas
-- Michael Espino
-- Matthew Boskovich
-- Abdul Bari
+### Student Researchers
 
-**Faculty Advisors:**
-- Dr. Khalil Dajani
-- Dr. Nabeel Alzahrani
+<div class="author-grid">
 
-**Institution:**
-School of Computer Science & Engineering
+**Siddhant Srinivas**
+_Research Contributor_
+
+**Brandon Kirk**
+_Research Contributor_
+
+**Julissa Zendejas**
+_Research Contributor_
+
+**Michael Espino**
+_Research Contributor_
+
+**Matthew Boskovich**
+_Research Contributor_
+
+**Abdul Bari**
+_Research Contributor & Implementation Lead_
+
+</div>
+
+### Faculty Advisors
+
+**Dr. Khalil Dajani**
+_Faculty Advisor_
+
+**Dr. Nabeel Alzahrani**
+_Faculty Advisor_
+
+### Institution
+
+**School of Computer Science & Engineering**
 California State University, San Bernardino
+
+---
 
 ## Implementation Developer
 
 **Abdul Bari**
 Graduate Student, Computer Science
 California State University, San Bernardino
-Email: abdul.bari8019@coyote.csusb.edu
-GitHub: [zhadyz](https://github.com/zhadyz)
+
+[abdul.bari8019@coyote.csusb.edu](mailto:abdul.bari8019@coyote.csusb.edu) • [GitHub](https://github.com/zhadyz)
 
 ## Acknowledgments
 

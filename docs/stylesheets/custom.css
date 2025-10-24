@@ -529,3 +529,162 @@ article h1:contains("Research") ~ * {
   padding-top: 1.5rem;
   margin-top: 3rem;
 }
+
+/* ============================================================================
+   Authors Page - Elegant Team Presentation
+   ============================================================================ */
+
+/* Authors Page Title */
+article h1:contains("Authors") {
+  font-size: 2rem !important;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid rgba(10, 132, 255, 0.3);
+  padding-bottom: 1rem;
+}
+
+/* Section Dividers */
+.md-typeset hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+  margin: 3rem 0;
+}
+
+/* Author Grid Layout */
+.author-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+  padding: 0;
+}
+
+/* Individual Author Cards */
+.author-grid p {
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.05) 0%, rgba(10, 132, 255, 0.02) 100%);
+  border: 1px solid rgba(10, 132, 255, 0.15);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 0 !important;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.author-grid p:hover {
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.08) 0%, rgba(10, 132, 255, 0.04) 100%);
+  border-color: rgba(10, 132, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(10, 132, 255, 0.15);
+}
+
+/* Author Names */
+.author-grid strong {
+  display: block;
+  font-size: 1.05rem !important;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+/* Author Roles */
+.author-grid em {
+  display: block;
+  font-size: 0.8rem !important;
+  color: #0a84ff;
+  font-style: normal;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Faculty Section Styling */
+article h3:contains("Faculty") ~ p strong {
+  color: #0a84ff;
+  font-size: 1.1rem !important;
+}
+
+article h3:contains("Faculty") ~ p em {
+  color: #a0a0a0;
+}
+
+/* Institution Section */
+article h3:contains("Institution") ~ p {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border-left: 3px solid #0a84ff;
+  padding: 1rem 1.5rem;
+  border-radius: 0 6px 6px 0;
+  margin-top: 1rem;
+}
+
+article h3:contains("Institution") ~ p strong {
+  display: block;
+  font-size: 1rem !important;
+  color: #0a84ff;
+  margin-bottom: 0.5rem;
+}
+
+/* Implementation Developer Section */
+article h2:contains("Implementation") {
+  margin-top: 3rem;
+  color: #0a84ff;
+  font-size: 1.5rem !important;
+}
+
+article h2:contains("Implementation") ~ p {
+  line-height: 1.8;
+}
+
+article h2:contains("Implementation") ~ p strong {
+  color: #ffffff;
+  font-size: 1.15rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* Contact Links */
+article h2:contains("Implementation") ~ p a {
+  color: #0a84ff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+article h2:contains("Implementation") ~ p a:hover {
+  color: #4da6ff;
+  text-decoration: underline;
+}
+
+/* Acknowledgments Section */
+article h2:contains("Acknowledgments") {
+  margin-top: 3rem;
+  font-size: 1.4rem !important;
+  color: #e0e0e0;
+}
+
+article h2:contains("Acknowledgments") ~ p {
+  line-height: 1.8;
+  color: #b0b0b0;
+  margin-bottom: 1.25rem;
+}
+
+/* Open Source Acknowledgments List */
+article h2:contains("Open Source") ~ ul {
+  margin-top: 1.5rem;
+}
+
+article h2:contains("Open Source") ~ ul li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+article h2:contains("Open Source") ~ ul li:last-child {
+  border-bottom: none;
+}
+
+article h2:contains("Open Source") ~ ul li strong {
+  color: #0a84ff;
+  font-size: 0.95rem;
+}
