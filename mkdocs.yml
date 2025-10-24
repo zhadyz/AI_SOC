@@ -1,0 +1,129 @@
+site_name: AI-SOC Documentation
+site_url: https://zhadyz.github.io/AI_SOC/
+site_author: Abdul Bari
+site_description: AI-Augmented Security Operations Center - Production Implementation and Research Documentation
+
+repo_name: zhadyz/AI_SOC
+repo_url: https://github.com/zhadyz/AI_SOC
+edit_uri: edit/master/docs/
+
+theme:
+  name: material
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/zhadyz/AI_SOC
+    - icon: fontawesome/solid/envelope
+      link: mailto:abdul.bari8019@coyote.csusb.edu
+  analytics:
+    provider: google
+    property: !ENV GOOGLE_ANALYTICS_KEY
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - tags
+
+nav:
+  - Home: index.md
+  - Research Foundation:
+      - Survey Paper: research/survey-paper.md
+      - Research Context: research/context.md
+      - Academic Contributions: research/contributions.md
+  - Getting Started:
+      - Quick Start: getting-started/quickstart.md
+      - Installation Guide: getting-started/installation.md
+      - System Requirements: getting-started/requirements.md
+      - User Guide: getting-started/user-guide.md
+  - Architecture:
+      - System Overview: architecture/overview.md
+      - Network Topology: architecture/network-topology.md
+      - Component Design: architecture/components.md
+      - Data Flow: architecture/dataflow.md
+  - Experimental Results:
+      - ML Model Performance: experiments/ml-performance.md
+      - Baseline Models: experiments/baseline-models.md
+      - Training Reports: experiments/training.md
+      - Dataset Validation: experiments/dataset-validation.md
+      - Production Validation: experiments/validation.md
+  - Deployment:
+      - Deployment Guide: deployment/guide.md
+      - Docker Architecture: deployment/docker.md
+      - Production Deployment: deployment/production.md
+      - Performance Optimization: deployment/performance.md
+  - Security:
+      - Security Guide: security/guide.md
+      - Security Baseline: security/baseline.md
+      - Hardening Procedures: security/hardening.md
+      - Incident Response: security/incident-response.md
+  - API Reference:
+      - ML Inference API: api/ml-inference.md
+      - Alert Triage API: api/alert-triage.md
+      - RAG Service API: api/rag-service.md
+  - Development:
+      - Contributing: development/contributing.md
+      - Project Status: development/status.md
+      - Roadmap: development/roadmap.md
+  - About:
+      - Authors & Acknowledgments: about/authors.md
+      - License: about/license.md
+      - Citation: about/citation.md
