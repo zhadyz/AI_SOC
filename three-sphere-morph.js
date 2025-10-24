@@ -325,10 +325,10 @@ class MorphingSphere {
         const rect = subtitle.getBoundingClientRect();
         const windowHeight = window.innerHeight;
 
-        // Morph animation zone: starts when subtitle reaches 70% down viewport
-        // Completes over ~400px scroll distance
-        const startTrigger = windowHeight * 0.7; // 70% down viewport
-        const morphDistance = 400; // Pixels to complete morph
+        // Morph animation zone: starts when subtitle reaches 90% down viewport
+        // Completes over ~300px scroll distance for smoother, later transformation
+        const startTrigger = windowHeight * 0.9; // 90% down viewport - much later
+        const morphDistance = 300; // Pixels to complete morph
         const endTrigger = startTrigger - morphDistance;
 
         // Current subtitle position
