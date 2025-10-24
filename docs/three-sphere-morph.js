@@ -315,30 +315,35 @@ class MorphingSphere {
     handleScroll() {
         // Apple-style scroll-linked animation: morph as you scroll past the subtitle
         const subtitle = document.querySelector('.section-subtitle');
-        if (!subtitle) return;
+        if (!subtitle) {
+            this.targetMorphProgress = 0;
+            return;
+        }
 
         const rect = subtitle.getBoundingClientRect();
         const windowHeight = window.innerHeight;
 
-        // Morph animation zone: from when subtitle is at 60% viewport to when it's -100px past top
-        const startPosition = windowHeight * 0.6; // Subtitle at 60% down viewport (morph starts)
-        const endPosition = -100; // Subtitle 100px above viewport top (morph complete)
-        const morphRange = startPosition - endPosition;
+        // Morph animation zone: starts when subtitle reaches 70% down viewport
+        // Completes over ~400px scroll distance
+        const startTrigger = windowHeight * 0.7; // 70% down viewport
+        const morphDistance = 400; // Pixels to complete morph
+        const endTrigger = startTrigger - morphDistance;
 
-        // Current subtitle position relative to viewport top
+        // Current subtitle position
         const currentPosition = rect.top;
 
-        if (currentPosition <= startPosition && currentPosition >= endPosition) {
-            // We're in the morph zone - calculate smooth progress
-            const scrolledDistance = startPosition - currentPosition;
-            const progress = scrolledDistance / morphRange;
-            this.targetMorphProgress = Math.max(0, Math.min(1, progress));
-        } else if (currentPosition < endPosition) {
-            // Scrolled past - fully morphed
-            this.targetMorphProgress = 1;
-        } else {
-            // Haven't reached trigger yet
+        // Calculate morph progress based on scroll position
+        if (currentPosition > startTrigger) {
+            // Haven't scrolled to trigger point yet
             this.targetMorphProgress = 0;
+        } else if (currentPosition >= endTrigger && currentPosition <= startTrigger) {
+            // In the morph zone - progressive transformation
+            const scrolled = startTrigger - currentPosition;
+            const progress = scrolled / morphDistance;
+            this.targetMorphProgress = Math.max(0, Math.min(1, progress));
+        } else {
+            // Scrolled past the morph zone - fully diamond
+            this.targetMorphProgress = 1;
         }
     }
 
