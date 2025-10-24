@@ -2,16 +2,16 @@
 /* Inspired by Apple's refined aesthetic */
 
 :root {
-  /* Refined Typography Scale */
-  --md-text-font-size: 0.9rem;
-  --md-typeset-h1-font-size: 2.0rem;
-  --md-typeset-h2-font-size: 1.5rem;
-  --md-typeset-h3-font-size: 1.2rem;
-  --md-typeset-h4-font-size: 1.05rem;
-  --md-typeset-h5-font-size: 0.95rem;
+  /* Refined Typography Scale - Elegant & Compact */
+  --md-text-font-size: 0.8rem;
+  --md-typeset-h1-font-size: 1.6rem;
+  --md-typeset-h2-font-size: 1.3rem;
+  --md-typeset-h3-font-size: 1.05rem;
+  --md-typeset-h4-font-size: 0.95rem;
+  --md-typeset-h5-font-size: 0.85rem;
 
   /* Premium spacing */
-  --md-typeset-line-height: 1.65;
+  --md-typeset-line-height: 1.7;
   --md-typeset-letter-spacing: 0.01em;
 }
 
@@ -112,8 +112,9 @@
 /* Refined Paragraphs */
 .md-typeset p {
   margin-bottom: 1rem;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   line-height: 1.7;
+  font-weight: 400;
 }
 
 /* Ensure readable text in light mode */
@@ -188,13 +189,13 @@
 /* Refined Lists */
 .md-typeset ul,
 .md-typeset ol {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   line-height: 1.7;
 }
 
 .md-typeset ul li,
 .md-typeset ol li {
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.3rem;
 }
 
 /* Elegant Blockquotes */
@@ -204,7 +205,7 @@
   padding: 1rem 1.25rem;
   margin: 1.5rem 0;
   border-radius: 4px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #c8c8c8;
 }
 
@@ -225,7 +226,7 @@
 
 /* Navigation Refinements */
 .md-nav {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
 }
 
 .md-nav__link {
@@ -250,7 +251,7 @@
 }
 
 .md-header__title {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -266,7 +267,7 @@
 
 /* Search Refinement */
 .md-search__input {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 6px;
