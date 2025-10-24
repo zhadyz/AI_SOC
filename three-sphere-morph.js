@@ -315,18 +315,19 @@ class MorphingSphere {
 
     handleScroll() {
         // Threshold-triggered snap animation: sphere bounces into diamond shape
-        const researchSection = document.querySelector('.research-highlights');
-        const subtitle = researchSection ? researchSection.querySelector('.section-subtitle') : null;
-        if (!subtitle) {
+        // Trigger based on research grid position (further down the page)
+        const researchGrid = document.querySelector('.research-grid');
+        if (!researchGrid) {
             this.targetMorphProgress = 0;
             return;
         }
 
-        const rect = subtitle.getBoundingClientRect();
+        const rect = researchGrid.getBoundingClientRect();
         const windowHeight = window.innerHeight;
 
-        // Trigger threshold: 90% down viewport
-        const threshold = windowHeight * 0.9;
+        // Trigger when research cards reach top 30% of viewport
+        // This ensures user has scrolled significantly down the page
+        const threshold = windowHeight * 0.3;
         const currentPosition = rect.top;
 
         // Simple threshold check - snap to diamond when crossed
