@@ -40,7 +40,12 @@ This repository presents a comprehensive implementation of an AI-Augmented Secur
 
 ### Research Context
 
-This implementation directly builds upon **"AI-Augmented SOC: A Survey of LLMs and Agents for Security Automation"** (California State University, San Bernardino, 2025), a comprehensive systematic literature review examining 500+ papers on the application of Large Language Models and autonomous AI agents to security automation.
+This implementation directly builds upon **"AI-Augmented SOC: A Survey of LLMs and Agents for Security Automation"** by Srinivas et al. (California State University, San Bernardino, 2025), a comprehensive systematic literature review examining 500+ papers on the application of Large Language Models and autonomous AI agents to security automation.
+
+**Survey Paper Authors:**
+- Siddhant Srinivas, Brandon Kirk, Julissa Zendejas, Michael Espino, Matthew Boskovich, Abdul Bari
+- **Faculty Advisors:** Dr. Khalil Dajani, Dr. Nabeel Alzahrani
+- School of Computer Science & Engineering, California State University, San Bernardino
 
 **Survey Participation Context:**
 - Part of academic research conducted at California State University, San Bernardino
@@ -75,7 +80,8 @@ The AI-SOC project is grounded in contemporary cybersecurity research addressing
 This implementation directly builds upon findings from the comprehensive academic survey paper:
 
 **"AI-Augmented SOC: A Survey of LLMs and Agents for Security Automation"**
-*California State University, San Bernardino, 2025*
+*Srinivas, S., Kirk, B., Zendejas, J., Espino, M., Boskovich, M., Bari, A., Dajani, K., & Alzahrani, N.*
+*School of Computer Science & Engineering, California State University, San Bernardino, 2025*
 
 **Survey Methodology**:
 - Systematic literature review using PRISMA (Preferred Reporting Items for Systematic Reviews and Meta-Analyses)
@@ -1319,8 +1325,7 @@ All implementation artifacts are publicly available:
 
 **Foundational Survey Paper:**
 
-"AI-Augmented SOC: A Survey of LLMs and Agents for Security Automation"
-*California State University, San Bernardino*, 2025.
+Srinivas, S., Kirk, B., Zendejas, J., Espino, M., Boskovich, M., Bari, A., Dajani, K., & Alzahrani, N. (2025). "AI-Augmented SOC: A Survey of LLMs and Agents for Security Automation." School of Computer Science & Engineering, California State University, San Bernardino.
 
 **Survey Scope:**
 - Systematic review of 500+ papers (2022-2025) using PRISMA methodology
@@ -1388,9 +1393,23 @@ This project builds upon the exceptional work of the open source security commun
 ### Institutional Support
 
 **California State University, San Bernardino**
-- Department of Computer Science and Engineering
-- Cybersecurity Program
-- Research Computing Resources
+- School of Computer Science & Engineering
+- Cybersecurity Research Program
+- Faculty Advisors: Dr. Khalil Dajani, Dr. Nabeel Alzahrani
+
+### Acknowledgments
+
+**Survey Research Team:**
+
+This implementation builds directly upon the foundational survey paper "AI-Augmented SOC: A Survey of LLMs and Agents for Security Automation" authored by:
+- **Student Researchers:** Siddhant Srinivas, Brandon Kirk, Julissa Zendejas, Michael Espino, Matthew Boskovich, Abdul Bari
+- **Faculty Advisors:** Dr. Khalil Dajani, Dr. Nabeel Alzahrani
+
+The survey's systematic literature review (500+ papers analyzed using PRISMA methodology) provided the theoretical framework and research questions that guided this implementation.
+
+**Implementation:**
+
+The production codebase, deployment automation, ML model training, and system architecture were developed by Abdul Bari as a practical validation of the survey's findings. This implementation contributes empirical evidence for the survey's theoretical predictions while documenting novel solutions to real-world deployment challenges.
 
 ### Author Information
 
@@ -1447,15 +1466,34 @@ Apache License 2.0 - See [LICENSE](LICENSE) for details.
 
 ## Citation
 
-If you use this work in your research, please cite:
+### For the Foundational Survey Paper
+
+If you use or reference the survey research, please cite:
 
 ```bibtex
-@software{bari2025aisoc,
+@article{srinivas2025aiaugmented,
+  author = {Srinivas, Siddhant and Kirk, Brandon and Zendejas, Julissa and
+            Espino, Michael and Boskovich, Matthew and Bari, Abdul and
+            Dajani, Khalil and Alzahrani, Nabeel},
+  title = {AI-Augmented SOC: A Survey of LLMs and Agents for Security Automation},
+  year = {2025},
+  institution = {California State University, San Bernardino},
+  school = {School of Computer Science \& Engineering}
+}
+```
+
+### For the Implementation Code
+
+If you use this implementation in your research, please cite:
+
+```bibtex
+@software{bari2025aisocimplementation,
   author = {Bari, Abdul},
-  title = {AI-Augmented Security Operations Center: A Research Implementation},
+  title = {AI-SOC: Production Implementation of AI-Augmented Security Operations},
   year = {2025},
   publisher = {GitHub},
   url = {https://github.com/zhadyz/AI_SOC},
+  note = {Implementation based on survey by Srinivas et al.},
   institution = {California State University, San Bernardino}
 }
 ```
