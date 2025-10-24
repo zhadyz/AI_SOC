@@ -128,7 +128,7 @@
             z-index: 1;
         }
 
-        /* Animated gradient blob */
+        /* Animated gradient blob - reduced opacity to complement canvas mesh */
         .hero::before {
             content: '';
             position: absolute;
@@ -138,9 +138,9 @@
             height: 600px;
             background: radial-gradient(
                 circle at center,
-                rgba(138, 123, 168, 0.4) 0%,
-                rgba(90, 154, 168, 0.3) 35%,
-                rgba(77, 168, 168, 0.2) 60%,
+                rgba(138, 123, 168, 0.15) 0%,
+                rgba(90, 154, 168, 0.1) 35%,
+                rgba(77, 168, 168, 0.05) 60%,
                 transparent 100%
             );
             border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
@@ -167,6 +167,17 @@
                 border-radius: 70% 30% 40% 60% / 40% 70% 50% 30%;
                 transform: translate(20px, 30px) scale(1.02);
             }
+        }
+
+        /* Canvas gradient mesh */
+        #hero-gradient-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 1;
         }
 
         .hero h1,
@@ -729,6 +740,21 @@
         .research-card:hover .read-more {
             transform: translateX(5px);
         }
+
+        /* Three.js Network Sphere Container - Research Section */
+        #sphere-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 3rem auto;
+            z-index: 1;
+            pointer-events: all;
+            cursor: pointer;
+        }
+
+        @media (max-width: 1024px) {
+            #sphere-container { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -749,6 +775,7 @@
     </header>
 
     <section class="hero">
+        <canvas id="hero-gradient-canvas"></canvas>
         <h1>Research-Grade AI for Real-World Impact</h1>
         <p>
             Detecting network intrusions at 99.28% accuracy.
@@ -878,9 +905,12 @@
             <p class="section-label">RESEARCH OUTPUT</p>
             <h2>Latest Research & Technical Analysis</h2>
             <p class="section-subtitle">Deep-dive explorations of AI-powered security operations and fairness in healthcare</p>
+            
+            <!-- Interactive Logo Sphere -->
+            <div id="sphere-container"></div>
 
             <div class="research-grid">
-                <a href="/ai-soc/ml-accuracy/" class="research-card">
+                <a href="ai-soc/ml-accuracy.html" class="research-card">
                     <div class="research-content">
                         <span class="research-tag">Machine Learning</span>
                         <h3>99.28% IDS Accuracy: ML Breakthrough</h3>
@@ -889,7 +919,7 @@
                     </div>
                 </a>
 
-                <a href="/ai-soc/architecture/" class="research-card">
+                <a href="ai-soc/architecture.html" class="research-card">
                     <div class="research-content">
                         <span class="research-tag">System Architecture</span>
                         <h3>SIEM Integration Architecture</h3>
@@ -898,7 +928,7 @@
                     </div>
                 </a>
 
-                <a href="/fairness/methodology/" class="research-card">
+                <a href="fairness/methodology.html" class="research-card">
                     <div class="research-content">
                         <span class="research-tag">Healthcare AI</span>
                         <h3>Bias Mitigation in Medical Imaging</h3>
@@ -907,7 +937,7 @@
                     </div>
                 </a>
 
-                <a href="/ai-soc/performance/" class="research-card">
+                <a href="ai-soc/performance.html" class="research-card">
                     <div class="research-content">
                         <span class="research-tag">Performance</span>
                         <h3>Real-Time Threat Classification</h3>
@@ -1069,5 +1099,11 @@
             init();
         })();
     </script>
+
+    <!-- Interactive Orb with Particle Network -->
+    <script src="interactive-orb.js" defer></script>
+    
+    <!-- Three.js Morphing Sphere (Sphere ↔ Logo) -->
+    <script type="module" src="three-sphere-morph.js"></script>
 </body>
 </html>
