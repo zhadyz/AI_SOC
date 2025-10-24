@@ -62,18 +62,27 @@
   --md-code-hl-color: rgba(10, 132, 255, 0.15);
 }
 
-/* Refined Body Typography */
+/* Refined Body Typography - Force Override */
 .md-typeset {
-  font-size: var(--md-text-font-size);
+  font-size: var(--md-text-font-size) !important;
   line-height: var(--md-typeset-line-height);
   letter-spacing: var(--md-typeset-letter-spacing);
   font-weight: 400;
   color: var(--md-typeset-color);
 }
 
-/* Elegant Headings */
+/* Force smaller base font throughout */
+html {
+  font-size: 14px !important;
+}
+
+.md-content {
+  font-size: 0.8rem !important;
+}
+
+/* Elegant Headings - Force Override */
 .md-typeset h1 {
-  font-size: var(--md-typeset-h1-font-size);
+  font-size: 1.6rem !important;
   font-weight: 600;
   letter-spacing: -0.02em;
   margin-top: 0;
@@ -82,7 +91,7 @@
 }
 
 .md-typeset h2 {
-  font-size: var(--md-typeset-h2-font-size);
+  font-size: 1.3rem !important;
   font-weight: 600;
   letter-spacing: -0.015em;
   margin-top: 2.5rem;
@@ -93,7 +102,7 @@
 }
 
 .md-typeset h3 {
-  font-size: var(--md-typeset-h3-font-size);
+  font-size: 1.05rem !important;
   font-weight: 600;
   letter-spacing: -0.01em;
   margin-top: 2rem;
@@ -102,17 +111,17 @@
 }
 
 .md-typeset h4 {
-  font-size: var(--md-typeset-h4-font-size);
+  font-size: 0.95rem !important;
   font-weight: 600;
   margin-top: 1.5rem;
   margin-bottom: 0.6rem;
   color: #d4d4d4;
 }
 
-/* Refined Paragraphs */
+/* Refined Paragraphs - Force Override */
 .md-typeset p {
   margin-bottom: 1rem;
-  font-size: 0.8rem;
+  font-size: 0.8rem !important;
   line-height: 1.7;
   font-weight: 400;
 }
@@ -120,6 +129,13 @@
 /* Ensure readable text in light mode */
 [data-md-color-scheme="default"] .md-typeset p {
   color: #333333;
+}
+
+/* Force smaller text in all content */
+.md-typeset li,
+.md-typeset td,
+.md-typeset th {
+  font-size: 0.8rem !important;
 }
 
 /* Elegant Code Blocks */
