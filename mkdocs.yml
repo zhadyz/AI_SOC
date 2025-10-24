@@ -10,21 +10,19 @@ edit_uri: edit/master/docs/
 theme:
   name: material
   palette:
-    # Dark mode (default)
-    - media: "(prefers-color-scheme)"
-      scheme: slate
-      primary: black
-      accent: blue
-      toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
-    # Light mode (optional)
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
+    # Dark mode (default - always loads first)
+    - scheme: slate
       primary: black
       accent: blue
       toggle:
         icon: material/brightness-7
+        name: Switch to light mode
+    # Light mode (optional)
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
         name: Switch to dark mode
   font:
     text: Inter
