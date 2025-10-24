@@ -2,13 +2,13 @@
 /* Inspired by Apple's refined aesthetic */
 
 :root {
-  /* Refined Typography Scale - Elegant & Balanced */
-  --md-text-font-size: 0.875rem;
-  --md-typeset-h1-font-size: 1.75rem;
-  --md-typeset-h2-font-size: 1.4rem;
-  --md-typeset-h3-font-size: 1.1rem;
-  --md-typeset-h4-font-size: 1.0rem;
-  --md-typeset-h5-font-size: 0.9rem;
+  /* Refined Typography Scale - Elegant & Balanced (20% larger) */
+  --md-text-font-size: 1.05rem;
+  --md-typeset-h1-font-size: 2.1rem;
+  --md-typeset-h2-font-size: 1.68rem;
+  --md-typeset-h3-font-size: 1.32rem;
+  --md-typeset-h4-font-size: 1.2rem;
+  --md-typeset-h5-font-size: 1.08rem;
 
   /* Premium spacing */
   --md-typeset-line-height: 1.7;
