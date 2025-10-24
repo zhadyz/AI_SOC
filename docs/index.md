@@ -180,9 +180,16 @@ If you use this work in your research:
 
 ## ⭐ Repository Stats
 
-- **Stars**: 3
+![GitHub stars](https://img.shields.io/github/stars/zhadyz/AI_SOC?style=for-the-badge&logo=github&color=0a84ff)
+![GitHub forks](https://img.shields.io/github/forks/zhadyz/AI_SOC?style=for-the-badge&logo=github&color=0a84ff)
+![GitHub watchers](https://img.shields.io/github/watchers/zhadyz/AI_SOC?style=for-the-badge&logo=github&color=0a84ff)
+![GitHub last commit](https://img.shields.io/github/last-commit/zhadyz/AI_SOC?style=for-the-badge&logo=github&color=0a84ff)
+![GitHub repo size](https://img.shields.io/github/repo-size/zhadyz/AI_SOC?style=for-the-badge&logo=github&color=0a84ff)
+![GitHub language count](https://img.shields.io/github/languages/count/zhadyz/AI_SOC?style=for-the-badge&logo=github&color=0a84ff)
+
+**Static Stats:**
+
 - **Development Time**: 3 weeks (October 2025)
-- **Lines of Code**: 12,000+
 - **Docker Services**: 6 core services
 - **Documentation Pages**: 25+
 - **Test Coverage**: 200+ test cases
