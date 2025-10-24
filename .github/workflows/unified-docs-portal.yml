@@ -57,7 +57,12 @@ jobs:
         run: |
           echo "Building Fairness documentation..."
           cd fairness-skin-cancer-detection
-          mkdocs build --clean --site-dir ../site/fairness/
+          echo "Current directory: $(pwd)"
+          echo "Checking if mkdocs.yml exists:"
+          ls -la mkdocs.yml || echo "ERROR: mkdocs.yml not found!"
+          echo "Checking docs directory:"
+          ls -la docs/ | head -10 || echo "ERROR: docs directory not found!"
+          mkdocs build --clean --site-dir ../site/fairness/ --verbose
           cd ..
           echo "Fairness build complete."
 
