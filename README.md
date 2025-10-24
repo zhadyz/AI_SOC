@@ -69,6 +69,66 @@ This implementation directly builds upon **"AI-Augmented SOC: A Survey of LLMs a
 
 ---
 
+## 📚 Complete Documentation
+
+**Visit our comprehensive documentation site:**
+### **[https://zhadyz.github.io/AI_SOC/](https://zhadyz.github.io/AI_SOC/)**
+
+The documentation site provides professional, academic-grade resources including:
+
+**Research Foundation**
+- [Survey Paper](https://zhadyz.github.io/AI_SOC/research/survey-paper/) - Full academic survey on AI-Augmented SOC
+- [Research Context](https://zhadyz.github.io/AI_SOC/research/context/) - Academic foundations and methodology
+- [Academic Contributions](https://zhadyz.github.io/AI_SOC/research/contributions/) - Novel research contributions
+- [Bibliography](https://zhadyz.github.io/AI_SOC/research/bibliography/) - Complete reference list
+
+**Getting Started**
+- [Quick Start Guide](https://zhadyz.github.io/AI_SOC/getting-started/quickstart/) - 15-minute deployment
+- [Installation](https://zhadyz.github.io/AI_SOC/getting-started/installation/) - Detailed setup instructions
+- [System Requirements](https://zhadyz.github.io/AI_SOC/getting-started/requirements/) - Hardware and software prerequisites
+- [User Guide](https://zhadyz.github.io/AI_SOC/getting-started/user-guide/) - Comprehensive usage documentation
+
+**System Architecture**
+- [System Overview](https://zhadyz.github.io/AI_SOC/architecture/overview/) - High-level architecture
+- [Network Topology](https://zhadyz.github.io/AI_SOC/architecture/network-topology/) - Network design and security
+- [Component Design](https://zhadyz.github.io/AI_SOC/architecture/components/) - Microservices architecture
+- [Data Flow](https://zhadyz.github.io/AI_SOC/architecture/dataflow/) - Event processing pipelines
+
+**Experimental Results**
+- [ML Performance](https://zhadyz.github.io/AI_SOC/experiments/ml-performance/) - 99.28% accuracy benchmarks
+- [Baseline Models](https://zhadyz.github.io/AI_SOC/experiments/baseline-models/) - Comparative analysis
+- [Training Reports](https://zhadyz.github.io/AI_SOC/experiments/training/) - Model training methodology
+- [Production Validation](https://zhadyz.github.io/AI_SOC/experiments/validation/) - QA and testing results
+
+**Deployment & Operations**
+- [Deployment Guide](https://zhadyz.github.io/AI_SOC/deployment/guide/) - Complete deployment workflows
+- [Docker Architecture](https://zhadyz.github.io/AI_SOC/deployment/docker/) - Container orchestration
+- [Production Deployment](https://zhadyz.github.io/AI_SOC/deployment/production/) - Enterprise hardening
+- [Performance Optimization](https://zhadyz.github.io/AI_SOC/deployment/performance/) - Scaling and tuning
+
+**Security**
+- [Security Guide](https://zhadyz.github.io/AI_SOC/security/guide/) - Comprehensive security practices
+- [Security Baseline](https://zhadyz.github.io/AI_SOC/security/baseline/) - Default configurations
+- [Hardening Procedures](https://zhadyz.github.io/AI_SOC/security/hardening/) - Production security
+- [Incident Response](https://zhadyz.github.io/AI_SOC/security/incident-response/) - Response playbooks
+
+**API Reference**
+- [ML Inference API](https://zhadyz.github.io/AI_SOC/api/ml-inference/) - Machine learning endpoints
+- [Alert Triage API](https://zhadyz.github.io/AI_SOC/api/alert-triage/) - Alert prioritization service
+- [RAG Service API](https://zhadyz.github.io/AI_SOC/api/rag-service/) - Threat intelligence context
+
+**Development**
+- [Contributing](https://zhadyz.github.io/AI_SOC/development/contributing/) - How to contribute
+- [Project Status](https://zhadyz.github.io/AI_SOC/development/status/) - Current development status
+- [Roadmap](https://zhadyz.github.io/AI_SOC/development/roadmap/) - Future development plans
+
+**About**
+- [Authors & Acknowledgments](https://zhadyz.github.io/AI_SOC/about/authors/) - Research team and contributors
+- [License](https://zhadyz.github.io/AI_SOC/about/license/) - Apache 2.0 licensing
+- [Citation](https://zhadyz.github.io/AI_SOC/about/citation/) - How to cite this work
+
+---
+
 ## Research Foundation & Academic Context
 
 ### Theoretical Framework
