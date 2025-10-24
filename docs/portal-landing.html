@@ -7,18 +7,55 @@
     <title>OnyxLab Research Portal</title>
     <link rel="icon" type="image/x-icon" href="ai-soc/assets/favicon.ico">
     <style>
+        /* Import refined font weights */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        /* CSS Variables */
+        :root {
+            --blue-primary: #0a84ff;
+            --purple-accent: #8b7ba8;
+            --teal-accent: #5a9aa8;
+            --gray-100: #ffffff;
+            --gray-200: #e0e0e0;
+            --gray-300: #b0b0b0;
+            --gray-400: #9a9a9a;
+            --gray-500: #808080;
+            --gray-900: #121212;
+            --overlay-light: rgba(255, 255, 255, 0.06);
+            --overlay-medium: rgba(255, 255, 255, 0.12);
+            --overlay-blue: rgba(10, 132, 255, 0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: #000000;
             color: #e0e0e0;
             line-height: 1.6;
             overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Background texture */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                radial-gradient(at 40% 20%, rgba(10, 132, 255, 0.03) 0px, transparent 50%),
+                radial-gradient(at 80% 80%, rgba(138, 123, 168, 0.03) 0px, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
         }
 
         /* Header */
@@ -28,9 +65,10 @@
             left: 0;
             right: 0;
             z-index: 1000;
-            background: rgba(0, 0, 0, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(30px) saturate(180%);
+            border-bottom: 1px solid var(--overlay-light);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.03);
             padding: 1rem 2rem;
         }
 
@@ -67,12 +105,17 @@
         .nav-links a {
             color: #e0e0e0;
             text-decoration: none;
-            font-size: 0.95rem;
-            transition: color 0.2s;
+            font-size: 0.925rem;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 0.5rem 0;
+            border-bottom: 2px solid transparent;
+            display: inline-block;
         }
 
         .nav-links a:hover {
-            color: #0a84ff;
+            color: var(--blue-primary);
+            border-bottom-color: var(--blue-primary);
         }
 
         /* Hero Section */
@@ -80,26 +123,78 @@
             margin-top: 80px;
             padding: 6rem 2rem;
             text-align: center;
-            background: linear-gradient(180deg, rgba(10, 132, 255, 0.05) 0%, rgba(0, 0, 0, 0) 100%);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        /* Animated gradient blob */
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: 10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(
+                circle at center,
+                rgba(138, 123, 168, 0.4) 0%,
+                rgba(90, 154, 168, 0.3) 35%,
+                rgba(77, 168, 168, 0.2) 60%,
+                transparent 100%
+            );
+            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+            filter: blur(60px);
+            animation: blob-morph 20s ease-in-out infinite;
+            z-index: 0;
+            will-change: transform;
+        }
+
+        @keyframes blob-morph {
+            0%, 100% {
+                border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+                transform: translate(30px, -30px) scale(1.05);
+            }
+            50% {
+                border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+                transform: translate(-20px, 20px) scale(0.95);
+            }
+            75% {
+                border-radius: 70% 30% 40% 60% / 40% 70% 50% 30%;
+                transform: translate(20px, 30px) scale(1.02);
+            }
+        }
+
+        .hero h1,
+        .hero p {
+            position: relative;
+            z-index: 2;
         }
 
         .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            letter-spacing: -0.03em;
+            font-size: 4rem;
+            font-weight: 300;
+            letter-spacing: -0.04em;
+            line-height: 1.1;
             margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-300) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
         .hero p {
-            font-size: 1.3rem;
-            color: #b0b0b0;
+            font-size: 1.25rem;
+            font-weight: 400;
+            color: var(--gray-400);
+            letter-spacing: -0.01em;
+            line-height: 1.8;
             max-width: 800px;
             margin: 0 auto 3rem;
-            line-height: 1.8;
         }
 
         /* Projects Grid */
@@ -113,39 +208,110 @@
         }
 
         .project-card {
-            background: linear-gradient(135deg, rgba(10, 132, 255, 0.08) 0%, rgba(10, 132, 255, 0.02) 100%);
-            border: 1px solid rgba(10, 132, 255, 0.2);
-            border-radius: 16px;
+            background: rgba(18, 18, 18, 0.6);
+            border: 1px solid var(--overlay-light);
+            border-radius: 24px;
             padding: 3rem;
-            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             cursor: pointer;
             text-decoration: none;
             display: block;
+            will-change: transform;
+        }
+
+        /* Gradient overlay for depth */
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: linear-gradient(
+                135deg,
+                rgba(10, 132, 255, 0.08) 0%,
+                transparent 100%
+            );
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            z-index: 0;
         }
 
         .project-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(10, 132, 255, 0.4);
-            box-shadow: 0 12px 40px rgba(10, 132, 255, 0.15);
+            transform: translateY(-8px) scale(1.01);
+            border-color: rgba(10, 132, 255, 0.3);
+            box-shadow:
+                0 20px 60px rgba(10, 132, 255, 0.15),
+                0 0 0 1px rgba(10, 132, 255, 0.1);
+            background: rgba(18, 18, 18, 0.8);
+        }
+
+        .project-card:hover::before {
+            opacity: 1;
+        }
+
+        /* Inner glow effect on hover */
+        .project-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 24px;
+            padding: 1px;
+            background: linear-gradient(
+                135deg,
+                rgba(10, 132, 255, 0.4),
+                transparent 50%,
+                rgba(10, 132, 255, 0.4)
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .project-card:hover::after {
+            opacity: 1;
+        }
+
+        /* Ensure content is above pseudo-elements */
+        .project-card > * {
+            position: relative;
+            z-index: 1;
         }
 
         .project-icon {
             font-size: 3rem;
             margin-bottom: 1.5rem;
+            display: inline-block;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .project-card:hover .project-icon {
+            transform: scale(1.1) rotate(5deg);
         }
 
         .project-title {
             font-size: 1.8rem;
-            font-weight: 600;
+            font-weight: 500;
             color: #ffffff;
             margin-bottom: 1rem;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.03em;
         }
 
         .project-description {
             font-size: 1.05rem;
-            color: #b0b0b0;
-            line-height: 1.7;
+            font-weight: 400;
+            color: var(--gray-400);
+            line-height: 1.75;
             margin-bottom: 1.5rem;
         }
 
@@ -157,12 +323,25 @@
         }
 
         .meta-tag {
-            background: rgba(10, 132, 255, 0.15);
+            background: var(--overlay-blue);
+            border: 1px solid rgba(10, 132, 255, 0.2);
             color: #0a84ff;
-            padding: 0.4rem 1rem;
-            border-radius: 6px;
-            font-size: 0.85rem;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
             font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .project-card:hover .meta-tag {
+            background: rgba(10, 132, 255, 0.15);
+            border-color: rgba(10, 132, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .meta-tag:hover {
+            background: rgba(10, 132, 255, 0.2);
+            border-color: rgba(10, 132, 255, 0.4);
         }
 
         .project-stats {
@@ -175,6 +354,21 @@
         .stat {
             display: flex;
             flex-direction: column;
+            position: relative;
+        }
+
+        .stat::before {
+            content: '';
+            position: absolute;
+            inset: -10px;
+            background: radial-gradient(circle, rgba(10, 132, 255, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
+        .project-card:hover .stat::before {
+            opacity: 1;
         }
 
         .stat-label {
@@ -185,9 +379,34 @@
         }
 
         .stat-value {
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             font-weight: 600;
-            color: #0a84ff;
+            background: linear-gradient(135deg, #0a84ff 0%, #0066cc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Scroll animation classes */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .fade-in-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Stagger animation for cards */
+        .project-card:nth-child(1) {
+            transition-delay: 0.1s;
+        }
+
+        .project-card:nth-child(2) {
+            transition-delay: 0.2s;
         }
 
         /* Footer */
@@ -222,6 +441,21 @@
             font-size: 0.9rem;
         }
 
+        /* Accessibility: Reduce motion */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .hero::before {
+                animation: none;
+            }
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .hero h1 {
@@ -232,8 +466,18 @@
                 font-size: 1.1rem;
             }
 
+            .hero::before {
+                width: 400px;
+                height: 400px;
+                right: -100px;
+            }
+
             .projects {
                 grid-template-columns: 1fr;
+            }
+
+            .project-card {
+                border-radius: 20px;
             }
 
             .nav-links {
@@ -336,5 +580,144 @@
             © 2025 OnyxLab Research. Open source under Apache 2.0 License.
         </p>
     </footer>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // Scroll-triggered animations
+            function initScrollAnimations() {
+                const observerOptions = {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -100px 0px'
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('fade-in-visible');
+                        }
+                    });
+                }, observerOptions);
+
+                const projectCards = document.querySelectorAll('.project-card');
+                projectCards.forEach((card) => {
+                    card.classList.add('fade-in');
+                    observer.observe(card);
+                });
+
+                console.log(`[Portal] Initialized scroll animations for ${projectCards.length} cards`);
+            }
+
+            // Smooth scroll for anchor links
+            function initSmoothScroll() {
+                const links = document.querySelectorAll('a[href^="#"]');
+
+                links.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        const href = link.getAttribute('href');
+                        if (href === '#') return;
+
+                        const target = document.querySelector(href);
+                        if (target) {
+                            e.preventDefault();
+                            target.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
+                        }
+                    });
+                });
+
+                console.log('[Portal] Smooth scroll initialized');
+            }
+
+            // Stats value animation (counter)
+            function animateStats() {
+                const stats = document.querySelectorAll('.stat-value');
+
+                const observerOptions = {
+                    threshold: 0.5,
+                    rootMargin: '0px'
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting && !entry.target.dataset.animated) {
+                            animateValue(entry.target);
+                            entry.target.dataset.animated = 'true';
+                        }
+                    });
+                }, observerOptions);
+
+                stats.forEach(stat => observer.observe(stat));
+            }
+
+            function animateValue(element) {
+                const text = element.textContent;
+                const hasPercent = text.includes('%');
+                const value = parseFloat(text);
+
+                if (isNaN(value)) return;
+
+                const duration = 1500;
+                const steps = 60;
+                const increment = value / steps;
+                let current = 0;
+                let step = 0;
+
+                const timer = setInterval(() => {
+                    step++;
+                    current += increment;
+
+                    if (step >= steps) {
+                        current = value;
+                        clearInterval(timer);
+                    }
+
+                    const displayValue = hasPercent
+                        ? current.toFixed(2) + '%'
+                        : Math.round(current).toString();
+
+                    element.textContent = displayValue;
+                }, duration / steps);
+            }
+
+            // Initialize all enhancements
+            function init() {
+                console.log('[Portal] Initializing enhancements...');
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', init);
+                    return;
+                }
+
+                initScrollAnimations();
+                initSmoothScroll();
+                animateStats();
+
+                console.log('[Portal] All enhancements initialized successfully');
+            }
+
+            // Performance metrics logging
+            window.addEventListener('load', () => {
+                if ('performance' in window) {
+                    setTimeout(() => {
+                        const perfData = performance.getEntriesByType('navigation')[0];
+                        if (perfData) {
+                            console.log('[Portal] Performance Metrics:', {
+                                'DOM Content Loaded': (perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart).toFixed(2) + 'ms',
+                                'Page Load': (perfData.loadEventEnd - perfData.loadEventStart).toFixed(2) + 'ms',
+                                'Total Load Time': (perfData.loadEventEnd - perfData.fetchStart).toFixed(2) + 'ms'
+                            });
+                        }
+                    }, 0);
+                }
+            });
+
+            // Auto-initialize
+            init();
+        })();
+    </script>
 </body>
 </html>
