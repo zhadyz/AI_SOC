@@ -1576,7 +1576,6 @@ If you use this implementation in your research, please cite:
 
 **Issues & Bug Reports**: https://github.com/zhadyz/AI_SOC/issues
 **Discussions**: https://github.com/zhadyz/AI_SOC/discussions
-**Project Lead**: Abdul Bari (abdul.bari8019@coyote.csusb.edu)
 
 **Contributions Welcome**: We actively encourage academic collaboration and open-source contributions.
 
