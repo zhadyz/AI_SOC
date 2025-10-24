@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="OnyxLab Research - Advanced AI research in security operations and healthcare equity">
+    <title>OnyxLab Research Portal</title>
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+            background: #000000;
+            color: #e0e0e0;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 1rem 2rem;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: #ffffff;
+            font-size: 1.3rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .logo img {
+            width: 40px;
+            height: 40px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #e0e0e0;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #0a84ff;
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 80px;
+            padding: 6rem 2rem;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(10, 132, 255, 0.05) 0%, rgba(0, 0, 0, 0) 100%);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: #b0b0b0;
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            line-height: 1.8;
+        }
+
+        /* Projects Grid */
+        .projects {
+            max-width: 1400px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 3rem;
+        }
+
+        .project-card {
+            background: linear-gradient(135deg, rgba(10, 132, 255, 0.08) 0%, rgba(10, 132, 255, 0.02) 100%);
+            border: 1px solid rgba(10, 132, 255, 0.2);
+            border-radius: 16px;
+            padding: 3rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+
+        .project-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(10, 132, 255, 0.4);
+            box-shadow: 0 12px 40px rgba(10, 132, 255, 0.15);
+        }
+
+        .project-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .project-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .project-description {
+            font-size: 1.05rem;
+            color: #b0b0b0;
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .project-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .meta-tag {
+            background: rgba(10, 132, 255, 0.15);
+            color: #0a84ff;
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .project-stats {
+            display: flex;
+            gap: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #808080;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #0a84ff;
+        }
+
+        /* Footer */
+        .footer {
+            max-width: 1400px;
+            margin: 6rem auto 2rem;
+            padding: 3rem 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #b0b0b0;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: #0a84ff;
+        }
+
+        .copyright {
+            color: #808080;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .projects {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="https://onyxlab.ai" class="logo">
+                <img src="assets/logo.png" alt="OnyxLab">
+                <span>OnyxLab Research</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="https://onyxlab.ai">Main Site</a></li>
+                    <li><a href="https://github.com/zhadyz">GitHub</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <h1>Advanced AI Research</h1>
+        <p>
+            Pioneering research in artificial intelligence for security operations and healthcare equity.
+            Rigorous academic methodology meets production-ready implementations.
+        </p>
+    </section>
+
+    <section class="projects">
+        <a href="/ai-soc/" class="project-card">
+            <div class="project-icon">🛡️</div>
+            <h2 class="project-title">AI-Augmented Security Operations Center</h2>
+            <p class="project-description">
+                Production-grade implementation of machine learning-enhanced intrusion detection and security automation.
+                Integrates enterprise SIEM with advanced ML models achieving 99.28% detection accuracy.
+            </p>
+            <div class="project-meta">
+                <span class="meta-tag">Cybersecurity</span>
+                <span class="meta-tag">Machine Learning</span>
+                <span class="meta-tag">Production Ready</span>
+            </div>
+            <div class="project-stats">
+                <div class="stat">
+                    <span class="stat-label">Accuracy</span>
+                    <span class="stat-value">99.28%</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">False Positives</span>
+                    <span class="stat-value">0.25%</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Services</span>
+                    <span class="stat-value">6</span>
+                </div>
+            </div>
+        </a>
+
+        <a href="/fairness/" class="project-card">
+            <div class="project-icon">🏥</div>
+            <h2 class="project-title">Fairness in Skin Cancer Detection</h2>
+            <p class="project-description">
+                Research-driven AI system for equitable dermatological diagnosis across all skin tones.
+                Implements bias mitigation techniques for fair healthcare outcomes across Fitzpatrick skin types.
+            </p>
+            <div class="project-meta">
+                <span class="meta-tag">Healthcare AI</span>
+                <span class="meta-tag">Fairness & Equity</span>
+                <span class="meta-tag">Medical Imaging</span>
+            </div>
+            <div class="project-stats">
+                <div class="stat">
+                    <span class="stat-label">Framework</span>
+                    <span class="stat-value">PyTorch</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Skin Types</span>
+                    <span class="stat-value">I-VI</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Status</span>
+                    <span class="stat-value">Active</span>
+                </div>
+            </div>
+        </a>
+    </section>
+
+    <footer class="footer" id="contact">
+        <div class="footer-links">
+            <a href="https://github.com/zhadyz">GitHub</a>
+            <a href="https://github.com/zhadyz/AI_SOC">AI-SOC Repository</a>
+            <a href="https://github.com/zhadyz/fairness-skin-cancer-detection">Fairness Repository</a>
+            <a href="mailto:abdul.bari8019@coyote.csusb.edu">Contact</a>
+        </div>
+        <p class="copyright">
+            © 2025 OnyxLab Research. Open source under Apache 2.0 License.
+        </p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,112 @@
+name: Deploy Unified Research Portal
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout AI-SOC Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout Fairness Repository
+        uses: actions/checkout@v4
+        with:
+          repository: zhadyz/fairness-skin-cancer-detection
+          path: fairness-skin-cancer-detection
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install MkDocs and dependencies
+        run: |
+          pip install --upgrade pip
+          pip install mkdocs-material
+          pip install pymdown-extensions
+
+      - name: Build AI-SOC Documentation
+        run: |
+          echo "Building AI-SOC documentation..."
+          mkdocs build --clean --site-dir site/ai-soc/
+          echo "AI-SOC build complete."
+
+      - name: Build Fairness Documentation
+        run: |
+          echo "Building Fairness documentation..."
+          cd fairness-skin-cancer-detection
+          mkdocs build --clean --site-dir ../site/fairness/
+          cd ..
+          echo "Fairness build complete."
+
+      - name: Copy Portal Landing Page
+        run: |
+          echo "Copying portal landing page to root..."
+          cp docs/portal-landing.html site/index.html
+          echo "Portal landing page deployed."
+
+      - name: Copy CNAME
+        run: |
+          echo "Copying CNAME for custom domain..."
+          cp docs/CNAME site/CNAME
+          echo "CNAME deployed."
+
+      - name: Create .nojekyll
+        run: |
+          echo "Creating .nojekyll to prevent Jekyll processing..."
+          touch site/.nojekyll
+
+      - name: List site structure
+        run: |
+          echo "=== Site Structure ==="
+          ls -la site/
+          echo "=== AI-SOC Directory ==="
+          ls -la site/ai-soc/ | head -20
+          echo "=== Fairness Directory ==="
+          ls -la site/fairness/ | head -20
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          publish_branch: gh-pages
+          force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: 'Deploy unified research portal: ${{ github.event.head_commit.message }}'
+
+      - name: Deployment Summary
+        run: |
+          echo "=========================================="
+          echo "  UNIFIED RESEARCH PORTAL DEPLOYMENT"
+          echo "=========================================="
+          echo ""
+          echo "✅ Landing Page: https://research.onyxlab.ai/"
+          echo "✅ AI-SOC Docs:  https://research.onyxlab.ai/ai-soc/"
+          echo "✅ Fairness Docs: https://research.onyxlab.ai/fairness/"
+          echo ""
+          echo "Deployment completed successfully!"
+          echo "=========================================="
