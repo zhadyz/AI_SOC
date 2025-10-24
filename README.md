@@ -72,60 +72,60 @@ This implementation directly builds upon **"AI-Augmented SOC: A Survey of LLMs a
 ## 📚 Complete Documentation
 
 **Visit our comprehensive documentation site:**
-### **[https://zhadyz.github.io/AI_SOC/](https://zhadyz.github.io/AI_SOC/)**
+### **[https://research.onyxlab.ai/](https://research.onyxlab.ai/)**
 
 The documentation site provides professional, academic-grade resources including:
 
 **Research Foundation**
-- [Survey Paper](https://zhadyz.github.io/AI_SOC/research/survey-paper/) - Full academic survey on AI-Augmented SOC
-- [Research Context](https://zhadyz.github.io/AI_SOC/research/context/) - Academic foundations and methodology
-- [Academic Contributions](https://zhadyz.github.io/AI_SOC/research/contributions/) - Novel research contributions
-- [Bibliography](https://zhadyz.github.io/AI_SOC/research/bibliography/) - Complete reference list
+- [Survey Paper](https://research.onyxlab.ai/research/survey-paper/) - Full academic survey on AI-Augmented SOC
+- [Research Context](https://research.onyxlab.ai/research/context/) - Academic foundations and methodology
+- [Academic Contributions](https://research.onyxlab.ai/research/contributions/) - Novel research contributions
+- [Bibliography](https://research.onyxlab.ai/research/bibliography/) - Complete reference list
 
 **Getting Started**
-- [Quick Start Guide](https://zhadyz.github.io/AI_SOC/getting-started/quickstart/) - 15-minute deployment
-- [Installation](https://zhadyz.github.io/AI_SOC/getting-started/installation/) - Detailed setup instructions
-- [System Requirements](https://zhadyz.github.io/AI_SOC/getting-started/requirements/) - Hardware and software prerequisites
-- [User Guide](https://zhadyz.github.io/AI_SOC/getting-started/user-guide/) - Comprehensive usage documentation
+- [Quick Start Guide](https://research.onyxlab.ai/getting-started/quickstart/) - 15-minute deployment
+- [Installation](https://research.onyxlab.ai/getting-started/installation/) - Detailed setup instructions
+- [System Requirements](https://research.onyxlab.ai/getting-started/requirements/) - Hardware and software prerequisites
+- [User Guide](https://research.onyxlab.ai/getting-started/user-guide/) - Comprehensive usage documentation
 
 **System Architecture**
-- [System Overview](https://zhadyz.github.io/AI_SOC/architecture/overview/) - High-level architecture
-- [Network Topology](https://zhadyz.github.io/AI_SOC/architecture/network-topology/) - Network design and security
-- [Component Design](https://zhadyz.github.io/AI_SOC/architecture/components/) - Microservices architecture
-- [Data Flow](https://zhadyz.github.io/AI_SOC/architecture/dataflow/) - Event processing pipelines
+- [System Overview](https://research.onyxlab.ai/architecture/overview/) - High-level architecture
+- [Network Topology](https://research.onyxlab.ai/architecture/network-topology/) - Network design and security
+- [Component Design](https://research.onyxlab.ai/architecture/components/) - Microservices architecture
+- [Data Flow](https://research.onyxlab.ai/architecture/dataflow/) - Event processing pipelines
 
 **Experimental Results**
-- [ML Performance](https://zhadyz.github.io/AI_SOC/experiments/ml-performance/) - 99.28% accuracy benchmarks
-- [Baseline Models](https://zhadyz.github.io/AI_SOC/experiments/baseline-models/) - Comparative analysis
-- [Training Reports](https://zhadyz.github.io/AI_SOC/experiments/training/) - Model training methodology
-- [Production Validation](https://zhadyz.github.io/AI_SOC/experiments/validation/) - QA and testing results
+- [ML Performance](https://research.onyxlab.ai/experiments/ml-performance/) - 99.28% accuracy benchmarks
+- [Baseline Models](https://research.onyxlab.ai/experiments/baseline-models/) - Comparative analysis
+- [Training Reports](https://research.onyxlab.ai/experiments/training/) - Model training methodology
+- [Production Validation](https://research.onyxlab.ai/experiments/validation/) - QA and testing results
 
 **Deployment & Operations**
-- [Deployment Guide](https://zhadyz.github.io/AI_SOC/deployment/guide/) - Complete deployment workflows
-- [Docker Architecture](https://zhadyz.github.io/AI_SOC/deployment/docker/) - Container orchestration
-- [Production Deployment](https://zhadyz.github.io/AI_SOC/deployment/production/) - Enterprise hardening
-- [Performance Optimization](https://zhadyz.github.io/AI_SOC/deployment/performance/) - Scaling and tuning
+- [Deployment Guide](https://research.onyxlab.ai/deployment/guide/) - Complete deployment workflows
+- [Docker Architecture](https://research.onyxlab.ai/deployment/docker/) - Container orchestration
+- [Production Deployment](https://research.onyxlab.ai/deployment/production/) - Enterprise hardening
+- [Performance Optimization](https://research.onyxlab.ai/deployment/performance/) - Scaling and tuning
 
 **Security**
-- [Security Guide](https://zhadyz.github.io/AI_SOC/security/guide/) - Comprehensive security practices
-- [Security Baseline](https://zhadyz.github.io/AI_SOC/security/baseline/) - Default configurations
-- [Hardening Procedures](https://zhadyz.github.io/AI_SOC/security/hardening/) - Production security
-- [Incident Response](https://zhadyz.github.io/AI_SOC/security/incident-response/) - Response playbooks
+- [Security Guide](https://research.onyxlab.ai/security/guide/) - Comprehensive security practices
+- [Security Baseline](https://research.onyxlab.ai/security/baseline/) - Default configurations
+- [Hardening Procedures](https://research.onyxlab.ai/security/hardening/) - Production security
+- [Incident Response](https://research.onyxlab.ai/security/incident-response/) - Response playbooks
 
 **API Reference**
-- [ML Inference API](https://zhadyz.github.io/AI_SOC/api/ml-inference/) - Machine learning endpoints
-- [Alert Triage API](https://zhadyz.github.io/AI_SOC/api/alert-triage/) - Alert prioritization service
-- [RAG Service API](https://zhadyz.github.io/AI_SOC/api/rag-service/) - Threat intelligence context
+- [ML Inference API](https://research.onyxlab.ai/api/ml-inference/) - Machine learning endpoints
+- [Alert Triage API](https://research.onyxlab.ai/api/alert-triage/) - Alert prioritization service
+- [RAG Service API](https://research.onyxlab.ai/api/rag-service/) - Threat intelligence context
 
 **Development**
-- [Contributing](https://zhadyz.github.io/AI_SOC/development/contributing/) - How to contribute
-- [Project Status](https://zhadyz.github.io/AI_SOC/development/status/) - Current development status
-- [Roadmap](https://zhadyz.github.io/AI_SOC/development/roadmap/) - Future development plans
+- [Contributing](https://research.onyxlab.ai/development/contributing/) - How to contribute
+- [Project Status](https://research.onyxlab.ai/development/status/) - Current development status
+- [Roadmap](https://research.onyxlab.ai/development/roadmap/) - Future development plans
 
 **About**
-- [Authors & Acknowledgments](https://zhadyz.github.io/AI_SOC/about/authors/) - Research team and contributors
-- [License](https://zhadyz.github.io/AI_SOC/about/license/) - Apache 2.0 licensing
-- [Citation](https://zhadyz.github.io/AI_SOC/about/citation/) - How to cite this work
+- [Authors & Acknowledgments](https://research.onyxlab.ai/about/authors/) - Research team and contributors
+- [License](https://research.onyxlab.ai/about/license/) - Apache 2.0 licensing
+- [Citation](https://research.onyxlab.ai/about/citation/) - How to cite this work
 
 ---
 
