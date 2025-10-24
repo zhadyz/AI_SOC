@@ -1,0 +1,28 @@
+# Security Dependencies for AI-SOC Production
+# Install with: pip install -r requirements-security.txt
+
+# Authentication & JWT
+pyjwt==2.8.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+
+# Rate Limiting
+slowapi==0.1.9
+
+# Input Validation & Sanitization
+pydantic==2.5.0
+email-validator==2.1.0
+
+# Security Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+httpx==0.25.2
+
+# Security Scanning
+bandit==1.7.5
+safety==2.3.5
+
+# Additional Security
+python-dotenv==1.0.0
+cryptography==41.0.7

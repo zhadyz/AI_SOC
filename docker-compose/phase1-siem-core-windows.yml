@@ -3,8 +3,6 @@
 # Suricata and Zeek EXCLUDED due to Windows Docker limitations (network_mode: host not supported)
 # Based on: https://github.com/wazuh/wazuh-docker (single-node configuration)
 
-version: '3.8'
-
 services:
   # ============================================================================
   # WAZUH INDEXER (OpenSearch-based)

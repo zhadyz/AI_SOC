@@ -2,12 +2,20 @@
 Security Utilities - Common Utilities
 AI-Augmented SOC
 
-Input validation, sanitization, and prompt injection detection.
+Input validation, sanitization, prompt injection detection, and security headers.
+
+Author: LOVELESS (Elite Security Specialist)
+Mission: OPERATION SECURITY-FORTRESS
+Date: 2025-10-23 (Enhanced)
 """
 
 import logging
 import re
 from typing import Optional, Dict, Any
+
+from fastapi import Request
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response, RedirectResponse
 
 logger = logging.getLogger(__name__)
 
@@ -194,17 +202,286 @@ def validate_json_structure(data: Dict[str, Any], required_fields: list[str]) ->
     return True, None
 
 
-# TODO: Week 5 - Add rate limiting
-# class RateLimiter:
-#     """Rate limit API requests per client"""
-#     def __init__(self, max_requests: int, window_seconds: int):
-#         pass
-#
-#     def is_allowed(self, client_id: str) -> bool:
-#         pass
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """
+    Add comprehensive security headers to all responses.
+
+    Implements OWASP security best practices:
+    - Content Security Policy (CSP)
+    - X-Frame-Options (Clickjacking protection)
+    - X-Content-Type-Options (MIME sniffing protection)
+    - Strict-Transport-Security (HTTPS enforcement)
+    - X-XSS-Protection (XSS filter)
+    - Referrer-Policy (Referrer control)
+    - Permissions-Policy (Feature control)
+    """
+
+    def __init__(
+        self,
+        app,
+        csp_policy: Optional[str] = None,
+        enable_hsts: bool = True,
+        hsts_max_age: int = 31536000
+    ):
+        """
+        Initialize security headers middleware.
+
+        Args:
+            app: FastAPI application
+            csp_policy: Custom Content Security Policy
+            enable_hsts: Enable HTTP Strict Transport Security
+            hsts_max_age: HSTS max age in seconds (default: 1 year)
+        """
+        super().__init__(app)
+
+        # Default CSP: Restrict to same origin
+        self.csp_policy = csp_policy or (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https:; "
+            "font-src 'self' data:; "
+            "connect-src 'self'; "
+            "frame-ancestors 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'"
+        )
+
+        self.enable_hsts = enable_hsts
+        self.hsts_max_age = hsts_max_age
+
+        logger.info("Security headers middleware initialized")
+
+    async def dispatch(self, request: Request, call_next):
+        """
+        Add security headers to response.
+
+        Args:
+            request: Incoming request
+            call_next: Next middleware/handler
+
+        Returns:
+            Response with security headers
+        """
+        response = await call_next(request)
+
+        # Content Security Policy
+        response.headers["Content-Security-Policy"] = self.csp_policy
+
+        # Prevent clickjacking
+        response.headers["X-Frame-Options"] = "DENY"
+
+        # Prevent MIME sniffing
+        response.headers["X-Content-Type-Options"] = "nosniff"
+
+        # XSS protection (legacy, but still useful)
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+
+        # Referrer policy
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+        # Permissions policy (disable unnecessary features)
+        response.headers["Permissions-Policy"] = (
+            "geolocation=(), "
+            "microphone=(), "
+            "camera=(), "
+            "payment=(), "
+            "usb=(), "
+            "magnetometer=(), "
+            "gyroscope=(), "
+            "accelerometer=()"
+        )
+
+        # HSTS (only for HTTPS)
+        if self.enable_hsts and request.url.scheme == "https":
+            response.headers["Strict-Transport-Security"] = (
+                f"max-age={self.hsts_max_age}; includeSubDomains; preload"
+            )
+
+        # Remove server fingerprinting
+        response.headers.pop("Server", None)
+
+        return response
 
 
-# TODO: Week 8 - Add WAF-style rules
-# def detect_attack_patterns(request: Dict[str, Any]) -> tuple[bool, Optional[str]]:
-#     """Detect common attack patterns (XSS, CSRF, etc.)"""
-#     pass
+class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
+    """
+    Redirect HTTP requests to HTTPS in production.
+
+    Only active when FORCE_HTTPS environment variable is set.
+    """
+
+    def __init__(self, app, force_https: bool = False):
+        """
+        Initialize HTTPS redirect middleware.
+
+        Args:
+            app: FastAPI application
+            force_https: Force HTTPS redirects
+        """
+        super().__init__(app)
+        self.force_https = force_https
+
+        if force_https:
+            logger.info("HTTPS redirect middleware enabled (production mode)")
+        else:
+            logger.info("HTTPS redirect disabled (development mode)")
+
+    async def dispatch(self, request: Request, call_next):
+        """
+        Redirect HTTP to HTTPS if enabled.
+
+        Args:
+            request: Incoming request
+            call_next: Next middleware/handler
+
+        Returns:
+            Response or redirect
+        """
+        if self.force_https and request.url.scheme == "http":
+            # Build HTTPS URL
+            https_url = request.url.replace(scheme="https")
+
+            logger.info(f"Redirecting HTTP -> HTTPS: {request.url.path}")
+
+            return RedirectResponse(
+                url=str(https_url),
+                status_code=301  # Permanent redirect
+            )
+
+        return await call_next(request)
+
+
+class CORSSecurityMiddleware(BaseHTTPMiddleware):
+    """
+    Secure CORS middleware with strict origin validation.
+
+    Alternative to FastAPI's CORSMiddleware with enhanced security.
+    """
+
+    def __init__(
+        self,
+        app,
+        allowed_origins: list[str],
+        allow_credentials: bool = True,
+        allowed_methods: Optional[list[str]] = None,
+        allowed_headers: Optional[list[str]] = None
+    ):
+        """
+        Initialize CORS security middleware.
+
+        Args:
+            app: FastAPI application
+            allowed_origins: List of allowed origins (exact matches)
+            allow_credentials: Allow credentials (cookies, auth)
+            allowed_methods: Allowed HTTP methods
+            allowed_headers: Allowed request headers
+        """
+        super().__init__(app)
+
+        self.allowed_origins = set(allowed_origins)
+        self.allow_credentials = allow_credentials
+        self.allowed_methods = allowed_methods or ["GET", "POST", "PUT", "DELETE"]
+        self.allowed_headers = allowed_headers or ["Authorization", "Content-Type"]
+
+        logger.info(
+            f"CORS security middleware initialized: "
+            f"origins={len(self.allowed_origins)}, "
+            f"credentials={allow_credentials}"
+        )
+
+    async def dispatch(self, request: Request, call_next):
+        """
+        Validate CORS requests with strict origin checking.
+
+        Args:
+            request: Incoming request
+            call_next: Next middleware/handler
+
+        Returns:
+            Response with CORS headers or 403 Forbidden
+        """
+        origin = request.headers.get("Origin")
+
+        # Handle preflight requests
+        if request.method == "OPTIONS":
+            if origin not in self.allowed_origins:
+                logger.warning(f"CORS blocked: origin={origin}")
+                return Response(status_code=403, content="Forbidden")
+
+            headers = {
+                "Access-Control-Allow-Origin": origin,
+                "Access-Control-Allow-Methods": ", ".join(self.allowed_methods),
+                "Access-Control-Allow-Headers": ", ".join(self.allowed_headers),
+                "Access-Control-Max-Age": "3600"
+            }
+
+            if self.allow_credentials:
+                headers["Access-Control-Allow-Credentials"] = "true"
+
+            return Response(status_code=200, headers=headers)
+
+        # Process regular request
+        response = await call_next(request)
+
+        if origin and origin in self.allowed_origins:
+            response.headers["Access-Control-Allow-Origin"] = origin
+
+            if self.allow_credentials:
+                response.headers["Access-Control-Allow-Credentials"] = "true"
+
+        return response
+
+
+def detect_xss_patterns(text: str) -> tuple[bool, Optional[str]]:
+    """
+    Detect XSS (Cross-Site Scripting) attack patterns.
+
+    Args:
+        text: Input text to check
+
+    Returns:
+        tuple: (is_xss, pattern_type)
+    """
+    xss_patterns = [
+        (r'<script[^>]*>.*?</script>', 'script_tag'),
+        (r'javascript:', 'javascript_protocol'),
+        (r'on\w+\s*=', 'event_handler'),
+        (r'<iframe[^>]*>', 'iframe_tag'),
+        (r'<embed[^>]*>', 'embed_tag'),
+        (r'<object[^>]*>', 'object_tag'),
+        (r'eval\s*\(', 'eval_function'),
+    ]
+
+    for pattern, xss_type in xss_patterns:
+        if re.search(pattern, text, re.IGNORECASE):
+            logger.warning(f"XSS pattern detected: {xss_type}")
+            return True, xss_type
+
+    return False, None
+
+
+def detect_path_traversal(path: str) -> bool:
+    """
+    Detect path traversal attack patterns.
+
+    Args:
+        path: File path to validate
+
+    Returns:
+        bool: True if path traversal detected
+    """
+    traversal_patterns = [
+        r'\.\.',
+        r'%2e%2e',
+        r'\.\./',
+        r'\.\.\\',
+        r'%252e%252e',
+    ]
+
+    for pattern in traversal_patterns:
+        if re.search(pattern, path, re.IGNORECASE):
+            logger.warning(f"Path traversal detected in: {path}")
+            return True
+
+    return False

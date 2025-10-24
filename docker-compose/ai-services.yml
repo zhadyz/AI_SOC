@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # ML Inference API
   ml-inference:
@@ -35,7 +33,9 @@ services:
 
   # Alert Triage Service (existing)
   alert-triage:
-    image: alert-triage:latest
+    build:
+      context: ../services/alert-triage
+      dockerfile: Dockerfile
     container_name: alert-triage
     hostname: alert-triage
     restart: unless-stopped
@@ -60,7 +60,9 @@ services:
 
   # RAG Service (existing)
   rag-service:
-    image: rag-service:latest
+    build:
+      context: ../services/rag-service
+      dockerfile: Dockerfile
     container_name: rag-service
     hostname: rag-service
     restart: unless-stopped

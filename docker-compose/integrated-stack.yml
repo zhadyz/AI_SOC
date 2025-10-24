@@ -1,0 +1,371 @@
+version: '3.8'
+
+# ============================================================================
+# AI-SOC Integrated Stack
+# ============================================================================
+#
+# Complete, production-ready AI-SOC deployment with full integration:
+# - API Gateway (unified entry point)
+# - ML Inference (IDS prediction)
+# - Alert Triage (LLM analysis)
+# - RAG Service (knowledge retrieval)
+# - Webhook Handler (integration orchestration)
+# - Redis (message queue & caching)
+# - ChromaDB (vector database)
+# - Ollama (LLM inference)
+#
+# Author: HOLLOWED_EYES
+# Mission: OPERATION PIPELINE-INTEGRATION
+# ============================================================================
+
+services:
+  # ==========================================================================
+  # API Gateway - Unified Entry Point
+  # ==========================================================================
+  api-gateway:
+    build:
+      context: ../services/gateway
+      dockerfile: Dockerfile
+    container_name: ai-soc-gateway
+    hostname: api-gateway
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+    environment:
+      - LOG_LEVEL=INFO
+      - GATEWAY_TIMEOUT=30
+    networks:
+      - ai-network
+      - siem-frontend
+      - soar-frontend
+    depends_on:
+      ml-inference:
+        condition: service_healthy
+      alert-triage:
+        condition: service_healthy
+      rag-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  # ==========================================================================
+  # Webhook Handler - Integration Orchestration
+  # ==========================================================================
+  webhook-handler:
+    build:
+      context: ../services/webhooks
+      dockerfile: Dockerfile
+    container_name: webhook-handler
+    hostname: webhook-handler
+    restart: unless-stopped
+    ports:
+      - "8090:8000"
+    environment:
+      - LOG_LEVEL=INFO
+      - PIPELINE_WORKERS=10
+    networks:
+      - ai-network
+      - siem-frontend
+      - soar-frontend
+    depends_on:
+      - api-gateway
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  # ==========================================================================
+  # ML Inference API - IDS Prediction
+  # ==========================================================================
+  ml-inference:
+    build:
+      context: ../ml_training
+      dockerfile: Dockerfile
+    container_name: ml-inference
+    hostname: ml-inference
+    restart: unless-stopped
+    ports:
+      - "8500:8000"
+    volumes:
+      - ../models:/app/models:ro
+    environment:
+      - MODEL_PATH=/app/models
+      - LOG_LEVEL=INFO
+    networks:
+      - ai-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 1G
+          cpus: '1.0'
+
+  # ==========================================================================
+  # Alert Triage Service - LLM Analysis
+  # ==========================================================================
+  alert-triage:
+    image: alert-triage:latest
+    container_name: alert-triage
+    hostname: alert-triage
+    restart: unless-stopped
+    ports:
+      - "8100:8000"
+    environment:
+      - TRIAGE_OLLAMA_HOST=http://ollama-server:11434
+      - TRIAGE_PRIMARY_MODEL=llama3.1:8b
+      - TRIAGE_FALLBACK_MODEL=llama3.1:8b
+      - ML_INFERENCE_URL=http://ml-inference:8000
+      - RAG_SERVICE_URL=http://rag-service:8000
+      - ML_ENABLED=true
+      - RAG_ENABLED=true
+      - LOG_LEVEL=INFO
+    networks:
+      - ai-network
+    depends_on:
+      ml-inference:
+        condition: service_healthy
+      ollama-server:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  # ==========================================================================
+  # RAG Service - Knowledge Retrieval
+  # ==========================================================================
+  rag-service:
+    image: rag-service:latest
+    container_name: rag-service
+    hostname: rag-service
+    restart: unless-stopped
+    ports:
+      - "8300:8000"
+    environment:
+      - RAG_CHROMADB_HOST=chromadb
+      - RAG_CHROMADB_PORT=8000
+      - RAG_OLLAMA_HOST=http://ollama-server:11434
+      - LOG_LEVEL=INFO
+    networks:
+      - ai-network
+    depends_on:
+      - chromadb
+      - ollama-server
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  # ==========================================================================
+  # Redis - Message Queue & Caching
+  # ==========================================================================
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis
+    hostname: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    networks:
+      - ai-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  # ==========================================================================
+  # ChromaDB - Vector Database
+  # ==========================================================================
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: chromadb
+    hostname: chromadb
+    restart: unless-stopped
+    ports:
+      - "8200:8000"
+    volumes:
+      - chromadb-data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    networks:
+      - ai-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+
+  # ==========================================================================
+  # Ollama - LLM Inference Server
+  # ==========================================================================
+  ollama-server:
+    image: ollama/ollama:latest
+    container_name: ollama-server
+    hostname: ollama-server
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    networks:
+      - ai-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '4.0'
+        reservations:
+          memory: 4G
+          cpus: '2.0'
+
+# ============================================================================
+# Networks
+# ============================================================================
+
+networks:
+  ai-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+    labels:
+      - "com.ai-soc.network=ai-services"
+
+  siem-frontend:
+    external: true
+    name: siem-frontend
+    # Connects to Wazuh stack
+
+  soar-frontend:
+    external: true
+    name: soar-frontend
+    # Connects to TheHive/Shuffle stack
+
+# ============================================================================
+# Volumes
+# ============================================================================
+
+volumes:
+  chromadb-data:
+    driver: local
+    labels:
+      - "com.ai-soc.volume=chromadb"
+
+  ollama-models:
+    driver: local
+    labels:
+      - "com.ai-soc.volume=ollama"
+
+  redis-data:
+    driver: local
+    labels:
+      - "com.ai-soc.volume=redis"
+
+# ============================================================================
+# Deployment Instructions
+# ============================================================================
+#
+# 1. Build required images:
+#    docker compose -f docker-compose/ai-services.yml build
+#
+# 2. Deploy integrated stack:
+#    docker compose -f docker-compose/integrated-stack.yml up -d
+#
+# 3. Pull Ollama model (first time):
+#    docker exec -it ollama-server ollama pull llama3.1:8b
+#
+# 4. Verify deployment:
+#    docker compose -f docker-compose/integrated-stack.yml ps
+#    curl http://localhost:8888/health
+#
+# 5. Access services:
+#    - API Gateway: http://localhost:8888
+#    - ML Inference: http://localhost:8500/docs
+#    - Alert Triage: http://localhost:8100/docs
+#    - RAG Service: http://localhost:8300/docs
+#    - Webhook Handler: http://localhost:8090/docs
+#    - Ollama API: http://localhost:11434/api/tags
+#    - Redis: localhost:6379
+#    - ChromaDB: http://localhost:8200
+#
+# ============================================================================
