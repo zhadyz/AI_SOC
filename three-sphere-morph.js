@@ -313,8 +313,10 @@ class MorphingSphere {
     }
 
     handleScroll() {
-        // Apple-style scroll-linked animation: morph as you scroll past the subtitle
-        const subtitle = document.querySelector('.section-subtitle');
+        // Apple-style scroll-linked animation: morph as you scroll past the research subtitle
+        // Target the SECOND subtitle (research section), not the first (metrics section)
+        const researchSection = document.querySelector('.research-highlights');
+        const subtitle = researchSection ? researchSection.querySelector('.section-subtitle') : null;
         if (!subtitle) {
             this.targetMorphProgress = 0;
             return;
