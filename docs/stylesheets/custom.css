@@ -2,13 +2,13 @@
 /* Inspired by Apple's refined aesthetic */
 
 :root {
-  /* Refined Typography Scale - Elegant & Compact */
-  --md-text-font-size: 0.8rem;
-  --md-typeset-h1-font-size: 1.6rem;
-  --md-typeset-h2-font-size: 1.3rem;
-  --md-typeset-h3-font-size: 1.05rem;
-  --md-typeset-h4-font-size: 0.95rem;
-  --md-typeset-h5-font-size: 0.85rem;
+  /* Refined Typography Scale - Elegant & Balanced */
+  --md-text-font-size: 0.875rem;
+  --md-typeset-h1-font-size: 1.75rem;
+  --md-typeset-h2-font-size: 1.4rem;
+  --md-typeset-h3-font-size: 1.1rem;
+  --md-typeset-h4-font-size: 1.0rem;
+  --md-typeset-h5-font-size: 0.9rem;
 
   /* Premium spacing */
   --md-typeset-line-height: 1.7;
@@ -71,18 +71,18 @@
   color: var(--md-typeset-color);
 }
 
-/* Force smaller base font throughout */
+/* Balanced base font throughout */
 html {
-  font-size: 14px !important;
+  font-size: 15px !important;
 }
 
 .md-content {
-  font-size: 0.8rem !important;
+  font-size: 0.875rem !important;
 }
 
 /* Elegant Headings - Force Override */
 .md-typeset h1 {
-  font-size: 1.6rem !important;
+  font-size: 1.75rem !important;
   font-weight: 600;
   letter-spacing: -0.02em;
   margin-top: 0;
@@ -91,7 +91,7 @@ html {
 }
 
 .md-typeset h2 {
-  font-size: 1.3rem !important;
+  font-size: 1.4rem !important;
   font-weight: 600;
   letter-spacing: -0.015em;
   margin-top: 2.5rem;
@@ -102,7 +102,7 @@ html {
 }
 
 .md-typeset h3 {
-  font-size: 1.05rem !important;
+  font-size: 1.1rem !important;
   font-weight: 600;
   letter-spacing: -0.01em;
   margin-top: 2rem;
@@ -111,7 +111,7 @@ html {
 }
 
 .md-typeset h4 {
-  font-size: 0.95rem !important;
+  font-size: 1.0rem !important;
   font-weight: 600;
   margin-top: 1.5rem;
   margin-bottom: 0.6rem;
@@ -121,7 +121,7 @@ html {
 /* Refined Paragraphs - Force Override */
 .md-typeset p {
   margin-bottom: 1rem;
-  font-size: 0.8rem !important;
+  font-size: 0.875rem !important;
   line-height: 1.7;
   font-weight: 400;
 }
@@ -131,11 +131,11 @@ html {
   color: #333333;
 }
 
-/* Force smaller text in all content */
+/* Balanced text in all content */
 .md-typeset li,
 .md-typeset td,
 .md-typeset th {
-  font-size: 0.8rem !important;
+  font-size: 0.875rem !important;
 }
 
 /* Elegant Code Blocks */
@@ -346,4 +346,208 @@ html {
 /* Remove transitions from layout properties */
 *:not(a):not(button) {
   transition-property: color, background-color, border-color;
+}
+
+/* ========================================
+   SURGICAL PAGE-SPECIFIC REFINEMENTS
+   ======================================== */
+
+/* Home Page - Hero Layout */
+article[data-md-component="content"] h1:first-of-type {
+  font-size: 2.25rem !important;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1rem;
+}
+
+article[data-md-component="content"] h1:first-of-type + p {
+  font-size: 1.05rem !important;
+  color: #b8b8b8;
+  margin-bottom: 2.5rem;
+  font-weight: 300;
+  line-height: 1.8;
+}
+
+/* API Reference Pages - Technical Documentation */
+article h1:contains("API"),
+article h1:contains("Reference") {
+  border-left: 4px solid #0a84ff;
+  padding-left: 1rem;
+  background: linear-gradient(90deg, rgba(10, 132, 255, 0.08) 0%, transparent 100%);
+  padding: 1rem 0 1rem 1rem;
+  border-radius: 0 4px 4px 0;
+}
+
+/* Code Blocks - Enhanced Presentation */
+.md-typeset .highlight {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 1.5rem 0;
+}
+
+.md-typeset .highlight::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  pointer-events: none;
+}
+
+/* Tables - Premium Data Display */
+.md-typeset table:not([class]) {
+  margin: 2rem 0;
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.02) 0%, transparent 100%);
+}
+
+.md-typeset table:not([class]) thead {
+  background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+}
+
+.md-typeset table:not([class]) tbody tr:hover {
+  background-color: rgba(10, 132, 255, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+/* Performance Metrics - Highlight Key Stats */
+.md-typeset strong:contains("%"),
+.md-typeset strong:contains("ms"),
+.md-typeset strong:contains("GB"),
+.md-typeset strong:contains("accuracy") {
+  color: #0a84ff;
+  font-weight: 700;
+  padding: 0.1rem 0.3rem;
+  background: rgba(10, 132, 255, 0.1);
+  border-radius: 3px;
+}
+
+/* Section Dividers - Visual Hierarchy */
+.md-typeset hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+  margin: 3rem 0;
+}
+
+/* Inline Code - Refined Presentation */
+.md-typeset code {
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.08) 0%, rgba(10, 132, 255, 0.04) 100%);
+  border: 1px solid rgba(10, 132, 255, 0.15);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Lists - Enhanced Visual Structure */
+.md-typeset ul li::marker {
+  color: #0a84ff;
+}
+
+.md-typeset ol li::marker {
+  color: #0a84ff;
+  font-weight: 600;
+}
+
+.md-typeset ul ul,
+.md-typeset ol ul,
+.md-typeset ul ol,
+.md-typeset ol ol {
+  margin-top: 0.5rem;
+  padding-left: 1.5rem;
+  border-left: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Architecture Diagrams - Code Block Enhancements */
+.md-typeset pre code:contains("┌"),
+.md-typeset pre code:contains("└"),
+.md-typeset pre code:contains("├"),
+.md-typeset pre code:contains("│") {
+  font-family: 'Courier New', monospace;
+  line-height: 1.4;
+}
+
+/* Key-Value Pairs in Tables */
+.md-typeset table:not([class]) td:first-child {
+  font-weight: 500;
+  color: #c8c8c8;
+}
+
+.md-typeset table:not([class]) td:first-child code {
+  font-weight: 600;
+  color: #0a84ff;
+}
+
+/* Note/Warning Callouts - Refined Admonitions */
+.md-typeset .admonition.note {
+  border-left-color: #0a84ff;
+}
+
+.md-typeset .admonition.warning {
+  border-left-color: #ff9500;
+  background-color: rgba(255, 149, 0, 0.05);
+}
+
+.md-typeset .admonition.danger {
+  border-left-color: #ff3b30;
+  background-color: rgba(255, 59, 48, 0.05);
+}
+
+.md-typeset .admonition.success {
+  border-left-color: #34c759;
+  background-color: rgba(52, 199, 89, 0.05);
+}
+
+/* Experimental Results - Highlight Metrics */
+article[data-md-component="content"]:has(h1:contains("Performance")),
+article[data-md-component="content"]:has(h1:contains("Results")) {
+  counter-reset: metric-counter;
+}
+
+/* Definition Lists - Enhanced Formatting */
+.md-typeset dl dt {
+  font-weight: 600;
+  color: #e8e8e8;
+  margin-top: 1rem;
+}
+
+.md-typeset dl dd {
+  margin-left: 1.5rem;
+  padding-left: 1rem;
+  border-left: 2px solid rgba(10, 132, 255, 0.3);
+  color: #c8c8c8;
+}
+
+/* Deployment Section - Command Highlighting */
+article h1:contains("Deployment") ~ * pre,
+article h1:contains("Docker") ~ * pre {
+  border-left: 3px solid #0a84ff;
+}
+
+/* Security Section - Visual Emphasis */
+article h1:contains("Security") ~ h2,
+article h1:contains("Hardening") ~ h2 {
+  color: #ff9500;
+}
+
+/* Research Papers - Academic Styling */
+article h1:contains("Survey") ~ *,
+article h1:contains("Research") ~ * {
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* Footer Metadata - Refined Presentation */
+.md-typeset p:has(strong:contains("Version")),
+.md-typeset p:has(strong:contains("Updated")),
+.md-typeset p:has(strong:contains("Maintained")) {
+  font-size: 0.75rem;
+  color: #808080;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 1.5rem;
+  margin-top: 3rem;
 }
