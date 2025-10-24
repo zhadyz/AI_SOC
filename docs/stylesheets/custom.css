@@ -1,0 +1,305 @@
+/* AI-SOC Documentation - Sophisticated Dark Theme */
+/* Inspired by Apple's refined aesthetic */
+
+:root {
+  /* Refined Typography Scale */
+  --md-text-font-size: 0.85rem;
+  --md-typeset-h1-font-size: 1.8rem;
+  --md-typeset-h2-font-size: 1.4rem;
+  --md-typeset-h3-font-size: 1.15rem;
+  --md-typeset-h4-font-size: 1.0rem;
+  --md-typeset-h5-font-size: 0.9rem;
+
+  /* Premium spacing */
+  --md-typeset-line-height: 1.65;
+  --md-typeset-letter-spacing: 0.01em;
+}
+
+/* Enhanced Dark Theme - Pure Black Background */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #1a1a1a;
+  --md-primary-fg-color--light: #2a2a2a;
+  --md-primary-fg-color--dark: #0a0a0a;
+
+  /* Pure black backgrounds */
+  --md-default-bg-color: #000000;
+  --md-default-fg-color: #e0e0e0;
+  --md-code-bg-color: #0a0a0a;
+  --md-code-fg-color: #e8e8e8;
+
+  /* Subtle accents - Apple-inspired blue */
+  --md-accent-fg-color: #0a84ff;
+  --md-accent-fg-color--transparent: rgba(10, 132, 255, 0.1);
+
+  /* Refined text colors */
+  --md-typeset-color: #d4d4d4;
+  --md-typeset-a-color: #0a84ff;
+
+  /* Subtle borders */
+  --md-typeset-table-color: rgba(255, 255, 255, 0.05);
+  --md-code-hl-color: rgba(10, 132, 255, 0.15);
+}
+
+/* Refined Body Typography */
+.md-typeset {
+  font-size: var(--md-text-font-size);
+  line-height: var(--md-typeset-line-height);
+  letter-spacing: var(--md-typeset-letter-spacing);
+  font-weight: 400;
+  color: var(--md-typeset-color);
+}
+
+/* Elegant Headings */
+.md-typeset h1 {
+  font-size: var(--md-typeset-h1-font-size);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #ffffff;
+}
+
+.md-typeset h2 {
+  font-size: var(--md-typeset-h2-font-size);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  color: #f5f5f5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.5rem;
+}
+
+.md-typeset h3 {
+  font-size: var(--md-typeset-h3-font-size);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-top: 2rem;
+  margin-bottom: 0.8rem;
+  color: #e8e8e8;
+}
+
+.md-typeset h4 {
+  font-size: var(--md-typeset-h4-font-size);
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.6rem;
+  color: #d4d4d4;
+}
+
+/* Refined Paragraphs */
+.md-typeset p {
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+/* Elegant Code Blocks */
+.md-typeset code {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+}
+
+.md-typeset pre {
+  border-radius: 8px;
+  background-color: #0a0a0a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.md-typeset pre > code {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  background-color: transparent;
+  border: none;
+}
+
+/* Refined Tables */
+.md-typeset table:not([class]) {
+  font-size: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.md-typeset table:not([class]) th {
+  background-color: rgba(255, 255, 255, 0.03);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #b0b0b0;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.md-typeset table:not([class]) td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Elegant Links */
+.md-typeset a {
+  color: #0a84ff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.md-typeset a:hover {
+  color: #409cff;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* Refined Lists */
+.md-typeset ul,
+.md-typeset ol {
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+.md-typeset ul li,
+.md-typeset ol li {
+  margin-bottom: 0.4rem;
+}
+
+/* Elegant Blockquotes */
+.md-typeset blockquote {
+  border-left: 3px solid #0a84ff;
+  background-color: rgba(10, 132, 255, 0.05);
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: #c8c8c8;
+}
+
+/* Sophisticated Admonitions */
+.md-typeset .admonition {
+  font-size: 0.8rem;
+  border-radius: 6px;
+  border-left: 3px solid;
+  background-color: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.md-typeset .admonition-title {
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
+
+/* Navigation Refinements */
+.md-nav {
+  font-size: 0.8rem;
+}
+
+.md-nav__link {
+  font-weight: 400;
+  transition: all 0.2s ease;
+}
+
+.md-nav__link:hover {
+  color: #0a84ff;
+}
+
+.md-nav__link--active {
+  color: #0a84ff;
+  font-weight: 600;
+}
+
+/* Header Refinement */
+.md-header {
+  background-color: #000000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.md-header__title {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Sidebar Refinement */
+.md-sidebar {
+  background-color: #000000;
+}
+
+.md-sidebar__scrollwrap {
+  background-color: #000000;
+}
+
+/* Search Refinement */
+.md-search__input {
+  font-size: 0.85rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+}
+
+.md-search__input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Footer Refinement */
+.md-footer {
+  background-color: #000000;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.75rem;
+}
+
+/* Scrollbar Styling - Minimal & Elegant */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Content Container - Refined Width */
+.md-content {
+  max-width: 65rem;
+}
+
+.md-content__inner {
+  padding-top: 1.5rem;
+  padding-bottom: 3rem;
+}
+
+/* Enhanced Focus States */
+*:focus-visible {
+  outline: 2px solid #0a84ff;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Smooth Transitions */
+* {
+  transition-property: color, background-color, border-color;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}
+
+/* Remove transitions from layout properties */
+*:not(a):not(button) {
+  transition-property: color, background-color, border-color;
+}

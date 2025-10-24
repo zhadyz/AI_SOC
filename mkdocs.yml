@@ -10,22 +10,25 @@ edit_uri: edit/master/docs/
 theme:
   name: material
   palette:
-    # Light mode
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: indigo
-      accent: indigo
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    # Dark mode
-    - media: "(prefers-color-scheme: dark)"
+    # Dark mode (default)
+    - media: "(prefers-color-scheme)"
       scheme: slate
-      primary: indigo
-      accent: indigo
+      primary: black
+      accent: blue
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+    # Light mode (optional)
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  font:
+    text: Inter
+    code: SF Mono
   features:
     - navigation.instant
     - navigation.tracking
@@ -39,6 +42,9 @@ theme:
     - content.code.annotate
   icon:
     repo: fontawesome/brands/github
+
+extra_css:
+  - stylesheets/custom.css
 
 extra:
   social:
