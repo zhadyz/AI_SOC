@@ -89,6 +89,8 @@ nav:
       - Survey Paper: research/survey-paper.md
       - Research Context: research/context.md
       - Academic Contributions: research/contributions.md
+      - Competitive Analysis: research/competitive-analysis.md
+      - Bibliography: research/bibliography.md
   - Getting Started:
       - Quick Start: getting-started/quickstart.md
       - Installation Guide: getting-started/installation.md
