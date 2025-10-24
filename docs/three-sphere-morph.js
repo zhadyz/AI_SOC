@@ -51,6 +51,9 @@ class MorphingSphere {
         this.init();
         this.animate();
         this.setupEventListeners();
+
+        // Check initial scroll position
+        setTimeout(() => this.handleScroll(), 100);
     }
 
     init() {
@@ -269,19 +272,13 @@ class MorphingSphere {
         this.container.addEventListener('mouseleave', () => {
             this.isHovered = false;
             this.targetScale = 1;
-
-            // Return to sphere when mouse leaves
-            if (this.isMorphed) {
-                this.isMorphed = false;
-                this.targetMorphProgress = 0;
-            }
         });
 
-        // Click to toggle morph
-        this.container.addEventListener('click', () => {
-            this.isMorphed = !this.isMorphed;
-            this.targetMorphProgress = this.isMorphed ? 1 : 0;
-        });
+        // Scroll-based morphing
+        window.addEventListener('scroll', () => this.handleScroll(), { passive: true });
+
+        // Research card hover detection
+        this.setupCardHoverDetection();
 
         // Resize
         window.addEventListener('resize', () => this.onResize());
@@ -313,6 +310,46 @@ class MorphingSphere {
         // Smooth mouse influence
         this.targetRotation.x = this.mouse.y * 0.3;
         this.targetRotation.y = this.mouse.x * 0.3;
+    }
+
+    handleScroll() {
+        const researchGrid = document.querySelector('.research-grid');
+        if (!researchGrid) return;
+
+        const rect = researchGrid.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+
+        // Calculate how close the research grid is to viewport
+        // Morph starts when grid is 300px below viewport, completes when grid is in view
+        const triggerDistance = 300;
+        const distanceFromView = rect.top - windowHeight;
+
+        if (distanceFromView < triggerDistance) {
+            // Map distance to morph progress (0 to 1)
+            const progress = Math.max(0, Math.min(1, 1 - (distanceFromView / triggerDistance)));
+            this.targetMorphProgress = progress;
+        } else {
+            this.targetMorphProgress = 0;
+        }
+    }
+
+    setupCardHoverDetection() {
+        // Wait for DOM to be ready, then attach hover listeners to research cards
+        setTimeout(() => {
+            const cards = document.querySelectorAll('.research-card');
+
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    // Full morph when hovering over any card
+                    this.targetMorphProgress = 1;
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    // Return to scroll-based morph
+                    this.handleScroll();
+                });
+            });
+        }, 100);
     }
 
     updateRotation() {
