@@ -36,7 +36,8 @@ class MorphingSphere {
             particleCount: 60,
             sphereRadius: 150,
             logoSize: 180,
-            morphSpeed: 0.05,
+            morphSpeed: 0.12, // Faster for snap effect
+            morphBounce: 0.15, // Bounce overshoot amount
             colors: {
                 blue: 0x0a84ff,
                 purple: 0x8b7ba8,
@@ -313,8 +314,7 @@ class MorphingSphere {
     }
 
     handleScroll() {
-        // Apple-style scroll-linked animation: morph as you scroll past the research subtitle
-        // Target the SECOND subtitle (research section), not the first (metrics section)
+        // Threshold-triggered snap animation: sphere bounces into diamond shape
         const researchSection = document.querySelector('.research-highlights');
         const subtitle = researchSection ? researchSection.querySelector('.section-subtitle') : null;
         if (!subtitle) {
@@ -325,27 +325,17 @@ class MorphingSphere {
         const rect = subtitle.getBoundingClientRect();
         const windowHeight = window.innerHeight;
 
-        // Morph animation zone: starts when subtitle reaches 90% down viewport
-        // Completes over ~300px scroll distance for smoother, later transformation
-        const startTrigger = windowHeight * 0.9; // 90% down viewport - much later
-        const morphDistance = 300; // Pixels to complete morph
-        const endTrigger = startTrigger - morphDistance;
-
-        // Current subtitle position
+        // Trigger threshold: 90% down viewport
+        const threshold = windowHeight * 0.9;
         const currentPosition = rect.top;
 
-        // Calculate morph progress based on scroll position
-        if (currentPosition > startTrigger) {
-            // Haven't scrolled to trigger point yet
-            this.targetMorphProgress = 0;
-        } else if (currentPosition >= endTrigger && currentPosition <= startTrigger) {
-            // In the morph zone - progressive transformation
-            const scrolled = startTrigger - currentPosition;
-            const progress = scrolled / morphDistance;
-            this.targetMorphProgress = Math.max(0, Math.min(1, progress));
-        } else {
-            // Scrolled past the morph zone - fully diamond
+        // Simple threshold check - snap to diamond when crossed
+        if (currentPosition <= threshold) {
+            // Crossed threshold - trigger snap/bounce animation to diamond
             this.targetMorphProgress = 1;
+        } else {
+            // Above threshold - stay as sphere
+            this.targetMorphProgress = 0;
         }
     }
 
@@ -388,8 +378,16 @@ class MorphingSphere {
     }
 
     updateMorph() {
-        // Smooth morph progress
-        this.morphProgress += (this.targetMorphProgress - this.morphProgress) * this.config.morphSpeed;
+        // Smooth morph progress with bounce effect
+        const diff = this.targetMorphProgress - this.morphProgress;
+        const speed = this.config.morphSpeed;
+
+        // Add spring/bounce when snapping to target
+        if (Math.abs(diff) > 0.01) {
+            this.morphProgress += diff * speed;
+        } else {
+            this.morphProgress = this.targetMorphProgress;
+        }
 
         // Update particle positions and colors
         this.particles.forEach((particle, i) => {
