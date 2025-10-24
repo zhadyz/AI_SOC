@@ -277,22 +277,10 @@ class MorphingSphere {
             }
         });
 
-        // Click to morph and scroll to research cards
+        // Click to toggle morph
         this.container.addEventListener('click', () => {
             this.isMorphed = !this.isMorphed;
             this.targetMorphProgress = this.isMorphed ? 1 : 0;
-
-            // Smooth scroll to research grid
-            const researchGrid = document.querySelector('.research-grid');
-            if (researchGrid) {
-                // Wait for morph animation to start, then scroll
-                setTimeout(() => {
-                    researchGrid.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
-                }, 300);
-            }
         });
 
         // Resize
