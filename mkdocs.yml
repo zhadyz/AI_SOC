@@ -18,7 +18,7 @@ theme:
     text: Inter
     code: SF Mono
   logo: material/shield-lock
-  favicon: material/shield-lock
+  favicon: assets/favicon.ico
   features:
     - navigation.instant
     - navigation.tracking
