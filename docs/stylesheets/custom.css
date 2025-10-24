@@ -707,3 +707,130 @@ article h2:contains("Open Source") ~ ul li strong {
   color: #0a84ff;
   font-size: 0.95rem;
 }
+
+/* ============================================================================
+   Survey Paper Page - Research Foundation
+   ============================================================================ */
+
+/* Survey Paper Title */
+article h1:contains("AI-Augmented SOC") {
+  font-size: 2rem !important;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #ffffff;
+  margin-bottom: 2rem;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.12) 0%, rgba(10, 132, 255, 0.04) 100%);
+  border-left: 4px solid #0a84ff;
+  border-radius: 0 8px 8px 0;
+  letter-spacing: -0.02em;
+}
+
+/* Authors/Faculty Section Labels */
+article h1:contains("AI-Augmented SOC") ~ p strong {
+  font-size: 1rem !important;
+  color: #0a84ff;
+  display: block;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+/* Author/Faculty Lists */
+article h1:contains("AI-Augmented SOC") ~ ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 1rem 0 2rem 0;
+}
+
+article h1:contains("AI-Augmented SOC") ~ ul li {
+  padding: 0.75rem 1.25rem;
+  margin: 0.5rem 0;
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.04) 0%, rgba(10, 132, 255, 0.01) 100%);
+  border-left: 2px solid rgba(10, 132, 255, 0.3);
+  border-radius: 0 4px 4px 0;
+  transition: all 0.2s ease;
+  font-size: 0.85rem !important;
+  color: #a0a0a0;
+}
+
+article h1:contains("AI-Augmented SOC") ~ ul li:hover {
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.08) 0%, rgba(10, 132, 255, 0.03) 100%);
+  border-left-color: #0a84ff;
+  transform: translateX(4px);
+}
+
+article h1:contains("AI-Augmented SOC") ~ ul li strong {
+  font-size: 0.95rem !important;
+  font-weight: 600;
+  color: #ffffff !important;
+  letter-spacing: -0.01em;
+  margin: 0 !important;
+  display: inline;
+}
+
+/* Institution Text Styling */
+article h1:contains("AI-Augmented SOC") ~ p:not(:has(strong)) {
+  color: #d0d0d0;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+/* Abstract Section */
+article h3:contains("Abstract") {
+  font-size: 1.3rem !important;
+  color: #0a84ff;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(10, 132, 255, 0.2);
+  padding-bottom: 0.75rem;
+}
+
+/* Survey Paper Content - General Text */
+article h1:contains("AI-Augmented SOC") ~ * {
+  line-height: 1.8;
+}
+
+/* Survey Paper Horizontal Divider */
+article h1:contains("AI-Augmented SOC") ~ hr {
+  margin: 2.5rem 0;
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(10, 132, 255, 0.3) 50%, transparent 100%);
+}
+
+/* Survey Paper Images/Figures - Enhanced Display */
+article h1:contains("AI-Augmented SOC") ~ p img {
+  max-width: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 2rem auto;
+  display: block;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(10, 132, 255, 0.2);
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: zoom-in;
+}
+
+article h1:contains("AI-Augmented SOC") ~ p img:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 24px rgba(10, 132, 255, 0.3);
+  border-color: rgba(10, 132, 255, 0.4);
+}
+
+/* Figure Captions */
+article h1:contains("AI-Augmented SOC") ~ p:has(img) {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+/* Fig. X. Caption text styling */
+article h1:contains("AI-Augmented SOC") ~ p:has(img):not(:has(img)):not(:has(strong)) {
+  font-size: 0.85rem !important;
+  color: #a0a0a0;
+  font-style: italic;
+  margin-top: 0.75rem;
+}

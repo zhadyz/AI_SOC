@@ -1,7 +1,25 @@
-**AI-Augmented SOC: A Survey of LLMs and Agents for Security Automation**   
-Siddhant Srinivas (siddhant.srinivas1528@coyote.csusb.edu), Brandon Kirk (brandon.kirk8304@coyote.csusb.edu), Julissa Zendejas (julissa.zendejas6692@coyote.csusb.edu), Michael Espino (michael.espino5607@coyote.csusb.edu), Matthew Boskovich (matthew.boskovich3084@coyote.csusb.edu), Abdul Bari (abdul.bari8019@coyote.csusb.edu), Khalil Dajani (khalil.dajani@csusb.edu), Nabeel Alzahrani (alzahran@csusb.edu)  
-School of Computer Science & Engineering,  
+# AI-Augmented SOC: A Survey of LLMs and Agents for Security Automation
+
+**Authors:**
+
+- **Siddhant Srinivas** – siddhant.srinivas@coyote.csusb.edu
+- **Brandon Kirk** – brandon.kirk@coyote.csusb.edu
+- **Julissa Zendejas** – julissa.zendejas@coyote.csusb.edu
+- **Michael Espino** – michael.espino@coyote.csusb.edu
+- **Matthew Boskovich** – matthew.boskovich@coyote.csusb.edu
+- **Abdul Bari** – abdul.bari8019@coyote.csusb.edu
+
+**Faculty Advisors:**
+
+- **Dr. Khalil Dajani** – khalil.dajani@csusb.edu
+- **Dr. Nabeel Alzahrani** – nabeel.alzahrani@csusb.edu
+
+**Institution:**
+
+School of Computer Science & Engineering
 California State University, San Bernardino, USA
+
+---
 
 ### **Abstract**
 
