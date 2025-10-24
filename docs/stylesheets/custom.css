@@ -801,22 +801,26 @@ article h1:contains("AI-Augmented SOC") ~ hr {
 
 /* Survey Paper Images/Figures - Enhanced Display */
 article h1:contains("AI-Augmented SOC") ~ p img {
-  max-width: 100% !important;
-  width: auto !important;
+  max-width: none !important;
+  width: 120% !important;
+  min-width: 900px !important;
   height: auto !important;
   margin: 2rem auto;
+  margin-left: -10% !important;
   display: block;
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(10, 132, 255, 0.2);
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
+  image-rendering: -webkit-optimize-contrast !important;
+  image-rendering: crisp-edges !important;
+  image-rendering: pixelated !important;
+  -ms-interpolation-mode: nearest-neighbor !important;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   cursor: zoom-in;
 }
 
 article h1:contains("AI-Augmented SOC") ~ p img:hover {
-  transform: scale(1.02);
+  transform: scale(1.05);
   box-shadow: 0 6px 24px rgba(10, 132, 255, 0.3);
   border-color: rgba(10, 132, 255, 0.4);
 }
