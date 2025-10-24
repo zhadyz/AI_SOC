@@ -313,22 +313,31 @@ class MorphingSphere {
     }
 
     handleScroll() {
-        const researchGrid = document.querySelector('.research-grid');
-        if (!researchGrid) return;
+        // Apple-style scroll-linked animation: morph as you scroll past the subtitle
+        const subtitle = document.querySelector('.section-subtitle');
+        if (!subtitle) return;
 
-        const rect = researchGrid.getBoundingClientRect();
+        const rect = subtitle.getBoundingClientRect();
         const windowHeight = window.innerHeight;
 
-        // Calculate how close the research grid is to viewport
-        // Morph starts when grid is 300px below viewport, completes when grid is in view
-        const triggerDistance = 300;
-        const distanceFromView = rect.top - windowHeight;
+        // Morph animation zone: from when subtitle is at 60% viewport to when it's -100px past top
+        const startPosition = windowHeight * 0.6; // Subtitle at 60% down viewport (morph starts)
+        const endPosition = -100; // Subtitle 100px above viewport top (morph complete)
+        const morphRange = startPosition - endPosition;
 
-        if (distanceFromView < triggerDistance) {
-            // Map distance to morph progress (0 to 1)
-            const progress = Math.max(0, Math.min(1, 1 - (distanceFromView / triggerDistance)));
-            this.targetMorphProgress = progress;
+        // Current subtitle position relative to viewport top
+        const currentPosition = rect.top;
+
+        if (currentPosition <= startPosition && currentPosition >= endPosition) {
+            // We're in the morph zone - calculate smooth progress
+            const scrolledDistance = startPosition - currentPosition;
+            const progress = scrolledDistance / morphRange;
+            this.targetMorphProgress = Math.max(0, Math.min(1, progress));
+        } else if (currentPosition < endPosition) {
+            // Scrolled past - fully morphed
+            this.targetMorphProgress = 1;
         } else {
+            // Haven't reached trigger yet
             this.targetMorphProgress = 0;
         }
     }
