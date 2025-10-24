@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Enterprise-grade SIEM Integration Architecture - AI-Augmented Security Operations Center">
+    <title>SIEM Integration Architecture | AI-SOC Research</title>
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+    <style>
+        /* Import refined font weights */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+        /* CSS Variables */
+        :root {
+            --blue-primary: #0a84ff;
+            --purple-accent: #8b7ba8;
+            --teal-accent: #5a9aa8;
+            --green-success: #30d158;
+            --orange-warning: #ff9f0a;
+            --red-critical: #ff453a;
+            --gray-100: #ffffff;
+            --gray-200: #e0e0e0;
+            --gray-300: #b0b0b0;
+            --gray-400: #9a9a9a;
+            --gray-500: #808080;
+            --gray-600: #666666;
+            --gray-800: #1c1c1e;
+            --gray-900: #121212;
+            --overlay-light: rgba(255, 255, 255, 0.06);
+            --overlay-medium: rgba(255, 255, 255, 0.12);
+            --overlay-blue: rgba(10, 132, 255, 0.1);
+            --code-bg: rgba(18, 18, 18, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #000000;
+            color: #e0e0e0;
+            line-height: 1.7;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Background texture */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                radial-gradient(at 40% 20%, rgba(10, 132, 255, 0.03) 0px, transparent 50%),
+                radial-gradient(at 80% 80%, rgba(138, 123, 168, 0.03) 0px, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(30px) saturate(180%);
+            border-bottom: 1px solid var(--overlay-light);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.03);
+            padding: 1rem 2rem;
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--gray-400);
+        }
+
+        .breadcrumb a {
+            color: var(--gray-400);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--blue-primary);
+        }
+
+        .breadcrumb span {
+            color: var(--gray-600);
+        }
+
+        .breadcrumb .current {
+            color: var(--gray-200);
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 80px;
+            padding: 5rem 2rem 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 400px;
+            background: radial-gradient(
+                ellipse at center,
+                rgba(10, 132, 255, 0.15) 0%,
+                rgba(138, 123, 168, 0.08) 40%,
+                transparent 70%
+            );
+            filter: blur(80px);
+            z-index: 0;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--overlay-blue);
+            border: 1px solid rgba(10, 132, 255, 0.3);
+            color: var(--blue-primary);
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            margin-bottom: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 300;
+            letter-spacing: -0.04em;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-300) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.35rem;
+            font-weight: 400;
+            color: var(--gray-400);
+            letter-spacing: -0.01em;
+            line-height: 1.8;
+            max-width: 900px;
+            margin: 0 auto 2.5rem;
+        }
+
+        .hero-meta {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+            margin-top: 3rem;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .meta-label {
+            font-size: 0.8rem;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .meta-value {
+            font-size: 1.75rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--blue-primary) 0%, #0066cc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .section {
+            margin-bottom: 6rem;
+        }
+
+        .section-header {
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .section-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--blue-primary);
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: -0.03em;
+            color: var(--gray-100);
+            margin-bottom: 1rem;
+        }
+
+        .section-description {
+            font-size: 1.125rem;
+            color: var(--gray-400);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        /* Architecture Overview Grid */
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .arch-card {
+            background: rgba(18, 18, 18, 0.6);
+            border: 1px solid var(--overlay-light);
+            border-radius: 20px;
+            padding: 2.5rem;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .arch-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 150px;
+            background: linear-gradient(
+                135deg,
+                rgba(10, 132, 255, 0.08) 0%,
+                transparent 100%
+            );
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .arch-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(10, 132, 255, 0.3);
+            box-shadow: 0 20px 60px rgba(10, 132, 255, 0.15);
+        }
+
+        .arch-card:hover::before {
+            opacity: 1;
+        }
+
+        .arch-card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .arch-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .arch-title {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--gray-100);
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .arch-description {
+            font-size: 1rem;
+            color: var(--gray-400);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .arch-specs {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .spec-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.925rem;
+        }
+
+        .spec-label {
+            color: var(--gray-500);
+        }
+
+        .spec-value {
+            color: var(--gray-200);
+            font-weight: 500;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Stack Breakdown */
+        .stack-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .stack-section {
+            background: rgba(18, 18, 18, 0.6);
+            border: 1px solid var(--overlay-light);
+            border-radius: 20px;
+            padding: 3rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .stack-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .stack-icon {
+            font-size: 3rem;
+        }
+
+        .stack-info h3 {
+            font-size: 2rem;
+            font-weight: 500;
+            color: var(--gray-100);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .stack-info p {
+            font-size: 1rem;
+            color: var(--gray-400);
+        }
+
+        .components-list {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .component {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--overlay-light);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .component:hover {
+            border-color: rgba(10, 132, 255, 0.3);
+            background: rgba(10, 132, 255, 0.05);
+            transform: translateX(8px);
+        }
+
+        .component-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .component-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-100);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .component-version {
+            background: rgba(10, 132, 255, 0.15);
+            border: 1px solid rgba(10, 132, 255, 0.3);
+            color: var(--blue-primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .component-desc {
+            font-size: 0.95rem;
+            color: var(--gray-400);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .component-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .feature-tag {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray-300);
+            padding: 0.375rem 0.875rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Data Flow Diagram */
+        .flow-diagram {
+            background: rgba(18, 18, 18, 0.6);
+            border: 1px solid var(--overlay-light);
+            border-radius: 20px;
+            padding: 3rem;
+            backdrop-filter: blur(20px);
+            margin-top: 3rem;
+        }
+
+        .flow-stages {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .flow-stage {
+            position: relative;
+            text-align: center;
+        }
+
+        .flow-stage::after {
+            content: '→';
+            position: absolute;
+            right: -1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+            color: var(--blue-primary);
+            opacity: 0.5;
+        }
+
+        .flow-stage:last-child::after {
+            display: none;
+        }
+
+        .flow-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--blue-primary) 0%, #0066cc 100%);
+            border-radius: 50%;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .flow-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-100);
+            margin-bottom: 0.5rem;
+        }
+
+        .flow-desc {
+            font-size: 0.875rem;
+            color: var(--gray-400);
+            line-height: 1.5;
+        }
+
+        /* Integration Points */
+        .integration-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .integration-card {
+            background: rgba(18, 18, 18, 0.6);
+            border: 1px solid var(--overlay-light);
+            border-radius: 16px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .integration-card:hover {
+            border-color: rgba(10, 132, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(10, 132, 255, 0.1);
+        }
+
+        .integration-badge {
+            background: var(--overlay-blue);
+            border: 1px solid rgba(10, 132, 255, 0.2);
+            color: var(--blue-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .integration-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-100);
+            margin-bottom: 0.75rem;
+        }
+
+        .integration-path {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--gray-400);
+            background: rgba(0, 0, 0, 0.4);
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow-x: auto;
+        }
+
+        /* Production Considerations */
+        .considerations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .consideration-card {
+            background: rgba(18, 18, 18, 0.6);
+            border-left: 4px solid var(--blue-primary);
+            border-radius: 12px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .consideration-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .consideration-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-100);
+            margin-bottom: 1rem;
+        }
+
+        .consideration-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .consideration-list li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--gray-400);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .consideration-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--green-success);
+            font-weight: bold;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--code-bg);
+            border: 1px solid var(--overlay-light);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: var(--gray-300);
+        }
+
+        /* Performance Metrics */
+        .metrics-showcase {
+            background: linear-gradient(135deg, rgba(10, 132, 255, 0.05) 0%, rgba(10, 132, 255, 0.02) 100%);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-top: 3rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--blue-primary) 0%, #0066cc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 1rem;
+            color: var(--gray-400);
+            font-weight: 500;
+        }
+
+        /* Footer */
+        .footer {
+            max-width: 1600px;
+            margin: 6rem auto 2rem;
+            padding: 3rem 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #b0b0b0;
+            text-decoration: none;
+            transition: color 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .footer-links a:hover {
+            color: #0a84ff;
+        }
+
+        .copyright {
+            color: #808080;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .architecture-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .flow-stages {
+                grid-template-columns: 1fr;
+            }
+
+            .flow-stage::after {
+                content: '↓';
+                right: auto;
+                top: auto;
+                bottom: -1.25rem;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+
+            .breadcrumb {
+                display: none;
+            }
+        }
+
+        /* Scroll animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .fade-in-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../portal-landing.html" class="logo">
+                <span>← OnyxLab Research</span>
+            </a>
+            <div class="breadcrumb">
+                <a href="../portal-landing.html">Research</a>
+                <span>/</span>
+                <a href="/ai-soc/">AI-SOC</a>
+                <span>/</span>
+                <span class="current">Architecture</span>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <div class="badge">
+                <span>🏗️</span>
+                <span>ENTERPRISE ARCHITECTURE</span>
+            </div>
+            <h1>SIEM Integration Architecture</h1>
+            <p class="hero-subtitle">
+                Production-grade security operations center with AI-powered threat detection,
+                automated response workflows, and real-time monitoring. Built on enterprise SIEM
+                infrastructure with 99.28% ML detection accuracy.
+            </p>
+            <div class="hero-meta">
+                <div class="meta-item">
+                    <span class="meta-label">Containers</span>
+                    <span class="meta-value">35+</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Microservices</span>
+                    <span class="meta-value">6</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Uptime</span>
+                    <span class="meta-value">99.9%</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Response Time</span>
+                    <span class="meta-value">&lt;100ms</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="content">
+        <!-- ARCHITECTURE OVERVIEW -->
+        <section class="section fade-in">
+            <div class="section-header">
+                <p class="section-label">SYSTEM DESIGN</p>
+                <h2 class="section-title">Architecture Overview</h2>
+                <p class="section-description">
+                    Modular, containerized architecture following microservices patterns.
+                    Six primary stacks orchestrated via Docker Compose with network segmentation,
+                    service mesh integration, and comprehensive monitoring.
+                </p>
+            </div>
+
+            <div class="architecture-grid">
+                <div class="arch-card">
+                    <div class="arch-card-content">
+                        <span class="arch-icon">🛡️</span>
+                        <h3 class="arch-title">SIEM Stack</h3>
+                        <p class="arch-description">
+                            Wazuh-based security information and event management.
+                            Real-time log ingestion, correlation, and alerting with OpenSearch backend.
+                        </p>
+                        <div class="arch-specs">
+                            <div class="spec-item">
+                                <span class="spec-label">Components</span>
+                                <span class="spec-value">3</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Storage</span>
+                                <span class="spec-value">OpenSearch</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Ports</span>
+                                <span class="spec-value">443, 9200</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arch-card">
+                    <div class="arch-card-content">
+                        <span class="arch-icon">🤖</span>
+                        <h3 class="arch-title">SOAR Stack</h3>
+                        <p class="arch-description">
+                            Security Orchestration, Automation and Response. TheHive case management,
+                            Cortex analyzers, and Shuffle workflow automation.
+                        </p>
+                        <div class="arch-specs">
+                            <div class="spec-item">
+                                <span class="spec-label">Components</span>
+                                <span class="spec-value">10</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Storage</span>
+                                <span class="spec-value">Cassandra, MinIO</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Ports</span>
+                                <span class="spec-value">9010, 9011, 3001</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arch-card">
+                    <div class="arch-card-content">
+                        <span class="arch-icon">🧠</span>
+                        <h3 class="arch-title">AI Services</h3>
+                        <p class="arch-description">
+                            Machine learning inference, alert triage, and RAG-based threat intelligence.
+                            Ensemble models with 99.28% accuracy on CICIDS2017 dataset.
+                        </p>
+                        <div class="arch-specs">
+                            <div class="spec-item">
+                                <span class="spec-label">Components</span>
+                                <span class="spec-value">4</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Models</span>
+                                <span class="spec-value">RF, XGBoost, DT</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Ports</span>
+                                <span class="spec-value">8500, 8100, 8300</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arch-card">
+                    <div class="arch-card-content">
+                        <span class="arch-icon">📊</span>
+                        <h3 class="arch-title">Monitoring Stack</h3>
+                        <p class="arch-description">
+                            Prometheus metrics, Grafana visualization, AlertManager notifications,
+                            and Loki log aggregation. 13 scrape targets with real-time alerting.
+                        </p>
+                        <div class="arch-specs">
+                            <div class="spec-item">
+                                <span class="spec-label">Components</span>
+                                <span class="spec-value">7</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Targets</span>
+                                <span class="spec-value">13</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Ports</span>
+                                <span class="spec-value">9090, 3000, 9093</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arch-card">
+                    <div class="arch-card-content">
+                        <span class="arch-icon">🌐</span>
+                        <h3 class="arch-title">Network Analysis</h3>
+                        <p class="arch-description">
+                            Suricata IDS/IPS and Zeek passive analysis. Deep packet inspection,
+                            protocol analysis, and threat intelligence integration.
+                        </p>
+                        <div class="arch-specs">
+                            <div class="spec-item">
+                                <span class="spec-label">Components</span>
+                                <span class="spec-value">3</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Mode</span>
+                                <span class="spec-value">IDS/IPS</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Requirement</span>
+                                <span class="spec-value">Linux Host</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arch-card">
+                    <div class="arch-card-content">
+                        <span class="arch-icon">🔗</span>
+                        <h3 class="arch-title">Network Mesh</h3>
+                        <p class="arch-description">
+                            Segmented Docker networks with frontend/backend separation.
+                            Service discovery, load balancing, and encrypted inter-service communication.
+                        </p>
+                        <div class="arch-specs">
+                            <div class="spec-item">
+                                <span class="spec-label">Networks</span>
+                                <span class="spec-value">6</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Subnets</span>
+                                <span class="spec-value">172.20-30.x</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Isolation</span>
+                                <span class="spec-value">Backend/Frontend</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- COMPONENT BREAKDOWN -->
+        <section class="section fade-in">
+            <div class="section-header">
+                <p class="section-label">DETAILED BREAKDOWN</p>
+                <h2 class="section-title">Containerized Microservices</h2>
+                <p class="section-description">
+                    Enterprise-grade components with health checks, resource limits,
+                    and production-ready configurations. All services containerized for portability and scalability.
+                </p>
+            </div>
+
+            <div class="stack-container">
+                <!-- SIEM Stack -->
+                <div class="stack-section">
+                    <div class="stack-header">
+                        <span class="stack-icon">🛡️</span>
+                        <div class="stack-info">
+                            <h3>SIEM Stack</h3>
+                            <p>Security Information and Event Management</p>
+                        </div>
+                    </div>
+
+                    <div class="components-list">
+                        <div class="component">
+                            <div class="component-header">
+                                <span class="component-name">wazuh-manager</span>
+                                <span class="component-version">4.8.2</span>
+                            </div>
+                            <p class="component-desc">
+                                Core SIEM engine. Processes security events, runs correlation rules,
+                                generates alerts, and manages agent fleet. Integrates with TheHive for case creation.
+                            </p>
+                            <div class="component-features">
+                                <span class="feature-tag">Log Analysis</span>
+                                <span class="feature-tag">Rule Correlation</span>
+                                <span class="feature-tag">Agent Management</span>
+                                <span class="feature-tag">API Gateway</span>
+                            </div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-header">
+                                <span class="component-name">wazuh-indexer</span>
+                                <span class="component-version">4.8.2</span>
+                            </div>
+                            <p class="component-desc">
+                                OpenSearch-based data store. Indexes security events, provides full-text search,
+                                and powers the dashboard with real-time queries. Configured for single-node deployment.
+                            </p>
+                            <div class="component-features">
+                                <span class="feature-tag">Data Indexing</span>
+                                <span class="feature-tag">Full-Text Search</span>
+                                <span class="feature-tag">Cluster Management</span>
+                                <span class="feature-tag">RESTful API</span>
+                            </div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-header">
+                                <span class="component-name">wazuh-dashboard</span>
+                                <span class="component-version">4.8.2</span>
+                            </div>
+                            <p class="component-desc">
+                                Web UI for visualization and analysis. Real-time dashboards, alert investigation,
+                                compliance reporting, and system configuration. HTTPS-enabled with SSL/TLS.
+                            </p>
+                            <div class="component-features">
+                                <span class="feature-tag">Visualization</span>
+                                <span class="feature-tag">Alert Investigation</span>
+                                <span class="feature-tag">Compliance Dashboards</span>
+                                <span class="feature-tag">HTTPS/SSL</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SOAR Stack -->
+                <div class="stack-section">
+                    <div class="stack-header">
+                        <span class="stack-icon">🤖</span>
+                        <div class="stack-info">
+                            <h3>SOAR Stack</h3>
+                            <p>Security Orchestration, Automation, and Response</p>
+                        </div>
+                    </div>
+
+                    <div class="components-list">
+                        <div class="component">
+                            <div class="component-header">
+                                <span class="component-name">thehive</span>
+                                <span class="component-version">5.2.9</span>
+                            </div>
+                            <p class="component-desc">
+                                Security incident and case management platform. Automated case creation from Wazuh alerts,
+                                collaborative investigation, task assignment, and integration with Shuffle workflows.
+                            </p>
+                            <div class="component-features">
+                                <span class="feature-tag">Case Management</span>
+                                <span class="feature-tag">Collaboration</span>
+                                <span class="feature-tag">Wazuh Integration</span>
+                                <span class="feature-tag">Webhook API</span>
+                            </div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-header">
+                                <span class="component-name">cortex</span>
+                                <span class="component-version">3.1.7</span>
+                            </div>
+                            <p class="component-desc">
+                                Observable analysis and active response engine. Runs analyzers for IOC enrichment,
+                                malware analysis, and threat intelligence lookup. Integrated with TheHive.
+                            </p>
+                            <div class="component-features">
+                                <span class="feature-tag">IOC Analysis</span>
+                                <span class="feature-tag">TI Enrichment</span>
+                                <span class="feature-tag">Responders</span>
+                                <span class="feature-tag">Docker Jobs</span>
+                            </div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-header">
+                                <span class="component-name">shuffle</span>
+                                <span class="component-version">1.4.0</span>
+                            </div>
+                            <p class="component-desc">
+                                SOAR workflow automation platform. Drag-and-drop playbook creation,
+                                webhook integrations, and automated response execution. Receives alerts from TheHive.
+                            </p>
+                            <div class="component-features">
+                                <span class="feature-tag">Workflow Automation</span>
+                                <span class="feature-tag">Playbooks</span>
+                                <span class="feature-tag">Webhooks</span>
+                                <span class="feature-tag">API Integrations</span>
+                            </div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-header">
+                                <span class="component-name">cassandra</span>
+                                <span class="component-version">4.1.3</span>
+                            </div>
+                            <p class="component-desc">
+                                Distributed NoSQL database backend for TheHive and Cortex.
+                                High availability, horizontal scalability, and data replication support.
+                            </p>
+                            <div class="component-features">
+                                <span class="feature-tag">NoSQL Storage</span>
+                                <span class="feature-tag">Distributed</span>
+                                <span class="feature-tag">High Availability</span>
+                                <span class="feature-tag">Replication</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Services Stack -->
+                <div class="stack-section">
+                    <div class="stack-header">
+                        <span class="stack-icon">🧠</span>
+                        <div class="stack-info">
+                            <h3>AI Services Stack</h3>
+                            <p>Machine Learning and Threat Intelligence</p>
+                        </div>
+                    </div>
+
+                    <div class="components-list">
+                        <div class="component">
+                            <div class="component-header">
+                                <span class="component-name">ml-inference-api</span>
+                                <span class="component-version">1.0.0</span>
+                            </div>
+                            <p class="component-desc">
+                                Real-time ML prediction service. Ensemble of Random Forest, XGBoost, and Decision Tree
+                                models achieving 99.28% accuracy on CICIDS2017 dataset. Sub-100ms response time.
+                            </p>
+                            <div class="component-features">
+                                <span class="feature-tag">Ensemble Models</span>
+                                <span class="feature-tag">99.28% Accuracy</span>
+                                <span class="feature-tag">FastAPI</span>
+                                <span class="feature-tag">&lt;100ms Latency</span>
+                            </div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-header">
+                                <span class="component-name">alert-triage-service</span>
+                                <span class="component-version">1.0.0</span>
+                            </div>
+                            <p class="component-desc">
+                                AI-powered alert prioritization. Uses ML inference and RAG to rank alerts,
+                                reduce false positives, and provide context-aware threat intelligence.
+                            </p>
+                            <div class="component-features">
+                                <span class="feature-tag">Alert Ranking</span>
+                                <span class="feature-tag">ML Scoring</span>
+                                <span class="feature-tag">RAG Integration</span>
+                                <span class="feature-tag">Context Enrichment</span>
+                            </div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-header">
+                                <span class="component-name">rag-backend-api</span>
+                                <span class="component-version">1.0.0</span>
+                            </div>
+                            <p class="component-desc">
+                                Retrieval-Augmented Generation for threat intelligence.
+                                Vector search over security datasets, natural language queries, and automated report generation.
+                            </p>
+                            <div class="component-features">
+                                <span class="feature-tag">Vector Search</span>
+                                <span class="feature-tag">LLM Integration</span>
+                                <span class="feature-tag">Threat Intel</span>
+                                <span class="feature-tag">Report Generation</span>
+                            </div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-header">
+                                <span class="component-name">ollama-server</span>
+                                <span class="component-version">latest</span>
+                            </div>
+                            <p class="component-desc">
+                                Local LLM inference server. Runs models like Llama 3, Mistral, and Qwen
+                                for natural language understanding, alert summarization, and chatbot interfaces.
+                            </p>
+                            <div class="component-features">
+                                <span class="feature-tag">LLM Inference</span>
+                                <span class="feature-tag">Multiple Models</span>
+                                <span class="feature-tag">API Compatible</span>
+                                <span class="feature-tag">GPU Support</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DATA FLOW -->
+        <section class="section fade-in">
+            <div class="section-header">
+                <p class="section-label">THREAT DETECTION PIPELINE</p>
+                <h2 class="section-title">Real-Time Data Flow</h2>
+                <p class="section-description">
+                    End-to-end threat detection and automated response. From network traffic capture
+                    to ML-powered analysis to orchestrated incident response.
+                </p>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-stages">
+                    <div class="flow-stage">
+                        <div class="flow-number">1</div>
+                        <h4 class="flow-title">Ingestion</h4>
+                        <p class="flow-desc">
+                            Network traffic captured via Suricata/Zeek.
+                            Logs forwarded to Wazuh Manager via Filebeat.
+                        </p>
+                    </div>
+
+                    <div class="flow-stage">
+                        <div class="flow-number">2</div>
+                        <h4 class="flow-title">Correlation</h4>
+                        <p class="flow-desc">
+                            Wazuh applies correlation rules,
+                            enriches events, and generates alerts.
+                        </p>
+                    </div>
+
+                    <div class="flow-stage">
+                        <div class="flow-number">3</div>
+                        <h4 class="flow-title">ML Analysis</h4>
+                        <p class="flow-desc">
+                            Alert features extracted and sent to ML Inference API
+                            for prediction (99.28% accuracy).
+                        </p>
+                    </div>
+
+                    <div class="flow-stage">
+                        <div class="flow-number">4</div>
+                        <h4 class="flow-title">Triage</h4>
+                        <p class="flow-desc">
+                            Alert Triage Service ranks alerts,
+                            queries RAG for context, and prioritizes response.
+                        </p>
+                    </div>
+
+                    <div class="flow-stage">
+                        <div class="flow-number">5</div>
+                        <h4 class="flow-title">Case Creation</h4>
+                        <p class="flow-desc">
+                            High-priority alerts trigger automatic
+                            case creation in TheHive via webhook.
+                        </p>
+                    </div>
+
+                    <div class="flow-stage">
+                        <div class="flow-number">6</div>
+                        <h4 class="flow-title">Response</h4>
+                        <p class="flow-desc">
+                            Shuffle executes automated playbooks:
+                            isolation, blocking, notification, reporting.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metrics-showcase">
+                <h3 style="text-align: center; font-size: 1.75rem; font-weight: 500; margin-bottom: 1rem; color: var(--gray-100);">
+                    Pipeline Performance Metrics
+                </h3>
+                <p style="text-align: center; color: var(--gray-400); margin-bottom: 2rem; max-width: 700px; margin-left: auto; margin-right: auto;">
+                    Real-world performance characteristics measured in production environment
+                </p>
+                <div class="metrics-grid">
+                    <div class="metric">
+                        <div class="metric-icon">⚡</div>
+                        <div class="metric-value">&lt;100ms</div>
+                        <div class="metric-label">ML Inference Time</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-icon">🎯</div>
+                        <div class="metric-value">99.28%</div>
+                        <div class="metric-label">Detection Accuracy</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-icon">📊</div>
+                        <div class="metric-value">0.25%</div>
+                        <div class="metric-label">False Positive Rate</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-icon">🔄</div>
+                        <div class="metric-value">2.8M+</div>
+                        <div class="metric-label">Events Processed</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- INTEGRATION POINTS -->
+        <section class="section fade-in">
+            <div class="section-header">
+                <p class="section-label">SYSTEM INTEGRATIONS</p>
+                <h2 class="section-title">Integration Architecture</h2>
+                <p class="section-description">
+                    Webhook-based event-driven architecture. RESTful APIs, service mesh communication,
+                    and asynchronous message passing for loosely coupled services.
+                </p>
+            </div>
+
+            <div class="integration-grid">
+                <div class="integration-card">
+                    <div class="integration-badge">SIEM → SOAR</div>
+                    <h4 class="integration-title">Wazuh → TheHive</h4>
+                    <div class="integration-path">POST /api/alert/create</div>
+                    <p style="color: var(--gray-400); font-size: 0.95rem; line-height: 1.6;">
+                        Wazuh alerts automatically create cases in TheHive.
+                        Alert metadata, severity, and observables extracted for investigation.
+                    </p>
+                </div>
+
+                <div class="integration-card">
+                    <div class="integration-badge">SOAR → AUTOMATION</div>
+                    <h4 class="integration-title">TheHive → Shuffle</h4>
+                    <div class="integration-path">POST /api/v1/hooks/{workflow_id}</div>
+                    <p style="color: var(--gray-400); font-size: 0.95rem; line-height: 1.6;">
+                        Case updates trigger Shuffle workflows.
+                        Automated playbooks execute response actions based on case status and severity.
+                    </p>
+                </div>
+
+                <div class="integration-card">
+                    <div class="integration-badge">AI → SIEM</div>
+                    <h4 class="integration-title">ML Inference → Wazuh</h4>
+                    <div class="integration-path">POST /predict</div>
+                    <p style="color: var(--gray-400); font-size: 0.95rem; line-height: 1.6;">
+                        Alert features sent to ML API for real-time prediction.
+                        Classification results enriched back into Wazuh alerts.
+                    </p>
+                </div>
+
+                <div class="integration-card">
+                    <div class="integration-badge">MONITORING → ALL</div>
+                    <h4 class="integration-title">Prometheus Scraping</h4>
+                    <div class="integration-path">GET /metrics</div>
+                    <p style="color: var(--gray-400); font-size: 0.95rem; line-height: 1.6;">
+                        13 scrape targets across all stacks.
+                        Service health, resource utilization, and custom application metrics.
+                    </p>
+                </div>
+
+                <div class="integration-card">
+                    <div class="integration-badge">ANALYSIS → ENRICHMENT</div>
+                    <h4 class="integration-title">Alert Triage → RAG</h4>
+                    <div class="integration-path">POST /search</div>
+                    <p style="color: var(--gray-400); font-size: 0.95rem; line-height: 1.6;">
+                        Vector search over threat intelligence databases.
+                        Contextual enrichment for alerts with historical attack patterns.
+                    </p>
+                </div>
+
+                <div class="integration-card">
+                    <div class="integration-badge">ALERTING → NOTIFICATION</div>
+                    <h4 class="integration-title">AlertManager → Slack</h4>
+                    <div class="integration-path">POST /services/{webhook_id}</div>
+                    <p style="color: var(--gray-400); font-size: 0.95rem; line-height: 1.6;">
+                        Critical infrastructure alerts routed to Slack.
+                        Email and webhook notifications for service degradation.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- NIST FRAMEWORK ALIGNMENT -->
+        <section class="section fade-in">
+            <div class="section-header">
+                <p class="section-label">COMPLIANCE & STANDARDS</p>
+                <h2 class="section-title">NIST Cybersecurity Framework Alignment</h2>
+                <p class="section-description">
+                    Architecture designed to support NIST CSF functions: Identify, Protect, Detect, Respond, Recover.
+                    Comprehensive coverage across all five pillars with measurable outcomes.
+                </p>
+            </div>
+
+            <div class="architecture-grid">
+                <div class="arch-card">
+                    <div class="arch-card-content">
+                        <span class="arch-icon">🔍</span>
+                        <h3 class="arch-title">Identify</h3>
+                        <p class="arch-description">
+                            Asset discovery via Wazuh agents, network topology mapping with Zeek,
+                            and comprehensive inventory in CMDB integration.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="arch-card">
+                    <div class="arch-card-content">
+                        <span class="arch-icon">🛡️</span>
+                        <h3 class="arch-title">Protect</h3>
+                        <p class="arch-description">
+                            Network segmentation, encrypted communications, access control policies,
+                            and security hardening across all containerized services.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="arch-card">
+                    <div class="arch-card-content">
+                        <span class="arch-icon">👁️</span>
+                        <h3 class="arch-title">Detect</h3>
+                        <p class="arch-description">
+                            Real-time threat detection via Wazuh SIEM, Suricata IDS,
+                            and ML-powered anomaly detection with 99.28% accuracy.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="arch-card">
+                    <div class="arch-card-content">
+                        <span class="arch-icon">⚡</span>
+                        <h3 class="arch-title">Respond</h3>
+                        <p class="arch-description">
+                            Automated incident response via Shuffle workflows, case management in TheHive,
+                            and orchestrated containment actions.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="arch-card">
+                    <div class="arch-card-content">
+                        <span class="arch-icon">🔄</span>
+                        <h3 class="arch-title">Recover</h3>
+                        <p class="arch-description">
+                            Automated backup/restore procedures, disaster recovery playbooks,
+                            and resilience testing for all critical services.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRODUCTION DEPLOYMENT -->
+        <section class="section fade-in">
+            <div class="section-header">
+                <p class="section-label">PRODUCTION READINESS</p>
+                <h2 class="section-title">Deployment Considerations</h2>
+                <p class="section-description">
+                    Enterprise deployment checklist. Security hardening, performance optimization,
+                    high availability configuration, and operational best practices.
+                </p>
+            </div>
+
+            <div class="considerations-grid">
+                <div class="consideration-card">
+                    <div class="consideration-icon">🔒</div>
+                    <h4 class="consideration-title">Security Hardening</h4>
+                    <ul class="consideration-list">
+                        <li>Change all default passwords and API keys</li>
+                        <li>Generate production SSL/TLS certificates</li>
+                        <li>Configure firewall rules and network ACLs</li>
+                        <li>Enable API authentication and rate limiting</li>
+                        <li>Implement secrets management (Vault)</li>
+                        <li>Regular security audits and penetration testing</li>
+                    </ul>
+                </div>
+
+                <div class="consideration-card">
+                    <div class="consideration-icon">📈</div>
+                    <h4 class="consideration-title">Scalability</h4>
+                    <ul class="consideration-list">
+                        <li>Horizontal scaling for Wazuh Indexer cluster</li>
+                        <li>Load balancing for API endpoints</li>
+                        <li>Cassandra replication for HA</li>
+                        <li>Redis cluster for caching layer</li>
+                        <li>Auto-scaling based on metrics</li>
+                        <li>CDN integration for dashboard assets</li>
+                    </ul>
+                </div>
+
+                <div class="consideration-card">
+                    <div class="consideration-icon">💾</div>
+                    <h4 class="consideration-title">Data Management</h4>
+                    <ul class="consideration-list">
+                        <li>Automated backup schedules (daily/weekly)</li>
+                        <li>Retention policies for logs and alerts</li>
+                        <li>Cold storage for historical data</li>
+                        <li>Disaster recovery procedures</li>
+                        <li>Data encryption at rest and in transit</li>
+                        <li>GDPR/compliance data handling</li>
+                    </ul>
+                </div>
+
+                <div class="consideration-card">
+                    <div class="consideration-icon">⚙️</div>
+                    <h4 class="consideration-title">Operations</h4>
+                    <ul class="consideration-list">
+                        <li>CI/CD pipelines for automated deployment</li>
+                        <li>Infrastructure as Code (Terraform/Ansible)</li>
+                        <li>Automated health checks and self-healing</li>
+                        <li>Runbooks for common incidents</li>
+                        <li>On-call rotation and alerting procedures</li>
+                        <li>Performance monitoring and optimization</li>
+                    </ul>
+                </div>
+
+                <div class="consideration-card">
+                    <div class="consideration-icon">🌐</div>
+                    <h4 class="consideration-title">Network Architecture</h4>
+                    <ul class="consideration-list">
+                        <li>Reverse proxy (Nginx/Traefik) for HTTPS</li>
+                        <li>Network segmentation and microsegmentation</li>
+                        <li>VPN/bastion host for remote access</li>
+                        <li>DDoS protection and rate limiting</li>
+                        <li>Service mesh for inter-service communication</li>
+                        <li>Network monitoring and traffic analysis</li>
+                    </ul>
+                </div>
+
+                <div class="consideration-card">
+                    <div class="consideration-icon">🧪</div>
+                    <h4 class="consideration-title">Testing & QA</h4>
+                    <ul class="consideration-list">
+                        <li>Integration test suite for all services</li>
+                        <li>Load testing and performance benchmarking</li>
+                        <li>Chaos engineering for resilience testing</li>
+                        <li>Security scanning (SAST/DAST)</li>
+                        <li>Regression testing for ML models</li>
+                        <li>Canary deployments and blue-green releases</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- TECHNICAL SPECIFICATIONS -->
+        <section class="section fade-in">
+            <div class="section-header">
+                <p class="section-label">SYSTEM REQUIREMENTS</p>
+                <h2 class="section-title">Technical Specifications</h2>
+                <p class="section-description">
+                    Hardware and software requirements for production deployment.
+                    Resource allocation, dependency versions, and compatibility matrix.
+                </p>
+            </div>
+
+            <div class="code-block">
+<pre># MINIMUM SYSTEM REQUIREMENTS
+CPU:      8 cores (16 recommended)
+Memory:   16GB RAM (32GB recommended)
+Disk:     100GB SSD (500GB recommended)
+Network:  1 Gbps
+
+# SOFTWARE DEPENDENCIES
+Docker:   24.0.0+
+Compose:  2.20.0+
+OS:       Linux (Ubuntu 22.04 LTS recommended)
+          Windows (WSL2 for SIEM only)
+
+# NETWORK REQUIREMENTS
+Subnets:  6 Docker networks (172.20-30.0.0/24)
+Ports:    30+ exposed ports (see network topology)
+DNS:      Internal DNS resolution for service discovery
+
+# STORAGE VOLUMES
+wazuh-indexer-data:     50GB (expandable)
+cassandra-data:         30GB
+minio-data:             20GB
+prometheus-data:        10GB
+grafana-data:           5GB
+Total Persistent:       115GB+</pre>
+            </div>
+
+            <div style="margin-top: 3rem;">
+                <h3 style="font-size: 1.75rem; font-weight: 500; margin-bottom: 1.5rem; color: var(--gray-100);">
+                    Docker Compose Orchestration
+                </h3>
+                <p style="color: var(--gray-400); margin-bottom: 1.5rem; line-height: 1.7;">
+                    Modular deployment across 5 independent compose files.
+                    Deploy incrementally or all-at-once for complete AI-SOC infrastructure.
+                </p>
+                <div class="code-block">
+<pre># DEPLOYMENT SEQUENCE
+1. docker compose -f phase1-siem-core-windows.yml up -d
+2. docker compose -f phase2-soar-stack.yml up -d
+3. docker compose -f monitoring-stack.yml up -d
+4. docker compose -f network-analysis-stack.yml up -d  # Linux only
+5. docker compose -f ai-services.yml up -d
+
+# HEALTH CHECK
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+# VERIFICATION
+curl -k https://localhost:443          # Wazuh Dashboard
+curl http://localhost:3000             # Grafana
+curl http://localhost:8500/health      # ML Inference API</pre>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="../portal-landing.html">← Back to Research Portal</a>
+            <a href="https://github.com/zhadyz/AI_SOC">GitHub Repository</a>
+            <a href="../ai-soc/ml-accuracy.html">ML Accuracy Analysis</a>
+            <a href="../ai-soc/performance.html">Performance Benchmarks</a>
+            <a href="mailto:abdul.bari8019@coyote.csusb.edu">Contact</a>
+        </div>
+        <p class="copyright">
+            © 2025 OnyxLab Research. Open source under Apache 2.0 License.
+        </p>
+    </footer>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // Scroll-triggered animations
+            function initScrollAnimations() {
+                const observerOptions = {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -100px 0px'
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('fade-in-visible');
+                        }
+                    });
+                }, observerOptions);
+
+                const sections = document.querySelectorAll('.fade-in');
+                sections.forEach(section => observer.observe(section));
+
+                console.log(`[Architecture] Initialized scroll animations for ${sections.length} sections`);
+            }
+
+            // Smooth scroll for anchor links
+            function initSmoothScroll() {
+                const links = document.querySelectorAll('a[href^="#"]');
+                links.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        const href = link.getAttribute('href');
+                        if (href === '#') return;
+
+                        const target = document.querySelector(href);
+                        if (target) {
+                            e.preventDefault();
+                            target.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
+                        }
+                    });
+                });
+            }
+
+            // Metric value animations
+            function animateMetrics() {
+                const metrics = document.querySelectorAll('.metric-value, .meta-value');
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting && !entry.target.dataset.animated) {
+                            animateValue(entry.target);
+                            entry.target.dataset.animated = 'true';
+                        }
+                    });
+                }, { threshold: 0.5 });
+
+                metrics.forEach(metric => observer.observe(metric));
+            }
+
+            function animateValue(element) {
+                const text = element.textContent;
+
+                // Skip animation for non-numeric values
+                if (text.includes('<') || text.includes('&lt;')) return;
+
+                const hasPercent = text.includes('%');
+                const value = parseFloat(text.replace(/[^\d.]/g, ''));
+
+                if (isNaN(value)) return;
+
+                const duration = 1500;
+                const steps = 60;
+                const increment = value / steps;
+                let current = 0;
+                let step = 0;
+
+                const timer = setInterval(() => {
+                    step++;
+                    current += increment;
+
+                    if (step >= steps) {
+                        current = value;
+                        clearInterval(timer);
+                    }
+
+                    let displayValue;
+                    if (hasPercent) {
+                        displayValue = current.toFixed(2) + '%';
+                    } else if (value >= 1000000) {
+                        displayValue = (current / 1000000).toFixed(1) + 'M+';
+                    } else if (value >= 1000) {
+                        displayValue = (current / 1000).toFixed(1) + 'K+';
+                    } else {
+                        displayValue = Math.round(current).toString();
+                    }
+
+                    element.textContent = displayValue;
+                }, duration / steps);
+            }
+
+            // Initialize
+            function init() {
+                console.log('[Architecture] Initializing page enhancements...');
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', init);
+                    return;
+                }
+
+                initScrollAnimations();
+                initSmoothScroll();
+                animateMetrics();
+
+                console.log('[Architecture] All enhancements initialized');
+            }
+
+            // Performance logging
+            window.addEventListener('load', () => {
+                if ('performance' in window) {
+                    setTimeout(() => {
+                        const perfData = performance.getEntriesByType('navigation')[0];
+                        if (perfData) {
+                            console.log('[Architecture] Performance:', {
+                                'Load Time': (perfData.loadEventEnd - perfData.fetchStart).toFixed(2) + 'ms'
+                            });
+                        }
+                    }, 0);
+                }
+            });
+
+            init();
+        })();
+    </script>
+</body>
+</html>
