@@ -17,7 +17,7 @@ theme:
   font:
     text: Inter
     code: SF Mono
-  logo: material/shield-lock
+  logo: assets/logo.png
   favicon: assets/favicon.ico
   features:
     - navigation.instant
