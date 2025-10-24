@@ -15,27 +15,8 @@
   --md-typeset-letter-spacing: 0.01em;
 }
 
-/* Light Mode - Ensure Readability */
-[data-md-color-scheme="default"] {
-  --md-primary-fg-color: #1a1a1a;
-  --md-default-bg-color: #ffffff;
-  --md-default-fg-color: #1a1a1a;
-  --md-typeset-color: #333333;
-  --md-typeset-a-color: #0066cc;
-  --md-code-bg-color: #f5f5f5;
-  --md-code-fg-color: #333333;
-}
-
-[data-md-color-scheme="default"] .md-typeset h1,
-[data-md-color-scheme="default"] .md-typeset h2,
-[data-md-color-scheme="default"] .md-typeset h3,
-[data-md-color-scheme="default"] .md-typeset h4 {
-  color: #1a1a1a;
-}
-
-[data-md-color-scheme="default"] .md-typeset h2 {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-}
+/* Light Mode Disabled - Dark Mode Only */
+/* No light mode styles needed */
 
 /* Enhanced Dark Theme - Pure Black Background */
 [data-md-color-scheme="slate"] {
@@ -126,10 +107,7 @@ html {
   font-weight: 400;
 }
 
-/* Ensure readable text in light mode */
-[data-md-color-scheme="default"] .md-typeset p {
-  color: #333333;
-}
+/* Dark mode only - no light mode overrides needed */
 
 /* Balanced text in all content */
 .md-typeset li,
