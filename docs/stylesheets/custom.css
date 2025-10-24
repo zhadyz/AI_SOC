@@ -552,78 +552,97 @@ article h1:contains("Authors") {
   margin: 3rem 0;
 }
 
-/* Author Grid Layout */
-.author-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin: 2rem 0;
-  padding: 0;
+/* Research Foundation Section */
+article h2:contains("Research Foundation") {
+  font-size: 1.6rem !important;
+  color: #0a84ff;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
 }
 
-/* Individual Author Cards */
-.author-grid p {
-  background: linear-gradient(135deg, rgba(10, 132, 255, 0.05) 0%, rgba(10, 132, 255, 0.02) 100%);
-  border: 1px solid rgba(10, 132, 255, 0.15);
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin: 0 !important;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.author-grid p:hover {
-  background: linear-gradient(135deg, rgba(10, 132, 255, 0.08) 0%, rgba(10, 132, 255, 0.04) 100%);
-  border-color: rgba(10, 132, 255, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(10, 132, 255, 0.15);
-}
-
-/* Author Names */
-.author-grid strong {
-  display: block;
-  font-size: 1.05rem !important;
+/* Survey Paper Title */
+article h3:contains("AI-Augmented SOC") {
+  font-size: 1.25rem !important;
   font-weight: 600;
   color: #ffffff;
-  margin-bottom: 0.5rem;
+  line-height: 1.5;
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.08) 0%, rgba(10, 132, 255, 0.03) 100%);
+  border-left: 4px solid #0a84ff;
+  border-radius: 0 6px 6px 0;
   letter-spacing: -0.01em;
 }
 
-/* Author Roles */
-.author-grid em {
+/* Authors List Container */
+article h2:contains("Research Foundation") ~ p strong:contains("Authors:") {
+  font-size: 1rem !important;
+  color: #0a84ff;
   display: block;
-  font-size: 0.8rem !important;
-  color: #0a84ff;
-  font-style: normal;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
   letter-spacing: 0.02em;
-  text-transform: uppercase;
-  font-weight: 500;
 }
 
-/* Faculty Section Styling */
-article h3:contains("Faculty") ~ p strong {
-  color: #0a84ff;
-  font-size: 1.1rem !important;
+/* Author Names and Emails List */
+article h2:contains("Research Foundation") ~ ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 1rem 0 2rem 0;
 }
 
-article h3:contains("Faculty") ~ p em {
+article h2:contains("Research Foundation") ~ ul li {
+  padding: 0.75rem 1.25rem;
+  margin: 0.5rem 0;
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.04) 0%, rgba(10, 132, 255, 0.01) 100%);
+  border-left: 2px solid rgba(10, 132, 255, 0.3);
+  border-radius: 0 4px 4px 0;
+  transition: all 0.2s ease;
+}
+
+article h2:contains("Research Foundation") ~ ul li:hover {
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.08) 0%, rgba(10, 132, 255, 0.03) 100%);
+  border-left-color: #0a84ff;
+  transform: translateX(4px);
+}
+
+article h2:contains("Research Foundation") ~ ul li strong {
+  font-size: 0.95rem !important;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+/* Email Styling */
+article h2:contains("Research Foundation") ~ ul li {
+  font-size: 0.85rem !important;
   color: #a0a0a0;
 }
 
-/* Institution Section */
-article h3:contains("Institution") ~ p {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-  border-left: 3px solid #0a84ff;
-  padding: 1rem 1.5rem;
-  border-radius: 0 6px 6px 0;
-  margin-top: 1rem;
-}
-
-article h3:contains("Institution") ~ p strong {
-  display: block;
+/* Faculty Advisors Section Label */
+article h2:contains("Research Foundation") ~ p strong:contains("Faculty") {
   font-size: 1rem !important;
   color: #0a84ff;
+  display: block;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+/* Institution Section Label */
+article h2:contains("Research Foundation") ~ p strong:contains("Institution") {
+  font-size: 1rem !important;
+  color: #0a84ff;
+  display: block;
+  margin-top: 2rem;
   margin-bottom: 0.5rem;
+  letter-spacing: 0.02em;
+}
+
+/* Institution Text */
+article h2:contains("Research Foundation") ~ p strong:contains("Institution") ~ * {
+  color: #d0d0d0;
+  line-height: 1.8;
 }
 
 /* Implementation Developer Section */

@@ -2,43 +2,27 @@
 
 ---
 
-## Survey Research Team
+## Research Foundation
 
-### Student Researchers
+### AI-Augmented SOC: A Survey of LLMs and Agents for Security Automation
 
-<div class="author-grid">
+**Authors:**
 
-**Siddhant Srinivas**
-_Research Contributor_
+- **Siddhant Srinivas** – siddhant.srinivas@coyote.csusb.edu
+- **Brandon Kirk** – brandon.kirk@coyote.csusb.edu
+- **Julissa Zendejas** – julissa.zendejas@coyote.csusb.edu
+- **Michael Espino** – michael.espino@coyote.csusb.edu
+- **Matthew Boskovich** – matthew.boskovich@coyote.csusb.edu
+- **Abdul Bari** – abdul.bari8019@coyote.csusb.edu
 
-**Brandon Kirk**
-_Research Contributor_
+**Faculty Advisors:**
 
-**Julissa Zendejas**
-_Research Contributor_
+- **Dr. Khalil Dajani** – khalil.dajani@csusb.edu
+- **Dr. Nabeel Alzahrani** – nabeel.alzahrani@csusb.edu
 
-**Michael Espino**
-_Research Contributor_
+**Institution:**
 
-**Matthew Boskovich**
-_Research Contributor_
-
-**Abdul Bari**
-_Research Contributor & Implementation Lead_
-
-</div>
-
-### Faculty Advisors
-
-**Dr. Khalil Dajani**
-_Faculty Advisor_
-
-**Dr. Nabeel Alzahrani**
-_Faculty Advisor_
-
-### Institution
-
-**School of Computer Science & Engineering**
+School of Computer Science & Engineering
 California State University, San Bernardino
 
 ---
