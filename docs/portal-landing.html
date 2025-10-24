@@ -87,7 +87,7 @@
             text-decoration: none;
             color: #ffffff;
             font-size: 1.3rem;
-            font-weight: 600;
+            font-weight: 400;
             letter-spacing: -0.02em;
         }
 
@@ -483,6 +483,251 @@
             .nav-links {
                 display: none;
             }
+
+            .tech-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .research-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* New Section Styles */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .section-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--blue-primary);
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            font-size: 1.125rem;
+            color: var(--gray-400);
+            margin-bottom: 3rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+        /* Tech Stack Section */
+        .tech-stack {
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .tech-stack h2 {
+            font-size: 2rem;
+            font-weight: 300;
+            letter-spacing: -0.02em;
+            margin-bottom: 2rem;
+        }
+
+        .tech-list {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .tech-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--overlay-light);
+            border-radius: 12px;
+            padding: 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--gray-300);
+            transition: all 0.3s ease;
+        }
+
+        .tech-item:hover {
+            border-color: rgba(10, 132, 255, 0.3);
+            background: rgba(10, 132, 255, 0.05);
+            transform: translateY(-2px);
+        }
+
+        /* Impact Metrics Section */
+        .impact-metrics {
+            padding: 6rem 0;
+            background: linear-gradient(135deg, rgba(10, 132, 255, 0.03) 0%, rgba(10, 132, 255, 0.01) 100%);
+        }
+
+        .impact-metrics h2 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .metric-card {
+            background: rgba(18, 18, 18, 0.6);
+            border: 1px solid var(--overlay-light);
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(20px);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(10, 132, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(10, 132, 255, 0.15);
+        }
+
+        .metric-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric-value {
+            font-size: 3rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #0a84ff 0%, #0066cc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: var(--gray-200);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-detail {
+            font-size: 0.875rem;
+            color: var(--gray-400);
+        }
+
+        /* Research Highlights Section */
+        .research-highlights {
+            padding: 6rem 0;
+        }
+
+        .research-highlights h2 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .research-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .research-card {
+            background: rgba(18, 18, 18, 0.6);
+            border: 1px solid var(--overlay-light);
+            border-radius: 20px;
+            padding: 2.5rem;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(20px);
+            text-decoration: none;
+            display: block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .research-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 150px;
+            background: linear-gradient(
+                135deg,
+                rgba(10, 132, 255, 0.08) 0%,
+                transparent 100%
+            );
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .research-card:hover::before {
+            opacity: 1;
+        }
+
+        .research-card:hover {
+            transform: translateY(-8px) scale(1.01);
+            border-color: rgba(10, 132, 255, 0.3);
+            box-shadow: 0 20px 60px rgba(10, 132, 255, 0.15);
+        }
+
+        .research-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .research-tag {
+            display: inline-block;
+            background: var(--overlay-blue);
+            border: 1px solid rgba(10, 132, 255, 0.2);
+            color: #0a84ff;
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .research-card h3 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--gray-100);
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .research-card p {
+            font-size: 1rem;
+            color: var(--gray-400);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .read-more {
+            color: var(--blue-primary);
+            font-weight: 500;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .research-card:hover .read-more {
+            transform: translateX(5px);
         }
     </style>
 </head>
@@ -509,6 +754,63 @@
             From academic foundations to production deployments—building AI systems that defend critical infrastructure and advance healthcare equity.
             Published research meets battle-tested implementations.
         </p>
+    </section>
+
+    <!-- Social Proof: Technology Stack -->
+    <section class="tech-stack">
+        <div class="container">
+            <p class="section-label">BUILT ON PROVEN TECHNOLOGY</p>
+            <h2>Enterprise-Grade Security Stack</h2>
+            <div class="tech-list">
+                <div class="tech-item">Wazuh SIEM</div>
+                <div class="tech-item">Elastic Stack</div>
+                <div class="tech-item">Suricata IDS</div>
+                <div class="tech-item">MITRE ATT&CK</div>
+                <div class="tech-item">TensorFlow</div>
+                <div class="tech-item">PyTorch</div>
+                <div class="tech-item">Docker</div>
+                <div class="tech-item">NIST Framework</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Impact Metrics -->
+    <section class="impact-metrics">
+        <div class="container">
+            <p class="section-label">RESEARCH IMPACT</p>
+            <h2>Measurable Results</h2>
+            <p class="section-subtitle">Quantifiable improvements in threat detection and security operations</p>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-icon">🎯</div>
+                    <div class="metric-value">99.28%</div>
+                    <div class="metric-label">Detection Accuracy</div>
+                    <div class="metric-detail">On CICIDS2017 with 15 attack types</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon">⚡</div>
+                    <div class="metric-value">&lt;100ms</div>
+                    <div class="metric-label">Response Time</div>
+                    <div class="metric-detail">Real-time threat classification</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon">📊</div>
+                    <div class="metric-value">2.8M+</div>
+                    <div class="metric-label">Network Events</div>
+                    <div class="metric-detail">Processed and analyzed</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon">🛡️</div>
+                    <div class="metric-value">15+</div>
+                    <div class="metric-label">Attack Types</div>
+                    <div class="metric-detail">Detected and classified</div>
+                </div>
+            </div>
+        </div>
     </section>
 
     <section class="projects">
@@ -567,6 +869,53 @@
                 </div>
             </div>
         </a>
+    </section>
+
+    <!-- Research Highlights -->
+    <section class="research-highlights">
+        <div class="container">
+            <p class="section-label">RESEARCH OUTPUT</p>
+            <h2>Latest Research & Technical Analysis</h2>
+            <p class="section-subtitle">Deep-dive explorations of AI-powered security operations and fairness in healthcare</p>
+
+            <div class="research-grid">
+                <a href="/ai-soc/ml-accuracy/" class="research-card">
+                    <div class="research-content">
+                        <span class="research-tag">Machine Learning</span>
+                        <h3>99.28% IDS Accuracy: ML Breakthrough</h3>
+                        <p>Comprehensive evaluation of ensemble models for network intrusion detection on CICIDS2017 dataset</p>
+                        <span class="read-more">Read Analysis →</span>
+                    </div>
+                </a>
+
+                <a href="/ai-soc/architecture/" class="research-card">
+                    <div class="research-content">
+                        <span class="research-tag">System Architecture</span>
+                        <h3>SIEM Integration Architecture</h3>
+                        <p>Enterprise-grade security operations center with AI-powered threat detection and automated response</p>
+                        <span class="read-more">Read Analysis →</span>
+                    </div>
+                </a>
+
+                <a href="/fairness/methodology/" class="research-card">
+                    <div class="research-content">
+                        <span class="research-tag">Healthcare AI</span>
+                        <h3>Bias Mitigation in Medical Imaging</h3>
+                        <p>Fairness-aware techniques for equitable skin cancer detection across all Fitzpatrick skin types</p>
+                        <span class="read-more">Read Analysis →</span>
+                    </div>
+                </a>
+
+                <a href="/ai-soc/performance/" class="research-card">
+                    <div class="research-content">
+                        <span class="research-tag">Performance</span>
+                        <h3>Real-Time Threat Classification</h3>
+                        <p>Optimizing ML inference for sub-100ms detection latency in production environments</p>
+                        <span class="read-more">Read Analysis →</span>
+                    </div>
+                </a>
+            </div>
+        </div>
     </section>
 
     <footer class="footer" id="contact">
