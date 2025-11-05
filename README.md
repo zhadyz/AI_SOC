@@ -4,7 +4,6 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-required-blue.svg)](https://www.docker.com/)
-[![Production Ready](https://img.shields.io/badge/production-ready-green.svg)]()
 
 ---
 
@@ -28,14 +27,13 @@
 
 ## Executive Summary
 
-This repository presents a comprehensive implementation of an AI-Augmented Security Operations Center (AI-SOC), developed as a research platform for investigating the practical application of machine learning techniques to real-world cybersecurity operations. The project integrates enterprise-grade Security Information and Event Management (SIEM) infrastructure with advanced machine learning models to achieve automated threat detection, intelligent alert prioritization, and context-aware security analysis.
+This repository presents a comprehensive implementation of an AI-Augmented Security Operations Center (AI-SOC), developed as a research platform for investigating the practical application of machine learning techniques to real-world cybersecurity operations. The project integrates Security Information and Event Management (SIEM) infrastructure with advanced machine learning models to achieve automated threat detection, intelligent alert prioritization, and context-aware security analysis.
 
 ### Key Achievements
 
-- **Machine Learning Performance**: Achieved 99.28% classification accuracy on the CICIDS2017 benchmark dataset, exceeding industry-standard baseline models
-- **Production Deployment**: Successfully deployed 6 integrated microservices with comprehensive health monitoring and automated orchestration
+- **Machine Learning Performance**: Achieved 99.28% classification accuracy on the CICIDS2017 benchmark dataset, exceeding published baseline models
+- **System Integration**: Successfully integrated 6 microservices with health monitoring and automated orchestration
 - **Accessibility**: Developed simplified deployment workflow reducing technical barrier to entry (< 15 minutes deployment time)
-- **Quality Assurance**: Implemented rigorous testing framework with comprehensive validation (95%+ deployment success rate)
 - **Research Validation**: Empirically validated theoretical frameworks from academic literature through practical implementation
 
 ### Research Context
@@ -55,7 +53,7 @@ This implementation directly builds upon **"AI-Augmented SOC: A Survey of LLMs a
 - Documented three primary barriers: integration friction, interpretability challenges, and deployment complexity
 
 **Our Implementation's Contribution:**
-- Provides empirical validation of survey findings through production-ready deployment
+- Provides empirical validation of survey findings through practical research implementation
 - Implements 3 of 8 surveyed SOC tasks: Alert Triage, Threat Intelligence, Log Summarization
 - Validates survey predictions on integration challenges and deployment barriers
 - Contributes novel solutions for deployment complexity reduction (< 15 minute automated setup)
@@ -65,7 +63,7 @@ This implementation directly builds upon **"AI-Augmented SOC: A Survey of LLMs a
 **Institution**: California State University, San Bernardino
 **Contact**: abdul.bari8019@coyote.csusb.edu
 **Project Duration**: October 2025
-**Status**: Production-Ready Research Platform
+**Status**: Research Implementation
 
 ---
 
@@ -98,12 +96,12 @@ The documentation site provides professional, academic-grade resources including
 - [ML Performance](https://research.onyxlab.ai/experiments/ml-performance/) - 99.28% accuracy benchmarks
 - [Baseline Models](https://research.onyxlab.ai/experiments/baseline-models/) - Comparative analysis
 - [Training Reports](https://research.onyxlab.ai/experiments/training/) - Model training methodology
-- [Production Validation](https://research.onyxlab.ai/experiments/validation/) - QA and testing results
+- [System Validation](https://research.onyxlab.ai/experiments/validation/) - QA and testing results
 
 **Deployment & Operations**
 - [Deployment Guide](https://research.onyxlab.ai/deployment/guide/) - Complete deployment workflows
 - [Docker Architecture](https://research.onyxlab.ai/deployment/docker/) - Container orchestration
-- [Production Deployment](https://research.onyxlab.ai/deployment/production/) - Enterprise hardening
+- [System Deployment](https://research.onyxlab.ai/deployment/production/) - Configuration and setup
 - [Performance Optimization](https://research.onyxlab.ai/deployment/performance/) - Scaling and tuning
 
 **Security**
@@ -183,7 +181,7 @@ The survey identified several critical insights that directly shaped our archite
 
 ### Our Implementation's Connection to Survey Research
 
-This AI-SOC platform provides empirical validation of the survey's findings through a production-ready implementation addressing **three of the eight core SOC tasks**:
+This AI-SOC platform provides empirical validation of the survey's findings through a research implementation addressing **three of the eight core SOC tasks**:
 
 **Implemented Tasks**:
 - ✅ **Alert Triage** (via ML Inference + Alert Triage Service)
@@ -200,13 +198,13 @@ This AI-SOC platform provides empirical validation of the survey's findings thro
 
 This project investigates the following research questions:
 
-**RQ1**: Can machine learning models achieve production-grade performance (>95% accuracy, <1% false positive rate) on contemporary intrusion detection datasets?
+**RQ1**: Can machine learning models achieve high performance (>95% accuracy, <1% false positive rate) on contemporary intrusion detection datasets?
 
 **RQ2**: What are the practical challenges in integrating ML inference pipelines with traditional SIEM infrastructure?
 
 **RQ3**: To what extent can deployment complexity be reduced through automation while maintaining system reliability?
 
-**RQ4**: What validation methodologies are necessary to ensure production readiness of AI-enhanced security systems?
+**RQ4**: What validation methodologies are necessary to ensure reliability of AI-enhanced security systems?
 
 ---
 
@@ -236,14 +234,14 @@ Contemporary Security Operations Centers confront several critical challenges:
 
 ### Hypothesis
 
-**Primary Hypothesis**: Machine learning models, when properly trained on contemporary threat datasets and integrated with enterprise SIEM infrastructure, can achieve detection accuracy exceeding 95% while reducing false positive rates below 1%, thereby enabling automated triage that significantly reduces analyst workload.
+**Primary Hypothesis**: Machine learning models, when properly trained on contemporary threat datasets and integrated with SIEM infrastructure, can achieve detection accuracy exceeding 95% while reducing false positive rates below 1%, thereby enabling automated triage that significantly reduces analyst workload.
 
 **Secondary Hypothesis**: By abstracting deployment complexity through containerization and automated orchestration, AI-enhanced security platforms can be made accessible to organizations lacking specialized DevOps/MLOps expertise.
 
 ### Research Objectives
 
 **Objective 1 (Technical)**: Implement and validate a complete AI-augmented SOC platform integrating:
-- Enterprise SIEM (Wazuh)
+- SIEM infrastructure (Wazuh)
 - Machine Learning inference pipeline
 - Intelligent alert triage
 - Retrieval-Augmented Generation (RAG) for threat intelligence
@@ -259,7 +257,6 @@ Contemporary Security Operations Centers confront several critical challenges:
 - Time to operational: < 15 minutes
 - Technical prerequisite knowledge
 - Manual configuration steps
-- Deployment failure rate
 
 **Objective 4 (Academic)**: Document implementation journey including:
 - Technical challenges encountered
@@ -712,7 +709,6 @@ Our implementation journey empirically validates the three primary adoption barr
   - Automated bash script (quickstart.sh) for command-line deployment
   - Manual Docker Compose for advanced customization
 - **Impact**: Reduced deployment time from 2-3 hours (manual) to < 15 minutes (automated)
-- **Validation**: Achieved 100% deployment success rate after automation implementation
 
 **Additional Discovered Challenges:**
 
@@ -830,7 +826,7 @@ check_port() {
 - API endpoint verification
 - Comprehensive error reporting
 
-**Impact**: Deployment success rate improved from 14% to 85% through honest validation.
+**Impact**: Improved deployment reliability through comprehensive validation.
 
 ### Challenge 4: Production-Ready Documentation
 
@@ -1003,19 +999,14 @@ The project implements a multi-tier testing strategy ensuring production readine
 - Throughput: 10,000 events/second sustained
 - False Positive Rate: 0.25% (validated)
 
-### Production Readiness Score: 9.5/10
+### System Validation Results
 
-**Strengths:**
-- Comprehensive service validation (100% critical services healthy)
-- Professional documentation suitable for enterprise presentation
+**Validation Outcomes:**
+- All critical services operational and healthy
+- Professional documentation suitable for academic presentation
 - Simplified deployment process (< 15 minutes total)
 - Stable multi-hour continuous operation
-- All critical bugs resolved
-- High-performance ML inference (99.28% accuracy)
-
-**Minor Improvements (Non-Critical):**
-- 2 cosmetic health check warnings (services functional)
-- Optional: Automated installation verification script
+- High-performance ML inference (99.28% accuracy on CICIDS2017 dataset)
 
 ---
 
@@ -1032,7 +1023,7 @@ A core research objective was to validate whether AI-enhanced security platforms
 Our implementation challenges this paradigm through:
 1. **Containerization**: All dependencies packaged and version-locked
 2. **Automation**: One-command deployment with comprehensive validation
-3. **Sensible Defaults**: Production-viable configuration out-of-box
+3. **Sensible Defaults**: Functional configuration out-of-box
 4. **Progressive Complexity**: Simple deployment, advanced customization available
 
 ### Deployment Methods
@@ -1153,29 +1144,19 @@ cd AI_SOC
 - Alert Processing: 1,000+ alerts/second end-to-end
 - Database Ingestion: Wazuh handles 10,000+ events/second
 
-### Deployment Quality Metrics
+### Deployment Improvements
 
-**Before Fixes:**
-- Deployment Success Rate: 14%
-- Mean Time to Recovery: 2-4 hours
-- Documentation Accuracy: ~60%
-
-**After Fixes:**
-- Deployment Success Rate: 95%
-- Mean Time to Recovery: 10-15 minutes
-- Documentation Accuracy: >95%
-
-**Improvement:**
-- 81 percentage point increase in deployment success
-- 8-16x reduction in recovery time
+**System Enhancements:**
+- Reduced deployment time to < 15 minutes
+- Improved validation and error reporting
 - Professional documentation suitable for academic review
 
 ### Validation Against Research Questions
 
-**RQ1: Can ML models achieve production-grade performance?**
+**RQ1: Can ML models achieve high performance on IDS datasets?**
 - **Result**: ✓ YES
 - **Evidence**: 99.28% accuracy, 0.25% FP rate on CICIDS2017
-- **Conclusion**: Significantly exceeds production thresholds
+- **Conclusion**: Exceeds published baseline models
 
 **RQ2: What are practical challenges in ML-SIEM integration?**
 - **Result**: Multiple challenges identified and solved
@@ -1191,7 +1172,7 @@ cd AI_SOC
 - **Evidence**: 15-minute deployment vs. typical weeks-long SIEM deployments
 - **Conclusion**: Containerization + automation enables accessibility
 
-**RQ4: What validation is necessary for production readiness?**
+**RQ4: What validation is necessary for system reliability?**
 - **Result**: Comprehensive multi-tier testing framework developed
 - **Key Components**:
   - Service health validation (not just container existence)
@@ -1222,9 +1203,9 @@ This implementation provides empirical evidence for several theoretical claims f
 
 ### Novel Technical Contributions
 
-**1. Production Deployment Blueprint**
-- First comprehensive open-source implementation integrating:
-  - Enterprise SIEM (Wazuh)
+**1. Research Implementation Blueprint**
+- Comprehensive open-source implementation integrating:
+  - SIEM infrastructure (Wazuh)
   - ML inference pipeline
   - RAG-enhanced threat intelligence
   - Automated orchestration
@@ -1327,7 +1308,7 @@ All implementation artifacts are publicly available:
 - Implement automated incident report generation
 - Integrate with alert triage for natural language analysis
 
-**4. Production Hardening**
+**4. Security Enhancements**
 - Implement JWT/OAuth2 authentication
 - Add rate limiting and DDoS protection
 - Integrate HashiCorp Vault for secrets management
@@ -1568,7 +1549,6 @@ If you use this implementation in your research, please cite:
 - **ML Models Trained**: 3 (Random Forest, XGBoost, Decision Tree)
 - **Test Coverage**: 200+ test cases
 - **Documentation**: 8 comprehensive documents
-- **Production Readiness**: 9.5/10
 
 ---
 
@@ -1582,7 +1562,7 @@ If you use this implementation in your research, please cite:
 ---
 
 **Last Updated**: October 23, 2025
-**Version**: 1.0 (Production Ready)
+**Version**: 1.0
 **Status**: ✅ Operational | Academic Research Platform
 
 **Built with rigor and transparency by the AI-SOC research community.**
