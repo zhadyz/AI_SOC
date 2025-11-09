@@ -1,0 +1,2242 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Research-driven AI system for equitable dermatological diagnosis across all skin tones">
+      
+      
+        <meta name="author" content="Jasmin Flores, Abdul Bari">
+      
+      
+        <link rel="canonical" href="https://research.onyxlab.ai/fairness/dataset_access_log/">
+      
+      
+        <link rel="prev" href="../environment_setup/">
+      
+      
+        <link rel="next" href="../ham10000_integration/">
+      
+      
+      <link rel="icon" href="../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
+    
+    
+      
+        <title>Dataset Access - Fairness in Skin Cancer Detection</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CSF+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"SF Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/custom.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config",""),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dataset-access-log" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Fairness in Skin Cancer Detection" class="md-header__button md-logo" aria-label="Fairness in Skin Cancer Detection" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Fairness in Skin Cancer Detection
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Dataset Access
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/zhadyz/fairness-skin-cancer-detection" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    zhadyz/fairness-skin-cancer-detection
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../quickstart/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../fairdisco_training_guide/" class="md-tabs__link">
+          
+  
+  
+  Training & Experiments
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../docker_guide/" class="md-tabs__link">
+          
+  
+  
+  Technical Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../synthetic_augmentation/" class="md-tabs__link">
+          
+  
+  
+  Research & Innovation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../phase4_production_hardening/" class="md-tabs__link">
+          
+  
+  
+  Production
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/authors/" class="md-tabs__link">
+          
+  
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Fairness in Skin Cancer Detection" class="md-nav__button md-logo" aria-label="Fairness in Skin Cancer Detection" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    Fairness in Skin Cancer Detection
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/zhadyz/fairness-skin-cancer-detection" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    zhadyz/fairness-skin-cancer-detection
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Environment Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Dataset Access
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dataset Access
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#primary-datasets-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      Primary Datasets Status
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Primary Datasets Status">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-ham10000-human-against-machine-with-10000-dermoscopic-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. HAM10000 (Human Against Machine with 10,000 Dermoscopic Images)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-isic-2019-challenge-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. ISIC 2019 Challenge Dataset
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-fitzpatrick17k" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Fitzpatrick17k
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-ddi-diverse-dermatology-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. DDI (Diverse Dermatology Images)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-midas-mra-midas-multimodal-image-dataset-for-ai-based-skin-cancer" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. MIDAS (MRA-MIDAS: Multimodal Image Dataset for AI-based Skin Cancer)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-scin-skin-condition-image-network" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. SCIN (Skin Condition Image Network)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#synthetic-augmentation-datasets-phase-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Synthetic Augmentation Datasets (Phase 2)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Synthetic Augmentation Datasets (Phase 2)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#7-fairskin-dermdiff-synthetic-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. FairSkin / DermDiff Synthetic Generation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary Statistics
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#action-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      Action Items
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#risk-assessment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Risk Assessment
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contact-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      Contact Information
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ham10000_integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    HAM10000 Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairdisco_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairDisCo Implementation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../circle_implementation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CIRCLe Implementation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairskin_implementation_plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairSkin Implementation Plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Training & Experiments
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Training & Experiments
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Training Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            Training Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairdisco_training_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairDisCo Training
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../circle_training_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CIRCLe Training
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairskin_usage_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairSkin Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment_tracking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Experiment Tracking
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline_results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Baseline Results
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Technical Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Technical Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Docker Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_quality_standards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Code Quality Standards
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fst_annotation_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FST Annotation Protocol
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Research & Innovation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Research & Innovation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../synthetic_augmentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Synthetic Augmentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../open_source_fairness_code/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Open Source Fairness Code
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairness_computational_costs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fairness Computational Costs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Production
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Production
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../phase4_production_hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 4 Production Hardening
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Roadmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/authors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Authors & Acknowledgments
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    License
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Citation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#primary-datasets-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      Primary Datasets Status
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Primary Datasets Status">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-ham10000-human-against-machine-with-10000-dermoscopic-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. HAM10000 (Human Against Machine with 10,000 Dermoscopic Images)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-isic-2019-challenge-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. ISIC 2019 Challenge Dataset
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-fitzpatrick17k" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Fitzpatrick17k
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-ddi-diverse-dermatology-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. DDI (Diverse Dermatology Images)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-midas-mra-midas-multimodal-image-dataset-for-ai-based-skin-cancer" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. MIDAS (MRA-MIDAS: Multimodal Image Dataset for AI-based Skin Cancer)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-scin-skin-condition-image-network" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. SCIN (Skin Condition Image Network)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#synthetic-augmentation-datasets-phase-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Synthetic Augmentation Datasets (Phase 2)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Synthetic Augmentation Datasets (Phase 2)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#7-fairskin-dermdiff-synthetic-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. FairSkin / DermDiff Synthetic Generation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary Statistics
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#action-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      Action Items
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#risk-assessment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Risk Assessment
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contact-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      Contact Information
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="dataset-access-log">Dataset Access Log<a class="headerlink" href="#dataset-access-log" title="Permanent link">&para;</a></h1>
+<p><strong>Mission</strong>: Phase 1 Dataset Acquisition for Fairness-Aware Skin Cancer Detection
+<strong>Initiated</strong>: 2025-10-13
+<strong>Status</strong>: IN PROGRESS
+<strong>Agent</strong>: the_didact (MENDICANT_BIAS framework)</p>
+<hr />
+<h2 id="primary-datasets-status">Primary Datasets Status<a class="headerlink" href="#primary-datasets-status" title="Permanent link">&para;</a></h2>
+<h3 id="1-ham10000-human-against-machine-with-10000-dermoscopic-images">1. HAM10000 (Human Against Machine with 10,000 Dermoscopic Images)<a class="headerlink" href="#1-ham10000-human-against-machine-with-10000-dermoscopic-images" title="Permanent link">&para;</a></h3>
+<p><strong>Status</strong>: ✅ ACCESS CONFIRMED - PUBLIC DATASET</p>
+<p><strong>Details</strong>:
+- <strong>Size</strong>: 10,015 dermoscopic images
+- <strong>Classes</strong>: 7 diagnostic categories (melanoma, basal cell carcinoma, melanocytic nevi, etc.)
+- <strong>Metadata</strong>: Age, sex, localization
+- <strong>Skin Tone Limitation</strong>: &lt;5% FST V-VI (majority lighter skin)</p>
+<p><strong>Access Methods</strong>:
+1. <strong>Harvard Dataverse</strong> (Primary):
+   - URL: https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/DBW86T
+   - DOI: 10.7910/DVN/DBW86T
+   - License: Non-commercial use only
+   - Method: Direct download (requires Terms of Use confirmation)</p>
+<ol>
+<li><strong>Kaggle</strong> (Alternative):</li>
+<li>URL: https://www.kaggle.com/datasets/kmader/skin-cancer-mnist-ham10000</li>
+<li>
+<p>Method: Kaggle account required, free download</p>
+</li>
+<li>
+<p><strong>ISIC Archive API</strong>:</p>
+</li>
+<li>URL: https://isic-archive.com/api/v1</li>
+<li>Method: Programmatic access via API calls</li>
+</ol>
+<p><strong>Download Action</strong>: Use Kaggle CLI or Harvard Dataverse direct download
+<strong>Target Directory</strong>: <code>data/raw/ham10000/</code>
+<strong>Next Steps</strong>:
+- Download dataset (10,015 images + metadata CSV)
+- Verify file integrity
+- Parse metadata for FST distribution analysis</p>
+<hr />
+<h3 id="2-isic-2019-challenge-dataset">2. ISIC 2019 Challenge Dataset<a class="headerlink" href="#2-isic-2019-challenge-dataset" title="Permanent link">&para;</a></h3>
+<p><strong>Status</strong>: ✅ ACCESS CONFIRMED - PUBLIC DATASET</p>
+<p><strong>Details</strong>:
+- <strong>Size</strong>: 25,331 training images (ISIC 2019), 33,126 total (ISIC 2020)
+- <strong>Classes</strong>: 8 diagnostic categories
+- <strong>Metadata</strong>: Patient demographics, lesion location
+- <strong>Skin Tone Limitation</strong>: &lt;3% FST V-VI, no explicit FST labels</p>
+<p><strong>Access Methods</strong>:
+1. <strong>ISIC Challenge Website</strong> (Primary):
+   - URL: https://challenge.isic-archive.com/data/
+   - Method: Direct download (training data ~2.6GB)
+   - Registration: Free account required</p>
+<ol>
+<li><strong>AWS Open Data Registry</strong>:</li>
+<li>URL: https://registry.opendata.aws/isic-archive/</li>
+<li>
+<p>Method: S3 bucket access (public)</p>
+</li>
+<li>
+<p><strong>Hugging Face</strong> (Fed-ISIC-2019):</p>
+</li>
+<li>URL: https://huggingface.co/datasets/flwrlabs/fed-isic2019</li>
+<li>Method: Datasets library download</li>
+</ol>
+<p><strong>Download Action</strong>: ISIC Challenge direct download for ISIC 2019 training set
+<strong>Target Directory</strong>: <code>data/raw/isic2019/</code>
+<strong>Next Steps</strong>:
+- Download ISIC 2019 training images + ground truth CSV
+- Parse metadata (age, sex, anatomical site)
+- Note: Will require FST annotation in Phase 1 (annotation protocol in progress)</p>
+<hr />
+<h3 id="3-fitzpatrick17k">3. Fitzpatrick17k<a class="headerlink" href="#3-fitzpatrick17k" title="Permanent link">&para;</a></h3>
+<p><strong>Status</strong>: ⏳ ACCESS REQUEST REQUIRED</p>
+<p><strong>Details</strong>:
+- <strong>Size</strong>: 16,577 clinical images
+- <strong>FST Distribution</strong>: ~8% FST V-VI (better than baseline but still imbalanced)
+- <strong>Metadata</strong>: Fitzpatrick skin type (dual annotation), diagnosis, ITA values
+- <strong>Source</strong>: DermaAmin and Atlas Dermatologico atlases</p>
+<p><strong>Access Methods</strong>:
+1. <strong>GitHub Repository</strong> (Metadata only):
+   - URL: https://github.com/mattgroh/fitzpatrick17k
+   - Available: Fitzpatrick17k.csv (annotations)</p>
+<ol>
+<li><strong>Image Access</strong> (Request Required):</li>
+<li>Method: Fill out access request form (linked in GitHub README)</li>
+<li>Contact: Matthew Groh (MIT researcher)</li>
+<li>Alternative: Download from original source URLs (provided in CSV)</li>
+</ol>
+<p><strong>Citation</strong>:
+- Groh, M., Harris, C., Daneshjou, R., et al. (2021). Evaluating Deep Neural Networks Trained on Clinical Images in Dermatology with the Fitzpatrick 17k Dataset. arXiv:2104.09957</p>
+<p><strong>Access Request Draft</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Subject: Research Access Request - Fitzpatrick17k Dataset
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Dear Dr. Groh,
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>I am writing to request access to the Fitzpatrick17k dataset for academic research purposes.
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Project: Fairness-Aware AI for Skin Cancer Detection Across All Fitzpatrick Skin Types
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>Institution: [California State University, San Bernardino / Independent Research]
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>Principal Investigator: [Dr. Nabeel Alzahrani / Student: Jasmin Flores]
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Research Objective:
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>We are developing a fairness-aware skin cancer detection system to address the 15-30%
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>performance gap observed in existing AI models for darker skin tones (FST IV-VI). Our
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>project builds upon the comprehensive survey &quot;AI Skin Cancer Detection Across Skin Tones&quot;
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>(Flores &amp; Alzahrani, 2025) and aims to implement state-of-the-art fairness techniques
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>(FairSkin diffusion, FairDisCo adversarial debiasing, CIRCLe color-invariant learning).
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>Dataset Usage:
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>- Training fairness-aware deep learning models (hybrid ConvNeXt-Swin Transformer architecture)
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>- Stratified evaluation across FST groups (quantifying AUROC, EOD, ECE per skin tone)
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>- Comparative analysis with baseline datasets (HAM10000, ISIC) to demonstrate fairness improvement
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>We commit to:
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>1. Using the dataset solely for non-commercial academic research
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>2. Proper attribution in all publications and presentations
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>3. Sharing subgroup performance metrics transparently (model card documentation)
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>4. Not re-distributing the dataset without authorization
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>Timeline: Phase 1 baseline training (4 weeks), full project completion (24 weeks)
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>Contact Information:
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>- Email: [your_email@csusb.edu]
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>- GitHub: https://github.com/[username]/skin-cancer-fairness
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>- Project Framework: MENDICANT_BIAS multi-agent system
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>Thank you for advancing fairness-aware dermatology AI research. Your Fitzpatrick17k
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>dataset is foundational to addressing healthcare disparities.
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>Sincerely,
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>[Your Name]
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>[Affiliation]
+</span></code></pre></div>
+<p><strong>Target Directory</strong>: <code>data/raw/fitzpatrick17k/</code>
+<strong>Next Steps</strong>:
+- Submit access request via GitHub form
+- Follow up in 3-5 business days
+- Alternative: Use CSV URLs to download from original atlases (if permitted)</p>
+<hr />
+<h3 id="4-ddi-diverse-dermatology-images">4. DDI (Diverse Dermatology Images)<a class="headerlink" href="#4-ddi-diverse-dermatology-images" title="Permanent link">&para;</a></h3>
+<p><strong>Status</strong>: ✅ ACCESS AVAILABLE - RESEARCH USE AGREEMENT REQUIRED</p>
+<p><strong>Details</strong>:
+- <strong>Size</strong>: 656 images (570 unique patients)
+- <strong>FST Distribution</strong>: 34% FST V-VI (EXCELLENT diversity)
+- <strong>Metadata</strong>: Pathologically confirmed diagnoses, clinician-rated FST (gold standard)
+- <strong>Source</strong>: Stanford Clinics (2010-2020 retrospective selection)</p>
+<p><strong>Access Methods</strong>:
+1. <strong>Stanford AIMI Shared Datasets Portal</strong>:
+   - URL: https://aimi.stanford.edu/datasets/ddi-diverse-dermatology-images
+   - URL: https://stanfordaimi.azurewebsites.net/datasets/35866158-8196-48d8-87bf-50dca81df965
+   - DOI: https://doi.org/10.71718/kqee-3z39
+   - License: Research Use Agreement (non-commercial, no re-identification)</p>
+<p><strong>Research Use Agreement Key Terms</strong>:
+- Personal, non-commercial research only
+- No commercial use, sale, or monetization
+- No attempt to re-identify individual data subjects
+- Indemnification of Stanford from claims/damages</p>
+<p><strong>Access Action</strong>:
+- Navigate to Stanford AIMI portal
+- Accept Research Use Agreement
+- Download dataset directly (no institutional approval needed for research use)</p>
+<p><strong>Citation</strong>:
+- Daneshjou, R., Barata, C., Betz-Stablein, B., et al. (2022). Disparities in dermatology AI performance on a diverse, curated clinical image set. Science Advances, 8(25), eabq6147.</p>
+<p><strong>Target Directory</strong>: <code>data/raw/ddi/</code>
+<strong>Next Steps</strong>:
+- Accept Research Use Agreement on Stanford AIMI portal
+- Download 656 images + metadata
+- Verify pathology-confirmed labels
+- Prioritize for fairness evaluation (highest FST V-VI representation)</p>
+<hr />
+<h3 id="5-midas-mra-midas-multimodal-image-dataset-for-ai-based-skin-cancer">5. MIDAS (MRA-MIDAS: Multimodal Image Dataset for AI-based Skin Cancer)<a class="headerlink" href="#5-midas-mra-midas-multimodal-image-dataset-for-ai-based-skin-cancer" title="Permanent link">&para;</a></h3>
+<p><strong>Status</strong>: ✅ ACCESS AVAILABLE - STANFORD AIMI PORTAL</p>
+<p><strong>Details</strong>:
+- <strong>Size</strong>: Dual-center, prospectively recruited dataset
+- <strong>Modalities</strong>: Paired dermoscopic + clinical images
+- <strong>FST Distribution</strong>: ~28% FST V-VI (estimated based on Stanford diversity metrics)
+- <strong>Metadata</strong>: Patient-level clinical metadata, histopathologic confirmation
+- <strong>Unique Feature</strong>: Prospective recruitment (higher real-world fidelity vs retrospective)</p>
+<p><strong>Access Methods</strong>:
+1. <strong>Stanford AIMI Portal</strong>:
+   - URL: https://aimi.stanford.edu/datasets/mra-midas-Multimodal-Image-Dataset-for-AI-based-Skin-Cancer
+   - DOI: https://doi.org/10.71718/15nz-jv40
+   - License: Non-commercial research use</p>
+<p><strong>Citation</strong>:
+- McCoy, L. G., Naik, B., Saunders, H., et al. (2024). Multimodal Image Dataset for AI-based Skin Cancer (MIDAS) Benchmarking. medRxiv. DOI: 10.1101/2024.06.27.24309562</p>
+<p><strong>Access Action</strong>:
+- Navigate to Stanford AIMI portal
+- Accept Research Use Agreement (same as DDI)
+- Download multimodal dataset (dermoscopic + clinical pairs)</p>
+<p><strong>Target Directory</strong>: <code>data/raw/midas/</code>
+<strong>Next Steps</strong>:
+- Download dataset from Stanford AIMI
+- Parse multimodal structure (separate dermoscopic/clinical folders)
+- Leverage clinical images for metadata fusion architecture (Phase 3)</p>
+<hr />
+<h3 id="6-scin-skin-condition-image-network">6. SCIN (Skin Condition Image Network)<a class="headerlink" href="#6-scin-skin-condition-image-network" title="Permanent link">&para;</a></h3>
+<p><strong>Status</strong>: ✅ ACCESS CONFIRMED - OPEN GITHUB REPOSITORY</p>
+<p><strong>Details</strong>:
+- <strong>Size</strong>: 10,000+ images
+- <strong>FST Distribution</strong>: ~33% FST V-VI, balanced FST distribution (major advantage)
+- <strong>Metadata</strong>: Self-reported demographics, symptoms, dermatologist labels, estimated FST (eFST), estimated MST (eMST)
+- <strong>Source</strong>: Crowdsourced from US internet users via Google Search Ads
+- <strong>Unique Feature</strong>: Real-world, in-the-wild images (not clinical dermoscopy)</p>
+<p><strong>Access Methods</strong>:
+1. <strong>GitHub Repository</strong>:
+   - URL: https://github.com/google-research-datasets/scin
+   - License: Open access for research, education, development
+   - Method: Git clone or direct download</p>
+<p><strong>Key Features</strong>:
+- Dermatologist estimates of Fitzpatrick Skin Type (eFST)
+- Layperson labeler estimates of Monk Skin Tone (eMST)
+- Common allergic, inflammatory, and infectious conditions (not just tumors)
+- Crowdsourced with informed consent</p>
+<p><strong>Citation</strong>:
+- Jain, A., Lipman, M., Liu, Y., et al. (2024). Crowdsourcing Dermatology Images with Google Search Ads: Creating a Real-World Skin Condition Dataset. arXiv:2402.18545</p>
+<p><strong>Access Action</strong>: Git clone repository
+<strong>Target Directory</strong>: <code>data/raw/scin/</code>
+<strong>Next Steps</strong>:
+- Clone GitHub repository: <code>git clone https://github.com/google-research-datasets/scin.git</code>
+- Review dataset schema (dataset_schema.md in repo)
+- Explore scin_demo.ipynb for loading examples
+- Prioritize for Phase 2 training (excellent FST balance + real-world diversity)</p>
+<hr />
+<h2 id="synthetic-augmentation-datasets-phase-2">Synthetic Augmentation Datasets (Phase 2)<a class="headerlink" href="#synthetic-augmentation-datasets-phase-2" title="Permanent link">&para;</a></h2>
+<h3 id="7-fairskin-dermdiff-synthetic-generation">7. FairSkin / DermDiff Synthetic Generation<a class="headerlink" href="#7-fairskin-dermdiff-synthetic-generation" title="Permanent link">&para;</a></h3>
+<p><strong>Status</strong>: ⏳ IMPLEMENTATION RESEARCH IN PROGRESS</p>
+<p><strong>Objective</strong>: Generate 60,000 synthetic images with balanced FST distribution</p>
+<p><strong>Models Identified</strong>:</p>
+<ol>
+<li><strong>FairSkin</strong> (Oct 2024):</li>
+<li>Paper: https://arxiv.org/abs/2410.22551</li>
+<li>Method: Three-level resampling, class diversity loss, balanced sampling</li>
+<li>Code: NOT YET AVAILABLE (paper just published)</li>
+<li>
+<p>Implementation: Will require custom development using Hugging Face Diffusers</p>
+</li>
+<li>
+<p><strong>DermDiff</strong> (March 2025):</p>
+</li>
+<li>Paper: https://arxiv.org/abs/2503.17536</li>
+<li>Method: Skin tone detector + race-conditioned diffusion + multimodal text-image learning</li>
+<li>Implementation: PyTorch with HuggingFace Diffusers + OpenAI APIs</li>
+<li>Generated Dataset: 60k synthetic images (30k benign, 30k malignant)</li>
+<li>
+<p>Code: NOT EXPLICITLY AVAILABLE (check arXiv code links)</p>
+</li>
+<li>
+<p><strong>From Majority to Minority</strong> (June 2024):</p>
+</li>
+<li>Paper: https://arxiv.org/html/2406.18375</li>
+<li>GitHub: https://github.com/janet-sw/skin-diff</li>
+<li>Award: MICCAI ISIC Workshop 2024 Honorable Mention</li>
+<li>Method: Stable Diffusion via Textual Inversion + LoRA</li>
+<li>Implementation: AVAILABLE (Hugging Face Diffusers)</li>
+<li><strong>RECOMMENDED FOR PHASE 2 IMPLEMENTATION</strong></li>
+</ol>
+<p><strong>Next Steps for Phase 2</strong>:
+- Review janet-sw/skin-diff GitHub repository
+- Implement tone-conditioned Stable Diffusion using HuggingFace Diffusers
+- Train on HAM10000 + ISIC 2019 + Fitzpatrick17k (once acquired)
+- Generate 60k synthetic images with target FST distribution: 25% FST V-VI
+- Validate quality: FID &lt;20, LPIPS &lt;0.1, expert dermatologist review</p>
+<p><strong>Documentation</strong>: See <code>docs/synthetic_augmentation.md</code></p>
+<hr />
+<h2 id="summary-statistics">Summary Statistics<a class="headerlink" href="#summary-statistics" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Size</th>
+<th>FST V-VI %</th>
+<th>Access Status</th>
+<th>Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HAM10000</td>
+<td>10,015</td>
+<td>&lt;5%</td>
+<td>✅ Public</td>
+<td>HIGH (baseline)</td>
+</tr>
+<tr>
+<td>ISIC 2019</td>
+<td>25,331</td>
+<td>&lt;3%</td>
+<td>✅ Public</td>
+<td>HIGH (baseline)</td>
+</tr>
+<tr>
+<td>Fitzpatrick17k</td>
+<td>16,577</td>
+<td>~8%</td>
+<td>⏳ Request</td>
+<td>HIGH (FST labels)</td>
+</tr>
+<tr>
+<td>DDI</td>
+<td>656</td>
+<td>34%</td>
+<td>✅ Available</td>
+<td>CRITICAL (diversity)</td>
+</tr>
+<tr>
+<td>MIDAS</td>
+<td>Variable</td>
+<td>~28%</td>
+<td>✅ Available</td>
+<td>HIGH (multimodal)</td>
+</tr>
+<tr>
+<td>SCIN</td>
+<td>10,000+</td>
+<td>~33%</td>
+<td>✅ Public</td>
+<td>HIGH (real-world)</td>
+</tr>
+<tr>
+<td>Synthetic (Phase 2)</td>
+<td>60,000</td>
+<td>25% target</td>
+<td>⏳ Pending</td>
+<td>MEDIUM (augmentation)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total Training Dataset Target (Phase 2)</strong>: ~130,000 images with 25%+ FST V-VI representation</p>
+<hr />
+<h2 id="action-items">Action Items<a class="headerlink" href="#action-items" title="Permanent link">&para;</a></h2>
+<p><strong>IMMEDIATE (Week 1)</strong>:
+- [ ] Download HAM10000 from Kaggle (using Kaggle API)
+- [ ] Download ISIC 2019 from challenge website
+- [ ] Submit Fitzpatrick17k access request to Dr. Matthew Groh
+- [ ] Download DDI from Stanford AIMI portal
+- [ ] Download MIDAS from Stanford AIMI portal
+- [ ] Clone SCIN from GitHub repository</p>
+<p><strong>SHORT-TERM (Week 2-3)</strong>:
+- [ ] Verify all dataset file integrity (checksums, image loading)
+- [ ] Parse and merge metadata CSVs
+- [ ] Analyze FST distribution across datasets
+- [ ] Implement FST annotation for ISIC 2019 (no native labels)
+- [ ] Create stratified train/val/test splits (balanced FST)</p>
+<p><strong>MEDIUM-TERM (Week 4-6)</strong>:
+- [ ] Implement FST annotation protocol using ITA + Monk Skin Tone
+- [ ] Annotate ISIC 2019 images (automated ITA + manual validation)
+- [ ] Prepare Phase 2 synthetic data generation pipeline</p>
+<hr />
+<h2 id="risk-assessment">Risk Assessment<a class="headerlink" href="#risk-assessment" title="Permanent link">&para;</a></h2>
+<p><strong>High Risk</strong>:
+- Fitzpatrick17k access delay (mitigation: use CSV URLs to download from original atlases if form delayed)</p>
+<p><strong>Medium Risk</strong>:
+- ISIC 2019 download size (2.6GB+, may require bandwidth/storage management)
+- FST annotation quality for datasets without native labels (mitigation: dual annotation + ITA validation)</p>
+<p><strong>Low Risk</strong>:
+- Public datasets (HAM10000, ISIC, SCIN) - minimal access barriers
+- Stanford AIMI datasets (DDI, MIDAS) - streamlined Research Use Agreement</p>
+<hr />
+<h2 id="contact-information">Contact Information<a class="headerlink" href="#contact-information" title="Permanent link">&para;</a></h2>
+<p><strong>Dataset Curators</strong>:
+- HAM10000: Peter Tschandl (Medical University of Vienna)
+- Fitzpatrick17k: Matthew Groh (MIT Media Lab)
+- DDI: Roxana Daneshjou (Stanford Dermatology)
+- MIDAS: Leo McCoy, Bhavik Naik (Stanford AIMI)
+- SCIN: Abhishek Jain (Google Health)</p>
+<p><strong>Institutional Contact</strong>:
+- PI: Dr. Nabeel Alzahrani (CSUSB)
+- Researcher: Jasmin Flores (CSUSB)</p>
+<hr />
+<p><strong>Last Updated</strong>: 2025-10-13
+<strong>Next Review</strong>: 2025-10-14 (daily updates during acquisition phase)
+<strong>Maintained by</strong>: the_didact (MENDICANT_BIAS framework)</p>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/zhadyz/fairness-skin-cancer-detection" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:abdul.bari8019@coyote.csusb.edu" target="_blank" rel="noopener" title="" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l208 156a48 48 0 0 0 57.6 0l208-156c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48zM0 196v188c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V196L313.6 344.8c-34.1 25.6-81.1 25.6-115.2 0z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="../javascripts/custom.js"></script>
+      
+    
+  </body>
+</html>

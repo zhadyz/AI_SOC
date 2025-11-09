@@ -1,0 +1,2836 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Research-driven AI system for equitable dermatological diagnosis across all skin tones">
+      
+      
+        <meta name="author" content="Jasmin Flores, Abdul Bari">
+      
+      
+        <link rel="canonical" href="https://research.onyxlab.ai/fairness/fst_annotation_protocol/">
+      
+      
+        <link rel="prev" href="../code_quality_standards/">
+      
+      
+        <link rel="next" href="../synthetic_augmentation/">
+      
+      
+      <link rel="icon" href="../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
+    
+    
+      
+        <title>FST Annotation Protocol - Fairness in Skin Cancer Detection</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CSF+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"SF Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/custom.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config",""),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#fitzpatrick-skin-type-fst-annotation-protocol" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Fairness in Skin Cancer Detection" class="md-header__button md-logo" aria-label="Fairness in Skin Cancer Detection" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Fairness in Skin Cancer Detection
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              FST Annotation Protocol
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/zhadyz/fairness-skin-cancer-detection" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    zhadyz/fairness-skin-cancer-detection
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../quickstart/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../fairdisco_training_guide/" class="md-tabs__link">
+          
+  
+  
+  Training & Experiments
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../docker_guide/" class="md-tabs__link">
+          
+  
+  
+  Technical Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../synthetic_augmentation/" class="md-tabs__link">
+          
+  
+  
+  Research & Innovation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../phase4_production_hardening/" class="md-tabs__link">
+          
+  
+  
+  Production
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/authors/" class="md-tabs__link">
+          
+  
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Fairness in Skin Cancer Detection" class="md-nav__button md-logo" aria-label="Fairness in Skin Cancer Detection" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    Fairness in Skin Cancer Detection
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/zhadyz/fairness-skin-cancer-detection" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    zhadyz/fairness-skin-cancer-detection
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Environment Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset_access_log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dataset Access
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ham10000_integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    HAM10000 Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairdisco_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairDisCo Implementation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../circle_implementation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CIRCLe Implementation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairskin_implementation_plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairSkin Implementation Plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Training & Experiments
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Training & Experiments
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Training Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            Training Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairdisco_training_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairDisCo Training
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../circle_training_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CIRCLe Training
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairskin_usage_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairSkin Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment_tracking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Experiment Tracking
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline_results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Baseline Results
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Technical Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Technical Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Docker Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_quality_standards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Code Quality Standards
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    FST Annotation Protocol
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    FST Annotation Protocol
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Executive Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-annotation-scales" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Annotation Scales
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Annotation Scales">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-fitzpatrick-skin-type-fst-6-point-scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 Fitzpatrick Skin Type (FST) - 6-Point Scale
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-monk-skin-tone-mst-10-point-scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 Monk Skin Tone (MST) - 10-Point Scale
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-automated-annotation-individual-typology-angle-ita" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Automated Annotation: Individual Typology Angle (ITA)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Automated Annotation: Individual Typology Angle (ITA)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-ita-algorithm-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 ITA Algorithm Overview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-ita-implementation-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 ITA Implementation Steps
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-human-annotation-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Human Annotation Protocol
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Human Annotation Protocol">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-annotation-platform-labelbox" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 Annotation Platform: LabelBox
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-annotator-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 Annotator Selection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-annotation-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 Annotation Workflow
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-inter-rater-reliability-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Inter-Rater Reliability Metrics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Inter-Rater Reliability Metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-cohens-kappa" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Cohen's Kappa
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-confusion-matrix-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Confusion Matrix Analysis
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-annotation-guidelines-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Annotation Guidelines &amp; Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Annotation Guidelines &amp; Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-visual-assessment-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.1 Visual Assessment Rules
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-handling-edge-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.2 Handling Edge Cases
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-monk-skin-tone-reference-chart" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.3 Monk Skin Tone Reference Chart
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-fst-stratification-for-model-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. FST Stratification for Model Evaluation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. FST Stratification for Model Evaluation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-binary-grouping-simplified-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      6.1 Binary Grouping (Simplified Evaluation)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-granular-grouping-comprehensive-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      6.2 Granular Grouping (Comprehensive Evaluation)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-monk-skin-tone-grouping-finest-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      6.3 Monk Skin Tone Grouping (Finest Resolution)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-dataset-specific-annotation-plans" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Dataset-Specific Annotation Plans
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Dataset-Specific Annotation Plans">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-datasets-with-existing-fst-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.1 Datasets with Existing FST Labels
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-datasets-without-fst-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.2 Datasets WITHOUT FST Labels
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-implementation-timeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Implementation Timeline
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-software-tools-libraries" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Software Tools &amp; Libraries
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Software Tools &amp; Libraries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-ita-calculation" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.1 ITA Calculation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-annotation-platforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.2 Annotation Platforms
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-inter-rater-reliability" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.3 Inter-Rater Reliability
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-ethical-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. Ethical Considerations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Ethical Considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#101-privacy-consent" class="md-nav__link">
+    <span class="md-ellipsis">
+      10.1 Privacy &amp; Consent
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#102-avoiding-racial-essentialism" class="md-nav__link">
+    <span class="md-ellipsis">
+      10.2 Avoiding Racial Essentialism
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#103-annotator-bias-mitigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      10.3 Annotator Bias Mitigation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-quality-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      11. Quality Metrics
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      12. References
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-contact-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      13. Contact &amp; Support
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Research & Innovation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Research & Innovation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../synthetic_augmentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Synthetic Augmentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../open_source_fairness_code/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Open Source Fairness Code
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairness_computational_costs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fairness Computational Costs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Production
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Production
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../phase4_production_hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 4 Production Hardening
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Roadmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/authors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Authors & Acknowledgments
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    License
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Citation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Executive Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-annotation-scales" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Annotation Scales
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Annotation Scales">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-fitzpatrick-skin-type-fst-6-point-scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 Fitzpatrick Skin Type (FST) - 6-Point Scale
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-monk-skin-tone-mst-10-point-scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 Monk Skin Tone (MST) - 10-Point Scale
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-automated-annotation-individual-typology-angle-ita" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Automated Annotation: Individual Typology Angle (ITA)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Automated Annotation: Individual Typology Angle (ITA)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-ita-algorithm-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 ITA Algorithm Overview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-ita-implementation-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 ITA Implementation Steps
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-human-annotation-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Human Annotation Protocol
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Human Annotation Protocol">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-annotation-platform-labelbox" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 Annotation Platform: LabelBox
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-annotator-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 Annotator Selection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-annotation-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 Annotation Workflow
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-inter-rater-reliability-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Inter-Rater Reliability Metrics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Inter-Rater Reliability Metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-cohens-kappa" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Cohen's Kappa
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-confusion-matrix-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Confusion Matrix Analysis
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-annotation-guidelines-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Annotation Guidelines &amp; Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Annotation Guidelines &amp; Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-visual-assessment-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.1 Visual Assessment Rules
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-handling-edge-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.2 Handling Edge Cases
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-monk-skin-tone-reference-chart" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.3 Monk Skin Tone Reference Chart
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-fst-stratification-for-model-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. FST Stratification for Model Evaluation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. FST Stratification for Model Evaluation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-binary-grouping-simplified-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      6.1 Binary Grouping (Simplified Evaluation)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-granular-grouping-comprehensive-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      6.2 Granular Grouping (Comprehensive Evaluation)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-monk-skin-tone-grouping-finest-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      6.3 Monk Skin Tone Grouping (Finest Resolution)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-dataset-specific-annotation-plans" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Dataset-Specific Annotation Plans
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Dataset-Specific Annotation Plans">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-datasets-with-existing-fst-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.1 Datasets with Existing FST Labels
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-datasets-without-fst-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.2 Datasets WITHOUT FST Labels
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-implementation-timeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Implementation Timeline
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-software-tools-libraries" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Software Tools &amp; Libraries
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Software Tools &amp; Libraries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-ita-calculation" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.1 ITA Calculation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-annotation-platforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.2 Annotation Platforms
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-inter-rater-reliability" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.3 Inter-Rater Reliability
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-ethical-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. Ethical Considerations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Ethical Considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#101-privacy-consent" class="md-nav__link">
+    <span class="md-ellipsis">
+      10.1 Privacy &amp; Consent
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#102-avoiding-racial-essentialism" class="md-nav__link">
+    <span class="md-ellipsis">
+      10.2 Avoiding Racial Essentialism
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#103-annotator-bias-mitigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      10.3 Annotator Bias Mitigation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-quality-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      11. Quality Metrics
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      12. References
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-contact-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      13. Contact &amp; Support
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="fitzpatrick-skin-type-fst-annotation-protocol">Fitzpatrick Skin Type (FST) Annotation Protocol<a class="headerlink" href="#fitzpatrick-skin-type-fst-annotation-protocol" title="Permanent link">&para;</a></h1>
+<p><strong>Version</strong>: 1.0
+<strong>Date</strong>: 2025-10-13
+<strong>Framework</strong>: MENDICANT_BIAS - the_didact research division
+<strong>Purpose</strong>: Standardized protocol for annotating skin tone in dermatology images to ensure fairness-aware model development</p>
+<hr />
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">&para;</a></h2>
+<p>This protocol establishes a rigorous, reproducible methodology for annotating Fitzpatrick Skin Type (FST) and Monk Skin Tone (MST) in dermatological images. Accurate skin tone annotation is CRITICAL for:
+- Training fairness-aware AI models
+- Stratified evaluation (performance metrics per FST group)
+- Identifying and mitigating algorithmic bias</p>
+<p><strong>Key Principle</strong>: Skin tone annotation is inherently subjective. This protocol combines <strong>automated algorithms (ITA), expert annotation, and crowd consensus</strong> to maximize reliability.</p>
+<hr />
+<h2 id="1-annotation-scales">1. Annotation Scales<a class="headerlink" href="#1-annotation-scales" title="Permanent link">&para;</a></h2>
+<h3 id="11-fitzpatrick-skin-type-fst-6-point-scale">1.1 Fitzpatrick Skin Type (FST) - 6-Point Scale<a class="headerlink" href="#11-fitzpatrick-skin-type-fst-6-point-scale" title="Permanent link">&para;</a></h3>
+<p><strong>Original Purpose</strong>: Classify skin's response to UV exposure
+<strong>Clinical Definition</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>FST</th>
+<th>Description</th>
+<th>UV Response</th>
+<th>Prevalence (Global)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I</td>
+<td>Very fair skin, pale white</td>
+<td>Always burns, never tans</td>
+<td>~2%</td>
+</tr>
+<tr>
+<td>II</td>
+<td>Fair skin, white</td>
+<td>Usually burns, tans minimally</td>
+<td>~12%</td>
+</tr>
+<tr>
+<td>III</td>
+<td>Medium skin, white to light brown</td>
+<td>Sometimes burns, tans uniformly</td>
+<td>~28%</td>
+</tr>
+<tr>
+<td>IV</td>
+<td>Olive skin, moderate brown</td>
+<td>Rarely burns, tans easily</td>
+<td>~45%</td>
+</tr>
+<tr>
+<td>V</td>
+<td>Brown skin, dark brown</td>
+<td>Very rarely burns, tans very easily</td>
+<td>~11%</td>
+</tr>
+<tr>
+<td>VI</td>
+<td>Very dark skin, deeply pigmented</td>
+<td>Never burns</td>
+<td>~2%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Limitations</strong>:
+- Originally designed for UV sensitivity, not visual appearance
+- Coarse granularity (6 categories)
+- Poor inter-rater reliability for intermediate types (FST III-IV)
+- Racial bias potential (historically correlated with race)</p>
+<h3 id="12-monk-skin-tone-mst-10-point-scale">1.2 Monk Skin Tone (MST) - 10-Point Scale<a class="headerlink" href="#12-monk-skin-tone-mst-10-point-scale" title="Permanent link">&para;</a></h3>
+<p><strong>Modern Alternative</strong>: Perceptual skin tone classification (Google AI, 2022)
+<strong>Advantages over Fitzpatrick</strong>:
+- Finer granularity (10 categories vs 6)
+- Based on visual appearance, not UV response
+- Better representation of intermediate tones
+- Higher inter-rater agreement in recent studies</p>
+<p><strong>MST Scale</strong>:
+- Tones 1-2: Very light (corresponds to FST I-II)
+- Tones 3-4: Light (FST II-III)
+- Tones 5-6: Medium (FST III-IV)
+- Tones 7-8: Dark (FST IV-V)
+- Tones 9-10: Very dark (FST V-VI)</p>
+<p><strong>Recommendation</strong>: Use MST for NEW annotations, maintain FST for backward compatibility with existing datasets.</p>
+<hr />
+<h2 id="2-automated-annotation-individual-typology-angle-ita">2. Automated Annotation: Individual Typology Angle (ITA)<a class="headerlink" href="#2-automated-annotation-individual-typology-angle-ita" title="Permanent link">&para;</a></h2>
+<h3 id="21-ita-algorithm-overview">2.1 ITA Algorithm Overview<a class="headerlink" href="#21-ita-algorithm-overview" title="Permanent link">&para;</a></h3>
+<p><strong>ITA Formula</strong>:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ITA = [arctan((L* - 50) / b*)] × (180 / π)
+</span></code></pre></div></p>
+<p>Where:
+- L<em> = Lightness (0-100 in CIELAB color space)
+- b</em> = Blue-yellow axis (-128 to +127 in CIELAB color space)</p>
+<p><strong>ITA to FST Mapping</strong> (Established in Literature):</p>
+<table>
+<thead>
+<tr>
+<th>ITA Range</th>
+<th>Fitzpatrick Type</th>
+<th>MST Equivalent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&gt; 55°</td>
+<td>FST I (Very light)</td>
+<td>MST 1-2</td>
+</tr>
+<tr>
+<td>41° - 55°</td>
+<td>FST II (Light)</td>
+<td>MST 2-3</td>
+</tr>
+<tr>
+<td>28° - 41°</td>
+<td>FST III (Intermediate)</td>
+<td>MST 3-5</td>
+</tr>
+<tr>
+<td>19° - 28°</td>
+<td>FST IV (Tan)</td>
+<td>MST 5-7</td>
+</tr>
+<tr>
+<td>-30° - 19°</td>
+<td>FST V (Brown)</td>
+<td>MST 7-9</td>
+</tr>
+<tr>
+<td>&lt; -30°</td>
+<td>FST VI (Dark brown/Black)</td>
+<td>MST 9-10</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22-ita-implementation-steps">2.2 ITA Implementation Steps<a class="headerlink" href="#22-ita-implementation-steps" title="Permanent link">&para;</a></h3>
+<p><strong>Preprocessing Requirements</strong>:
+1. Image standardization: Remove hair, shadows, artifacts
+2. Region of Interest (ROI): Select representative skin patch (avoid lesion, hair, shadows)
+3. Color space conversion: RGB → CIELAB</p>
+<p><strong>Automated ITA Calculation</strong> (Python pseudocode):
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">skimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">color</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">calculate_ita</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="n">roi</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="sd">    Calculate Individual Typology Angle (ITA) for skin tone classification.</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="sd">    Args:</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="sd">        image_path: Path to dermatology image</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="sd">        roi: Region of Interest coordinates (x, y, w, h). If None, use entire image.</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="sd">    Returns:</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="sd">        ita_value: ITA angle in degrees</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="sd">        fst: Fitzpatrick Skin Type (I-VI)</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="sd">        mst: Monk Skin Tone (1-10)</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>    <span class="c1"># Load image</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>    <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>    <span class="n">img_rgb</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2RGB</span><span class="p">)</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>    <span class="c1"># Extract ROI (if specified)</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>    <span class="k">if</span> <span class="n">roi</span><span class="p">:</span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">roi</span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>        <span class="n">img_rgb</span> <span class="o">=</span> <span class="n">img_rgb</span><span class="p">[</span><span class="n">y</span><span class="p">:</span><span class="n">y</span><span class="o">+</span><span class="n">h</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="o">+</span><span class="n">w</span><span class="p">]</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>    <span class="c1"># Convert to CIELAB color space</span>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>    <span class="n">img_lab</span> <span class="o">=</span> <span class="n">color</span><span class="o">.</span><span class="n">rgb2lab</span><span class="p">(</span><span class="n">img_rgb</span><span class="p">)</span>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>    <span class="c1"># Calculate mean L* and b* values</span>
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>    <span class="n">L_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">img_lab</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">])</span>
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>    <span class="n">b_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">img_lab</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">])</span>
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>    <span class="c1"># Calculate ITA</span>
+</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>    <span class="n">ita_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">((</span><span class="n">L_mean</span> <span class="o">-</span> <span class="mi">50</span><span class="p">)</span> <span class="o">/</span> <span class="n">b_mean</span><span class="p">))</span>
+</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>
+</span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>    <span class="c1"># Map ITA to FST</span>
+</span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>    <span class="k">if</span> <span class="n">ita_value</span> <span class="o">&gt;</span> <span class="mi">55</span><span class="p">:</span>
+</span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>        <span class="n">fst</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>        <span class="n">mst</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span id="__span-1-41"><a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a>    <span class="k">elif</span> <span class="mi">41</span> <span class="o">&lt;=</span> <span class="n">ita_value</span> <span class="o">&lt;=</span> <span class="mi">55</span><span class="p">:</span>
+</span><span id="__span-1-42"><a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>        <span class="n">fst</span> <span class="o">=</span> <span class="mi">2</span>
+</span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a>        <span class="n">mst</span> <span class="o">=</span> <span class="mi">2</span>
+</span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a>    <span class="k">elif</span> <span class="mi">28</span> <span class="o">&lt;=</span> <span class="n">ita_value</span> <span class="o">&lt;</span> <span class="mi">41</span><span class="p">:</span>
+</span><span id="__span-1-45"><a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a>        <span class="n">fst</span> <span class="o">=</span> <span class="mi">3</span>
+</span><span id="__span-1-46"><a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a>        <span class="n">mst</span> <span class="o">=</span> <span class="mi">4</span>
+</span><span id="__span-1-47"><a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a>    <span class="k">elif</span> <span class="mi">19</span> <span class="o">&lt;=</span> <span class="n">ita_value</span> <span class="o">&lt;</span> <span class="mi">28</span><span class="p">:</span>
+</span><span id="__span-1-48"><a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a>        <span class="n">fst</span> <span class="o">=</span> <span class="mi">4</span>
+</span><span id="__span-1-49"><a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a>        <span class="n">mst</span> <span class="o">=</span> <span class="mi">6</span>
+</span><span id="__span-1-50"><a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a>    <span class="k">elif</span> <span class="o">-</span><span class="mi">30</span> <span class="o">&lt;=</span> <span class="n">ita_value</span> <span class="o">&lt;</span> <span class="mi">19</span><span class="p">:</span>
+</span><span id="__span-1-51"><a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a>        <span class="n">fst</span> <span class="o">=</span> <span class="mi">5</span>
+</span><span id="__span-1-52"><a id="__codelineno-1-52" name="__codelineno-1-52" href="#__codelineno-1-52"></a>        <span class="n">mst</span> <span class="o">=</span> <span class="mi">8</span>
+</span><span id="__span-1-53"><a id="__codelineno-1-53" name="__codelineno-1-53" href="#__codelineno-1-53"></a>    <span class="k">else</span><span class="p">:</span>  <span class="c1"># ita_value &lt; -30</span>
+</span><span id="__span-1-54"><a id="__codelineno-1-54" name="__codelineno-1-54" href="#__codelineno-1-54"></a>        <span class="n">fst</span> <span class="o">=</span> <span class="mi">6</span>
+</span><span id="__span-1-55"><a id="__codelineno-1-55" name="__codelineno-1-55" href="#__codelineno-1-55"></a>        <span class="n">mst</span> <span class="o">=</span> <span class="mi">10</span>
+</span><span id="__span-1-56"><a id="__codelineno-1-56" name="__codelineno-1-56" href="#__codelineno-1-56"></a>
+</span><span id="__span-1-57"><a id="__codelineno-1-57" name="__codelineno-1-57" href="#__codelineno-1-57"></a>    <span class="k">return</span> <span class="n">ita_value</span><span class="p">,</span> <span class="n">fst</span><span class="p">,</span> <span class="n">mst</span>
+</span></code></pre></div></p>
+<p><strong>Limitations of ITA</strong>:
+- Sensitive to illumination conditions
+- Requires clean skin region (no lesions, hair, shadows)
+- May misclassify erythema (redness) as lighter skin
+- Less reliable for intermediate tones (FST III-IV)</p>
+<p><strong>Mitigation</strong>: Use ITA as <strong>initial estimate</strong>, validate with human annotation.</p>
+<hr />
+<h2 id="3-human-annotation-protocol">3. Human Annotation Protocol<a class="headerlink" href="#3-human-annotation-protocol" title="Permanent link">&para;</a></h2>
+<h3 id="31-annotation-platform-labelbox">3.1 Annotation Platform: LabelBox<a class="headerlink" href="#31-annotation-platform-labelbox" title="Permanent link">&para;</a></h3>
+<p><strong>Why LabelBox</strong>:
+- Used in Fitzpatrick17k dataset creation (validated in literature)
+- Supports custom classification taxonomies
+- Facilitates multi-annotator consensus workflows
+- Tracks inter-rater reliability metrics</p>
+<p><strong>Alternative Platforms</strong>:
+- CVAT (Computer Vision Annotation Tool): Open-source, self-hosted
+- Label Studio: Open-source, ML-assisted labeling
+- Custom annotation tool: Python + Flask + React (if specific needs arise)</p>
+<h3 id="32-annotator-selection">3.2 Annotator Selection<a class="headerlink" href="#32-annotator-selection" title="Permanent link">&para;</a></h3>
+<p><strong>Expertise Levels</strong>:
+1. <strong>Expert Annotators</strong> (Gold Standard):
+   - Board-certified dermatologists
+   - Minimum 2 years clinical experience
+   - Trained in Fitzpatrick/Monk scales
+   - Target: 2-3 experts for validation set</p>
+<ol>
+<li><strong>Trained Layperson Annotators</strong>:</li>
+<li>Completed FST/MST training module (2-hour online course)</li>
+<li>Passed calibration test (Kappa &gt; 0.7 with expert consensus)</li>
+<li>Target: 3-5 annotators per image for crowd consensus</li>
+</ol>
+<p><strong>Training Module Content</strong>:
+- Fitzpatrick Scale history and clinical context
+- Monk Skin Tone Scale visual guide
+- Common annotation pitfalls (erythema, shadows, lighting)
+- Practice annotation with expert-validated examples</p>
+<h3 id="33-annotation-workflow">3.3 Annotation Workflow<a class="headerlink" href="#33-annotation-workflow" title="Permanent link">&para;</a></h3>
+<p><strong>Step 1: Automated Pre-Annotation</strong>
+- Run ITA algorithm on all images
+- Generate initial FST/MST estimates
+- Flag images with ambiguous ITA values (e.g., FST III-IV boundary)</p>
+<p><strong>Step 2: Multi-Annotator Review</strong>
+- Each image annotated by 3 independent annotators
+- Annotators see image + ITA estimate (as reference, not ground truth)
+- Annotators classify using both FST (6-point) and MST (10-point)</p>
+<p><strong>Step 3: Consensus Resolution</strong>
+- <strong>High Agreement (3/3 or 2/3 same label)</strong>: Accept majority label
+- <strong>Disagreement (all different)</strong>: Route to expert dermatologist for adjudication
+- <strong>Borderline Cases</strong>: Accept range (e.g., "FST III-IV") for stratified evaluation</p>
+<p><strong>Step 4: Quality Control</strong>
+- Random 10% sample re-annotated by expert dermatologist
+- Calculate Cohen's Kappa (inter-rater reliability)
+- Target: Kappa &gt; 0.7 (substantial agreement)</p>
+<hr />
+<h2 id="4-inter-rater-reliability-metrics">4. Inter-Rater Reliability Metrics<a class="headerlink" href="#4-inter-rater-reliability-metrics" title="Permanent link">&para;</a></h2>
+<h3 id="41-cohens-kappa">4.1 Cohen's Kappa<a class="headerlink" href="#41-cohens-kappa" title="Permanent link">&para;</a></h3>
+<p><strong>Formula</strong>:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>κ = (P_observed - P_expected) / (1 - P_expected)
+</span></code></pre></div></p>
+<p><strong>Interpretation</strong>:
+- κ &lt; 0.00: No agreement
+- κ = 0.00-0.20: Slight agreement
+- κ = 0.21-0.40: Fair agreement
+- κ = 0.41-0.60: Moderate agreement
+- κ = 0.61-0.80: Substantial agreement
+- κ = 0.81-1.00: Almost perfect agreement</p>
+<p><strong>Benchmark</strong>: Fitzpatrick17k achieved κ = 0.70-0.75 between dermatologists.</p>
+<h3 id="42-confusion-matrix-analysis">4.2 Confusion Matrix Analysis<a class="headerlink" href="#42-confusion-matrix-analysis" title="Permanent link">&para;</a></h3>
+<p>Track common misclassifications:
+- FST III vs IV (most frequent disagreement)
+- FST II vs III (fair vs intermediate skin)
+- Erythema (redness) leading to lighter FST classification</p>
+<hr />
+<h2 id="5-annotation-guidelines-best-practices">5. Annotation Guidelines &amp; Best Practices<a class="headerlink" href="#5-annotation-guidelines-best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="51-visual-assessment-rules">5.1 Visual Assessment Rules<a class="headerlink" href="#51-visual-assessment-rules" title="Permanent link">&para;</a></h3>
+<p><strong>What to Annotate</strong>:
+- Classify the <strong>patient's skin tone</strong>, NOT the lesion itself
+- Use <strong>perilesional skin</strong> (adjacent healthy skin) as primary reference
+- Consider <strong>anatomical site</strong>: Arms, legs may be tanner than torso</p>
+<p><strong>What to Avoid</strong>:
+- Do NOT classify based on lesion color (melanomas can be dark on light skin)
+- Do NOT use hair color, eye color as proxy for skin tone
+- Do NOT let demographic assumptions (name, location) bias annotation</p>
+<h3 id="52-handling-edge-cases">5.2 Handling Edge Cases<a class="headerlink" href="#52-handling-edge-cases" title="Permanent link">&para;</a></h3>
+<p><strong>Case 1: Erythema (Redness)</strong>
+- Problem: Inflammation can artificially lighten ITA estimate
+- Solution: Focus on non-inflamed perilesional skin, adjust FST upward if erythema present</p>
+<p><strong>Case 2: Tanning / Sun Damage</strong>
+- Problem: Anatomical site (e.g., face, arms) may be darker than constitutional skin type
+- Solution: Annotate "effective skin tone" (observed), not constitutional. Note in metadata if sun-exposed site.</p>
+<p><strong>Case 3: Vitiligo / Pigmentation Disorders</strong>
+- Problem: Skin tone is non-uniform
+- Solution: Annotate predominant skin tone, flag as "pigmentation disorder" in metadata</p>
+<p><strong>Case 4: Poor Lighting / Shadows</strong>
+- Problem: Shadows artificially darken skin, overexposure lightens
+- Solution: Mark as "ambiguous" if lighting precludes reliable annotation. Request image recapture if possible.</p>
+<h3 id="53-monk-skin-tone-reference-chart">5.3 Monk Skin Tone Reference Chart<a class="headerlink" href="#53-monk-skin-tone-reference-chart" title="Permanent link">&para;</a></h3>
+<p><strong>Visual Guide</strong>: Use official MST reference card (10 color swatches)
+- Print on calibrated color printer (sRGB, D65 illuminant)
+- View under standardized lighting (D65 daylight simulator, 6500K)
+- Compare perilesional skin to nearest MST swatch</p>
+<p><strong>Digital Alternative</strong>: Use MST digital palette (hex codes available on Google AI website)</p>
+<hr />
+<h2 id="6-fst-stratification-for-model-evaluation">6. FST Stratification for Model Evaluation<a class="headerlink" href="#6-fst-stratification-for-model-evaluation" title="Permanent link">&para;</a></h2>
+<h3 id="61-binary-grouping-simplified-evaluation">6.1 Binary Grouping (Simplified Evaluation)<a class="headerlink" href="#61-binary-grouping-simplified-evaluation" title="Permanent link">&para;</a></h3>
+<p><strong>Light Skin</strong> (FST I-III): Majority group in existing datasets
+<strong>Dark Skin</strong> (FST IV-VI): Historically underrepresented group</p>
+<p><strong>Use Case</strong>: Initial fairness gap quantification (AUROC light vs dark)</p>
+<h3 id="62-granular-grouping-comprehensive-evaluation">6.2 Granular Grouping (Comprehensive Evaluation)<a class="headerlink" href="#62-granular-grouping-comprehensive-evaluation" title="Permanent link">&para;</a></h3>
+<p><strong>Three Groups</strong>:
+- FST I-II: Very light to light
+- FST III-IV: Intermediate to tan
+- FST V-VI: Brown to very dark</p>
+<p><strong>Use Case</strong>: Detailed subgroup analysis, identify specific underperforming tones</p>
+<h3 id="63-monk-skin-tone-grouping-finest-resolution">6.3 Monk Skin Tone Grouping (Finest Resolution)<a class="headerlink" href="#63-monk-skin-tone-grouping-finest-resolution" title="Permanent link">&para;</a></h3>
+<p><strong>Five Groups</strong>:
+- MST 1-2: Very light
+- MST 3-4: Light
+- MST 5-6: Medium
+- MST 7-8: Dark
+- MST 9-10: Very dark</p>
+<p><strong>Use Case</strong>: Research publications, maximum fairness transparency</p>
+<hr />
+<h2 id="7-dataset-specific-annotation-plans">7. Dataset-Specific Annotation Plans<a class="headerlink" href="#7-dataset-specific-annotation-plans" title="Permanent link">&para;</a></h2>
+<h3 id="71-datasets-with-existing-fst-labels">7.1 Datasets with Existing FST Labels<a class="headerlink" href="#71-datasets-with-existing-fst-labels" title="Permanent link">&para;</a></h3>
+<p><strong>Fitzpatrick17k, DDI, MIDAS, SCIN</strong>:
+- <strong>Action</strong>: Use existing labels (validated by dermatologists)
+- <strong>Quality Check</strong>: Spot-check 10% with ITA algorithm, flag major discrepancies
+- <strong>No re-annotation required</strong> (trust expert curation)</p>
+<h3 id="72-datasets-without-fst-labels">7.2 Datasets WITHOUT FST Labels<a class="headerlink" href="#72-datasets-without-fst-labels" title="Permanent link">&para;</a></h3>
+<p><strong>HAM10000, ISIC 2019</strong>:
+- <strong>Phase 1 (Immediate)</strong>: Run automated ITA on all images
+- <strong>Phase 2 (Week 2-3)</strong>: Human annotation for validation set (1,000 images)
+- <strong>Phase 3 (Week 4)</strong>: Train FST classifier (ResNet18) on validated set, pseudo-label remaining images
+- <strong>Validation</strong>: Expert review of 100 random pseudo-labeled images</p>
+<p><strong>Pseudo-Labeling Strategy</strong>:
+1. Manually annotate 5,000 diverse images (covering all FST types)
+2. Train FST classifier: ResNet18, 6-class (FST I-VI)
+3. Predict FST for remaining 60,000+ images
+4. Use predicted labels for stratified splits, report as "estimated FST" in publications</p>
+<hr />
+<h2 id="8-implementation-timeline">8. Implementation Timeline<a class="headerlink" href="#8-implementation-timeline" title="Permanent link">&para;</a></h2>
+<p><strong>Week 1</strong>:
+- Set up LabelBox project (or alternative platform)
+- Create annotator training module
+- Run ITA algorithm on HAM10000 + ISIC 2019</p>
+<p><strong>Week 2</strong>:
+- Recruit and train annotators (3-5 laypersons)
+- Begin multi-annotator review (target: 500 images/week)
+- Establish expert adjudication workflow</p>
+<p><strong>Week 3</strong>:
+- Complete 1,500+ annotations
+- Calculate inter-rater reliability (Cohen's Kappa)
+- Identify and document common disagreement patterns</p>
+<p><strong>Week 4</strong>:
+- Train FST classifier for pseudo-labeling
+- Validate pseudo-labels (expert review)
+- Finalize stratified train/val/test splits</p>
+<hr />
+<h2 id="9-software-tools-libraries">9. Software Tools &amp; Libraries<a class="headerlink" href="#9-software-tools-libraries" title="Permanent link">&para;</a></h2>
+<h3 id="91-ita-calculation">9.1 ITA Calculation<a class="headerlink" href="#91-ita-calculation" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Dependencies</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">pip</span> <span class="n">install</span> <span class="n">opencv</span><span class="o">-</span><span class="n">python</span> <span class="n">scikit</span><span class="o">-</span><span class="n">image</span> <span class="n">numpy</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Implementation: src/data/fst_annotation.py</span>
+</span></code></pre></div>
+<h3 id="92-annotation-platforms">9.2 Annotation Platforms<a class="headerlink" href="#92-annotation-platforms" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>LabelBox</strong>: https://labelbox.com (free tier available)</li>
+<li><strong>CVAT</strong>: https://github.com/opencv/cvat (self-hosted)</li>
+<li><strong>Label Studio</strong>: https://labelstud.io (open-source)</li>
+</ul>
+<h3 id="93-inter-rater-reliability">9.3 Inter-Rater Reliability<a class="headerlink" href="#93-inter-rater-reliability" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Cohen&#39;s Kappa calculation</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">cohen_kappa_score</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">kappa</span> <span class="o">=</span> <span class="n">cohen_kappa_score</span><span class="p">(</span><span class="n">annotator1_labels</span><span class="p">,</span> <span class="n">annotator2_labels</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h2 id="10-ethical-considerations">10. Ethical Considerations<a class="headerlink" href="#10-ethical-considerations" title="Permanent link">&para;</a></h2>
+<h3 id="101-privacy-consent">10.1 Privacy &amp; Consent<a class="headerlink" href="#101-privacy-consent" title="Permanent link">&para;</a></h3>
+<ul>
+<li>All images must be de-identified (no patient names, dates, metadata)</li>
+<li>Use only datasets with proper informed consent</li>
+<li>FST labels should NOT enable re-identification</li>
+</ul>
+<h3 id="102-avoiding-racial-essentialism">10.2 Avoiding Racial Essentialism<a class="headerlink" href="#102-avoiding-racial-essentialism" title="Permanent link">&para;</a></h3>
+<p><strong>CRITICAL PRINCIPLE</strong>: FST/MST are <strong>visual appearance classifications</strong>, NOT proxies for race/ethnicity.</p>
+<ul>
+<li>Do NOT conflate skin tone with race (e.g., "FST VI = Black race" is FALSE)</li>
+<li>Do NOT use FST to infer other demographic attributes</li>
+<li>Transparent disclosure: Models use FST for fairness-aware training, NOT for racial profiling</li>
+</ul>
+<h3 id="103-annotator-bias-mitigation">10.3 Annotator Bias Mitigation<a class="headerlink" href="#103-annotator-bias-mitigation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Train annotators to recognize implicit bias (e.g., assuming lighter skin for certain names)</li>
+<li>Blind annotators to patient demographics during labeling</li>
+<li>Diverse annotator pool (recruit annotators of varied skin tones)</li>
+</ul>
+<hr />
+<h2 id="11-quality-metrics">11. Quality Metrics<a class="headerlink" href="#11-quality-metrics" title="Permanent link">&para;</a></h2>
+<p><strong>Target Benchmarks</strong>:
+- Inter-rater Kappa: &gt; 0.70 (substantial agreement)
+- ITA-Human agreement: &gt; 75% (within 1 FST category)
+- Expert validation accuracy: &gt; 90% (for pseudo-labeled data)</p>
+<p><strong>Monitoring</strong>:
+- Weekly inter-rater reliability reports
+- Monthly expert validation audits
+- Annotator performance tracking (flag outliers)</p>
+<hr />
+<h2 id="12-references">12. References<a class="headerlink" href="#12-references" title="Permanent link">&para;</a></h2>
+<p><strong>Key Literature</strong>:
+1. Groh, M., et al. (2021). <em>Evaluating Deep Neural Networks Trained on Clinical Images in Dermatology with the Fitzpatrick 17k Dataset</em>. arXiv:2104.09957.
+   - <strong>Relevance</strong>: LabelBox annotation, inter-rater reliability analysis</p>
+<ol>
+<li>Chardon, A., Cretois, I., &amp; Hourseau, C. (1991). <em>Skin colour typology and suntanning pathways</em>. International Journal of Cosmetic Science, 13(4), 191-208.</li>
+<li>
+<p><strong>Relevance</strong>: Original ITA formula and FST mapping</p>
+</li>
+<li>
+<p>Monk, E. (2022). <em>The Monk Skin Tone Scale</em>. Google AI.</p>
+</li>
+<li>
+<p><strong>Relevance</strong>: MST 10-point scale, inter-rater agreement improvements</p>
+</li>
+<li>
+<p>Jain, A., et al. (2024). <em>Crowdsourcing Dermatology Images with Google Search Ads: Creating a Real-World Skin Condition Dataset</em>. arXiv:2402.18545.</p>
+</li>
+<li>
+<p><strong>Relevance</strong>: SCIN dataset, eFST and eMST annotation methodology</p>
+</li>
+<li>
+<p>Del Bino, S., et al. (2006). <em>Clinical and biological characterization of skin pigmentation diversity and its consequences on UV impact</em>. International Journal of Dermatology, 45(3), 314-319.</p>
+</li>
+<li><strong>Relevance</strong>: Limitations of Fitzpatrick scale, need for objective measurements</li>
+</ol>
+<p><strong>Automated Annotation Tools</strong>:
+- Scarletred Vision: https://www.scarletred.com/scarletredderm (ITA commercial platform)
+- OpenCV + scikit-image: Open-source ITA implementation</p>
+<hr />
+<h2 id="13-contact-support">13. Contact &amp; Support<a class="headerlink" href="#13-contact-support" title="Permanent link">&para;</a></h2>
+<p><strong>Protocol Questions</strong>: the_didact@mendicant-bias.ai
+<strong>Annotation Platform Issues</strong>: [Platform-specific support]
+<strong>Expert Adjudication Requests</strong>: [Designated dermatologist email]</p>
+<hr />
+<p><strong>Version Control</strong>:
+- v1.0 (2025-10-13): Initial protocol established
+- Next Review: 2025-10-20 (post-pilot annotation batch)</p>
+<p><strong>Maintained by</strong>: the_didact (MENDICANT_BIAS framework)
+<strong>Approved by</strong>: mendicant_bias (Supreme Orchestrator)</p>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/zhadyz/fairness-skin-cancer-detection" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:abdul.bari8019@coyote.csusb.edu" target="_blank" rel="noopener" title="" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l208 156a48 48 0 0 0 57.6 0l208-156c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48zM0 196v188c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V196L313.6 344.8c-34.1 25.6-81.1 25.6-115.2 0z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="../javascripts/custom.js"></script>
+      
+    
+  </body>
+</html>

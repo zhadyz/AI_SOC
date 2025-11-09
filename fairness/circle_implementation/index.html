@@ -1,0 +1,2955 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Research-driven AI system for equitable dermatological diagnosis across all skin tones">
+      
+      
+        <meta name="author" content="Jasmin Flores, Abdul Bari">
+      
+      
+        <link rel="canonical" href="https://research.onyxlab.ai/fairness/circle_implementation/">
+      
+      
+        <link rel="prev" href="../fairdisco_architecture/">
+      
+      
+        <link rel="next" href="../fairskin_implementation_plan/">
+      
+      
+      <link rel="icon" href="../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
+    
+    
+      
+        <title>CIRCLe Implementation - Fairness in Skin Cancer Detection</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CSF+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"SF Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/custom.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config",""),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#circle-color-invariant-representation-learning-implementation-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Fairness in Skin Cancer Detection" class="md-header__button md-logo" aria-label="Fairness in Skin Cancer Detection" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Fairness in Skin Cancer Detection
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              CIRCLe Implementation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/zhadyz/fairness-skin-cancer-detection" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    zhadyz/fairness-skin-cancer-detection
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../quickstart/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../fairdisco_training_guide/" class="md-tabs__link">
+          
+  
+  
+  Training & Experiments
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../docker_guide/" class="md-tabs__link">
+          
+  
+  
+  Technical Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../synthetic_augmentation/" class="md-tabs__link">
+          
+  
+  
+  Research & Innovation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../phase4_production_hardening/" class="md-tabs__link">
+          
+  
+  
+  Production
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/authors/" class="md-tabs__link">
+          
+  
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Fairness in Skin Cancer Detection" class="md-nav__button md-logo" aria-label="Fairness in Skin Cancer Detection" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    Fairness in Skin Cancer Detection
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/zhadyz/fairness-skin-cancer-detection" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    zhadyz/fairness-skin-cancer-detection
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Environment Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset_access_log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dataset Access
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ham10000_integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    HAM10000 Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairdisco_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairDisCo Implementation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    CIRCLe Implementation
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    CIRCLe Implementation
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Executive Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-methodology-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Methodology Overview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Methodology Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-core-concept" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 Core Concept
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 Pipeline
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-skin-tone-transformation-approaches" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Skin Tone Transformation Approaches
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Skin Tone Transformation Approaches">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-approach-1-stargan-original-paper" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Approach 1: StarGAN (Original Paper)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-approach-2-simple-color-transformations-practical-alternative" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Approach 2: Simple Color Transformations (Practical Alternative)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-approach-3-pre-trained-dermatology-stylegan-future-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 Approach 3: Pre-trained Dermatology StyleGAN (Future Work)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-regularization-loss-formulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Regularization Loss Formulation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Regularization Loss Formulation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-l2-distance-regularization-original-paper" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 L2 Distance Regularization (Original Paper)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-multi-fst-regularization-extended" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 Multi-FST Regularization (Extended)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-training-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Training Protocol
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Training Protocol">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-full-training-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Full Training Loop
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-data-augmentation-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Data Augmentation Strategy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-hyperparameter-tuning" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 Hyperparameter Tuning
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-model-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Model Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Model Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-feature-extractor-with-dual-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.1 Feature Extractor with Dual Outputs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-integration-with-existing-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.2 Integration with Existing Models
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-computational-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Computational Requirements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Computational Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-gpu-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      6.1 GPU Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-storage-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      6.2 Storage Requirements
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-open-source-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Open-Source Implementation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Open-Source Implementation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-official-circle-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.1 Official CIRCLe Repository
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-mirror-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.2 Mirror Repository
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-integration-assessment" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.3 Integration Assessment
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-implementation-timeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Implementation Timeline
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-success-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Success Criteria
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-risk-mitigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. Risk Mitigation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-comparison-stargan-vs-simple-transformations" class="md-nav__link">
+    <span class="md-ellipsis">
+      11. Comparison: StarGAN vs Simple Transformations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-key-insights-from-literature" class="md-nav__link">
+    <span class="md-ellipsis">
+      12. Key Insights from Literature
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      13. References
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairskin_implementation_plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairSkin Implementation Plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Training & Experiments
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Training & Experiments
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Training Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            Training Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairdisco_training_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairDisCo Training
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../circle_training_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CIRCLe Training
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairskin_usage_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairSkin Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment_tracking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Experiment Tracking
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline_results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Baseline Results
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Technical Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Technical Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Docker Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_quality_standards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Code Quality Standards
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fst_annotation_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FST Annotation Protocol
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Research & Innovation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Research & Innovation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../synthetic_augmentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Synthetic Augmentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../open_source_fairness_code/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Open Source Fairness Code
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairness_computational_costs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fairness Computational Costs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Production
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Production
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../phase4_production_hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 4 Production Hardening
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Roadmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/authors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Authors & Acknowledgments
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    License
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Citation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Executive Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-methodology-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Methodology Overview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Methodology Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-core-concept" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 Core Concept
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 Pipeline
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-skin-tone-transformation-approaches" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Skin Tone Transformation Approaches
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Skin Tone Transformation Approaches">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-approach-1-stargan-original-paper" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Approach 1: StarGAN (Original Paper)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-approach-2-simple-color-transformations-practical-alternative" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Approach 2: Simple Color Transformations (Practical Alternative)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-approach-3-pre-trained-dermatology-stylegan-future-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 Approach 3: Pre-trained Dermatology StyleGAN (Future Work)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-regularization-loss-formulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Regularization Loss Formulation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Regularization Loss Formulation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-l2-distance-regularization-original-paper" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 L2 Distance Regularization (Original Paper)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-multi-fst-regularization-extended" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 Multi-FST Regularization (Extended)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-training-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Training Protocol
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Training Protocol">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-full-training-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Full Training Loop
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-data-augmentation-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Data Augmentation Strategy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-hyperparameter-tuning" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 Hyperparameter Tuning
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-model-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Model Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Model Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-feature-extractor-with-dual-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.1 Feature Extractor with Dual Outputs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-integration-with-existing-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.2 Integration with Existing Models
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-computational-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Computational Requirements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Computational Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-gpu-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      6.1 GPU Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-storage-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      6.2 Storage Requirements
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-open-source-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Open-Source Implementation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Open-Source Implementation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-official-circle-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.1 Official CIRCLe Repository
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-mirror-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.2 Mirror Repository
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-integration-assessment" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.3 Integration Assessment
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-implementation-timeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Implementation Timeline
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-success-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Success Criteria
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-risk-mitigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. Risk Mitigation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-comparison-stargan-vs-simple-transformations" class="md-nav__link">
+    <span class="md-ellipsis">
+      11. Comparison: StarGAN vs Simple Transformations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-key-insights-from-literature" class="md-nav__link">
+    <span class="md-ellipsis">
+      12. Key Insights from Literature
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      13. References
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="circle-color-invariant-representation-learning-implementation-guide">CIRCLe: Color-Invariant Representation Learning - Implementation Guide<a class="headerlink" href="#circle-color-invariant-representation-learning-implementation-guide" title="Permanent link">&para;</a></h1>
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">&para;</a></h2>
+<p>CIRCLe (Color Invariant Representation Learning for Unbiased Classification of Skin Lesions) is an algorithm-level fairness technique that enforces skin tone invariance through regularization. By encouraging similar latent representations for images with same diagnosis but different skin tones, CIRCLe improves calibration and out-of-distribution generalization.</p>
+<p><strong>Expected Impact</strong>: 3-5% ECE (Expected Calibration Error) reduction, improved OOD generalization, +2-4% AUROC for FST V-VI (Pakzad et al., 2022)</p>
+<hr />
+<h2 id="1-methodology-overview">1. Methodology Overview<a class="headerlink" href="#1-methodology-overview" title="Permanent link">&para;</a></h2>
+<h3 id="11-core-concept">1.1 Core Concept<a class="headerlink" href="#11-core-concept" title="Permanent link">&para;</a></h3>
+<p><strong>Problem</strong>: Deep learning models learn spurious correlations between skin color and diagnosis
+- Example: "Dark skin + lesion = benign nevus" (dataset bias)
+- Result: Poor performance on rare (diagnosis, FST) combinations</p>
+<p><strong>Solution</strong>: Regularize latent embeddings to be invariant to skin tone transformations
+- Same diagnosis, different FST → similar embeddings
+- Different diagnosis, any FST → dissimilar embeddings</p>
+<p><strong>Mathematical Formulation</strong>:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>L_total = L_cls + λ_reg × L_reg
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Where:
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>L_cls = CrossEntropy(f(x), y_diagnosis)
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>L_reg = ||f(x_original) - f(T_FST(x_original))||²
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>f(·): Feature extractor (e.g., ResNet50 embeddings)
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>T_FST(·): Skin tone transformation (FST I ↔ VI)
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>λ_reg: Regularization strength (typically 0.1-0.3)
+</span></code></pre></div></p>
+<h3 id="12-pipeline">1.2 Pipeline<a class="headerlink" href="#12-pipeline" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Original Image (FST III)
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>        |
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>        v
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>   ┌─────────────────────┐
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>   │ Skin Tone Transformer│  ← StarGAN or Color Transformation
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>   │    T_FST(x)          │     Generate FST I, VI versions
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>   └─────────────────────┘
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        |
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>        ├────────────────┐
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>        v                v
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>  x_FST-I          x_FST-VI
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>        |                |
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>        v                v
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>   ┌────────────────────────┐
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>   │  Feature Extractor (f) │  ← ResNet50 or other backbone
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>   │  Shared Weights        │
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>   └────────────────────────┘
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>        |                |
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>        v                v
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>   emb_FST-I       emb_FST-VI
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>        |                |
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>        └───────┬────────┘
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>                v
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>        Regularization Loss
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>        L_reg = ||emb_FST-I - emb_FST-VI||²
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>                +
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>        Classification Loss
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>        L_cls = CrossEntropy(f(x), y)
+</span></code></pre></div>
+<hr />
+<h2 id="2-skin-tone-transformation-approaches">2. Skin Tone Transformation Approaches<a class="headerlink" href="#2-skin-tone-transformation-approaches" title="Permanent link">&para;</a></h2>
+<h3 id="21-approach-1-stargan-original-paper">2.1 Approach 1: StarGAN (Original Paper)<a class="headerlink" href="#21-approach-1-stargan-original-paper" title="Permanent link">&para;</a></h3>
+<p><strong>Architecture</strong>: StarGAN v2 (Choi et al., 2020)
+- Generator: Transforms image from source FST → target FST
+- Discriminator: Verifies realism of generated images
+- Style encoder: Extracts skin tone style codes</p>
+<p><strong>Training Requirements</strong>:
+- Dataset: 5,000+ images per FST class (for robust GAN training)
+- GPU: 1x RTX 3090 (24GB VRAM)
+- Training time: 100-200 epochs × 1 hour/epoch = <strong>100-200 hours</strong>
+- Hyperparameters:
+  - Learning rate: 1e-4 (generator), 1e-4 (discriminator)
+  - Batch size: 8 (high-resolution images)
+  - Adversarial loss weight: 1.0
+  - Style reconstruction loss weight: 1.0
+  - Cycle consistency loss weight: 1.0</p>
+<p><strong>Advantages</strong>:
+- High-quality transformations (realistic skin tone changes)
+- Preserves lesion morphology (shape, texture, borders)
+- Medical domain adaptation possible (fine-tune on dermoscopy)</p>
+<p><strong>Disadvantages</strong>:
+- Complex training (GAN instability, mode collapse risks)
+- Requires large FST-diverse dataset (5k+ images per FST)
+- Long training time (100-200 GPU hours)
+- Potential artifacts (blurriness, checkerboard patterns)</p>
+<p><strong>Implementation</strong> (using official StarGAN repository):
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Clone StarGAN v2</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/clovaai/stargan-v2
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nb">cd</span><span class="w"> </span>stargan-v2
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># Prepare dataset (organize by FST)</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>python<span class="w"> </span>prepare_data.py<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span>--input_dir<span class="w"> </span>data/fitzpatrick17k<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span>--output_dir<span class="w"> </span>data/stargan_fst<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span>--attribute<span class="w"> </span>fst<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span>--classes<span class="w"> </span>I,II,III,IV,V,VI
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c1"># Train StarGAN</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>python<span class="w"> </span>main.py<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span>--mode<span class="w"> </span>train<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">    </span>--num_domains<span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">    </span>--train_img_dir<span class="w"> </span>data/stargan_fst/train<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">    </span>--val_img_dir<span class="w"> </span>data/stargan_fst/val<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">    </span>--batch_size<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">    </span>--total_iters<span class="w"> </span><span class="m">100000</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">    </span>--lambda_reg<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span>--lambda_sty<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">    </span>--lambda_cyc<span class="w"> </span><span class="m">1</span>.0
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="c1"># Generate transformed images</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>python<span class="w"> </span>main.py<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">    </span>--mode<span class="w"> </span>sample<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="w">    </span>--checkpoint_dir<span class="w"> </span>checkpoints/stargan_fst<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="w">    </span>--result_dir<span class="w"> </span>results/transformed<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="w">    </span>--src_dir<span class="w"> </span>data/fitzpatrick17k/test
+</span></code></pre></div></p>
+<p><strong>Quality Validation</strong>:
+- FID (Frechet Inception Distance): &lt;30 per FST transformation
+- LPIPS (perceptual similarity): 0.2-0.4 (vs original, should preserve structure)
+- Expert review: Dermatologist rating &gt;4/7 for realism</p>
+<h3 id="22-approach-2-simple-color-transformations-practical-alternative">2.2 Approach 2: Simple Color Transformations (Practical Alternative)<a class="headerlink" href="#22-approach-2-simple-color-transformations-practical-alternative" title="Permanent link">&para;</a></h3>
+<p><strong>Concept</strong>: Approximate skin tone changes using color space manipulations
+- No GAN training required
+- Fast, deterministic, no artifacts
+- Less realistic but sufficient for regularization</p>
+<p><strong>Transformations</strong>:</p>
+<ol>
+<li>
+<p><strong>HSV (Hue, Saturation, Value) Adjustment</strong>:
+   <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">transform_skin_tone_hsv</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">target_fst</span><span class="p">):</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="sd">    Transform image to target FST using HSV adjustments.</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="sd">    FST I-III (Light): Increase brightness, decrease saturation</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="sd">    FST IV (Intermediate): Minimal changes</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="sd">    FST V-VI (Dark): Decrease brightness, increase saturation</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    <span class="n">hsv</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2HSV</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>    <span class="c1"># Define FST-specific adjustments (empirically tuned)</span>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>    <span class="n">fst_adjustments</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>        <span class="s2">&quot;I&quot;</span><span class="p">:</span>  <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>   <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;v&quot;</span><span class="p">:</span> <span class="o">+</span><span class="mf">0.3</span><span class="p">},</span>   <span class="c1"># Very light</span>
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>        <span class="s2">&quot;II&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>   <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;v&quot;</span><span class="p">:</span> <span class="o">+</span><span class="mf">0.2</span><span class="p">},</span>   <span class="c1"># Light</span>
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>        <span class="s2">&quot;III&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>  <span class="s2">&quot;v&quot;</span><span class="p">:</span> <span class="o">+</span><span class="mf">0.1</span><span class="p">},</span>   <span class="c1"># Light-medium</span>
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>        <span class="s2">&quot;IV&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>   <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>  <span class="s2">&quot;v&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>    <span class="c1"># Medium (baseline)</span>
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>        <span class="s2">&quot;V&quot;</span><span class="p">:</span>  <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="o">+</span><span class="mi">5</span><span class="p">,</span>  <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="o">+</span><span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;v&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.2</span><span class="p">},</span>   <span class="c1"># Dark</span>
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>        <span class="s2">&quot;VI&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="o">+</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="o">+</span><span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;v&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.3</span><span class="p">},</span>   <span class="c1"># Very dark</span>
+</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>    <span class="p">}</span>
+</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>
+</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>    <span class="n">adj</span> <span class="o">=</span> <span class="n">fst_adjustments</span><span class="p">[</span><span class="n">target_fst</span><span class="p">]</span>
+</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>
+</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>    <span class="c1"># Apply adjustments</span>
+</span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>    <span class="n">hsv</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">hsv</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">adj</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">179</span><span class="p">)</span>        <span class="c1"># Hue</span>
+</span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>    <span class="n">hsv</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">hsv</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">adj</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">]),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>  <span class="c1"># Saturation</span>
+</span><span id="__span-3-29"><a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>    <span class="n">hsv</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">hsv</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">adj</span><span class="p">[</span><span class="s2">&quot;v&quot;</span><span class="p">]),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>  <span class="c1"># Value</span>
+</span><span id="__span-3-30"><a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>
+</span><span id="__span-3-31"><a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a>    <span class="n">rgb</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">hsv</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">),</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_HSV2RGB</span><span class="p">)</span>
+</span><span id="__span-3-32"><a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>    <span class="k">return</span> <span class="n">rgb</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>LAB Color Space Adjustment</strong> (More Perceptually Uniform):
+   <div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">transform_skin_tone_lab</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">target_fst</span><span class="p">):</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="sd">    Transform using LAB color space (L*a*b*).</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="sd">    L: Lightness (0-100)</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="sd">    a: Green-Red axis</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="sd">    b: Blue-Yellow axis</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="n">lab</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2LAB</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    <span class="c1"># FST-specific LAB adjustments</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    <span class="n">fst_adjustments</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>        <span class="s2">&quot;I&quot;</span><span class="p">:</span>  <span class="p">{</span><span class="s2">&quot;L&quot;</span><span class="p">:</span> <span class="o">+</span><span class="mi">30</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="o">+</span><span class="mi">5</span><span class="p">,</span>  <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="o">+</span><span class="mi">10</span><span class="p">},</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>        <span class="s2">&quot;II&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;L&quot;</span><span class="p">:</span> <span class="o">+</span><span class="mi">20</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="o">+</span><span class="mi">3</span><span class="p">,</span>  <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="o">+</span><span class="mi">7</span><span class="p">},</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>        <span class="s2">&quot;III&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;L&quot;</span><span class="p">:</span> <span class="o">+</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="o">+</span><span class="mi">2</span><span class="p">,</span>  <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="o">+</span><span class="mi">5</span><span class="p">},</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>        <span class="s2">&quot;IV&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;L&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>   <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>   <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>        <span class="s2">&quot;V&quot;</span><span class="p">:</span>  <span class="p">{</span><span class="s2">&quot;L&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">15</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span>  <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">5</span><span class="p">},</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>        <span class="s2">&quot;VI&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;L&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">25</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span>  <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">8</span><span class="p">},</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>    <span class="p">}</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>    <span class="n">adj</span> <span class="o">=</span> <span class="n">fst_adjustments</span><span class="p">[</span><span class="n">target_fst</span><span class="p">]</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>    <span class="c1"># Apply adjustments (L channel most important for skin tone)</span>
+</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>    <span class="n">lab</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">lab</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">adj</span><span class="p">[</span><span class="s2">&quot;L&quot;</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a>    <span class="n">lab</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">lab</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">adj</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+</span><span id="__span-4-25"><a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a>    <span class="n">lab</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">lab</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">adj</span><span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+</span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a>
+</span><span id="__span-4-27"><a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a>    <span class="n">rgb</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">lab</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">),</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_LAB2RGB</span><span class="p">)</span>
+</span><span id="__span-4-28"><a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a>    <span class="k">return</span> <span class="n">rgb</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Hybrid: Skin Segmentation + LAB Adjustment</strong>:
+   <div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">transform_skin_tone_segmented</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">target_fst</span><span class="p">):</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="sd">    1. Segment skin regions (avoid lesion)</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="sd">    2. Apply LAB transformation only to skin</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="sd">    3. Preserve lesion appearance</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="c1"># Step 1: Segment skin (simple thresholding or U-Net)</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="n">skin_mask</span> <span class="o">=</span> <span class="n">segment_skin</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>  <span class="c1"># Binary mask</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="c1"># Step 2: Transform only skin regions</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>    <span class="n">transformed</span> <span class="o">=</span> <span class="n">transform_skin_tone_lab</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">target_fst</span><span class="p">)</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>    <span class="c1"># Step 3: Blend original lesion with transformed skin</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>    <span class="n">result</span><span class="p">[</span><span class="n">skin_mask</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">transformed</span><span class="p">[</span><span class="n">skin_mask</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>    <span class="k">return</span> <span class="n">result</span>
+</span></code></pre></div></p>
+</li>
+</ol>
+<p><strong>Advantages</strong>:
+- No training required (instant setup)
+- Fast (CPU-based, &lt;10ms per image)
+- Deterministic (reproducible)
+- No artifacts or mode collapse</p>
+<p><strong>Disadvantages</strong>:
+- Less realistic (may not capture FST diversity)
+- Heuristic parameters (require manual tuning)
+- May alter lesion appearance if not segmented</p>
+<p><strong>Recommendation for Phase 2</strong>: Use simple color transformations
+- Faster iteration (no GAN training)
+- Sufficient for regularization (embeddings learn invariance)
+- Upgrade to StarGAN in Phase 3 if results insufficient</p>
+<h3 id="23-approach-3-pre-trained-dermatology-stylegan-future-work">2.3 Approach 3: Pre-trained Dermatology StyleGAN (Future Work)<a class="headerlink" href="#23-approach-3-pre-trained-dermatology-stylegan-future-work" title="Permanent link">&para;</a></h3>
+<p><strong>Concept</strong>: Use pre-trained StyleGAN2-ADA on dermatology images
+- Latent space: Disentangled skin tone from lesion morphology
+- Edit: Manipulate tone latent code, preserve morphology</p>
+<p><strong>Availability</strong>: No public dermatology StyleGAN as of 2025-01
+<strong>Alternative</strong>: Train StyleGAN2-ADA on Fitzpatrick17k (requires 1-2 weeks GPU time)</p>
+<hr />
+<h2 id="3-regularization-loss-formulation">3. Regularization Loss Formulation<a class="headerlink" href="#3-regularization-loss-formulation" title="Permanent link">&para;</a></h2>
+<h3 id="31-l2-distance-regularization-original-paper">3.1 L2 Distance Regularization (Original Paper)<a class="headerlink" href="#31-l2-distance-regularization-original-paper" title="Permanent link">&para;</a></h3>
+<p><strong>Formula</strong>:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>L_reg = 1/N × Σ ||f(x_i) - f(T_FST(x_i))||²
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>Where:
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>- N: Batch size
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>- x_i: Original image (source FST)
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>- T_FST(x_i): Transformed image (target FST, e.g., FST I → VI)
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>- f(·): Feature extractor (2048-dim embeddings from ResNet50)
+</span></code></pre></div></p>
+<p><strong>PyTorch Implementation</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">CIRCLeRegularizationLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">distance_metric</span><span class="o">=</span><span class="s2">&quot;l2&quot;</span><span class="p">):</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">distance_metric</span> <span class="o">=</span> <span class="n">distance_metric</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">embeddings_original</span><span class="p">,</span> <span class="n">embeddings_transformed</span><span class="p">):</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="sd">        Args:</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="sd">            embeddings_original: [batch_size, feature_dim] (e.g., 2048)</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="sd">            embeddings_transformed: [batch_size, feature_dim]</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="sd">        Returns:</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="sd">            loss: Scalar regularization loss</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distance_metric</span> <span class="o">==</span> <span class="s2">&quot;l2&quot;</span><span class="p">:</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>            <span class="c1"># Euclidean distance squared</span>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>            <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">embeddings_original</span> <span class="o">-</span> <span class="n">embeddings_transformed</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distance_metric</span> <span class="o">==</span> <span class="s2">&quot;cosine&quot;</span><span class="p">:</span>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>            <span class="c1"># Cosine distance (1 - cosine_similarity)</span>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>            <span class="n">cosine_sim</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cosine_similarity</span><span class="p">(</span><span class="n">embeddings_original</span><span class="p">,</span> <span class="n">embeddings_transformed</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>            <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">cosine_sim</span><span class="p">)</span>
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported distance metric: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">distance_metric</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a>
+</span><span id="__span-7-28"><a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a>        <span class="k">return</span> <span class="n">loss</span>
+</span></code></pre></div></p>
+<p><strong>Hyperparameters</strong>:
+- λ_reg = 0.1-0.3 (regularization strength)
+  - 0.1: Weak regularization (minimal fairness improvement)
+  - 0.2: Balanced (recommended starting point)
+  - 0.3: Strong regularization (may hurt accuracy if too aggressive)</p>
+<h3 id="32-multi-fst-regularization-extended">3.2 Multi-FST Regularization (Extended)<a class="headerlink" href="#32-multi-fst-regularization-extended" title="Permanent link">&para;</a></h3>
+<p><strong>Concept</strong>: Regularize against MULTIPLE tone transformations (not just one)
+- Original FST III → Transform to FST I, VI
+- Encourage f(x_FST-III) ≈ f(x_FST-I) ≈ f(x_FST-VI)</p>
+<p><strong>Formula</strong>:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>L_reg = 1/(N×K) × Σ_i Σ_k ||f(x_i) - f(T_FST-k(x_i))||²
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>Where K = number of target FST classes (e.g., 2: FST I and VI)
+</span></code></pre></div></p>
+<p><strong>Implementation</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">multi_fst_regularization_loss</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">images</span><span class="p">,</span> <span class="n">target_fsts</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;I&quot;</span><span class="p">,</span> <span class="s2">&quot;VI&quot;</span><span class="p">]):</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="sd">    Regularize embeddings against multiple FST transformations.</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="sd">    Args:</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="sd">        model: Feature extractor (e.g., ResNet50)</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="sd">        images: Original images [batch_size, 3, H, W]</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="sd">        target_fsts: List of target FST classes (e.g., [&quot;I&quot;, &quot;VI&quot;])</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="sd">    Returns:</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="sd">        loss: Multi-FST regularization loss</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>    <span class="c1"># Extract embeddings from original images</span>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>    <span class="n">embeddings_original</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">feature_extractor</span><span class="p">(</span><span class="n">images</span><span class="p">)</span>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>
+</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>    <span class="n">total_loss</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>    <span class="k">for</span> <span class="n">target_fst</span> <span class="ow">in</span> <span class="n">target_fsts</span><span class="p">:</span>
+</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>        <span class="c1"># Transform images to target FST</span>
+</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a>        <span class="n">images_transformed</span> <span class="o">=</span> <span class="n">transform_skin_tone</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">target_fst</span><span class="p">)</span>
+</span><span id="__span-9-20"><a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a>
+</span><span id="__span-9-21"><a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a>        <span class="c1"># Extract embeddings from transformed images</span>
+</span><span id="__span-9-22"><a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a>        <span class="n">embeddings_transformed</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">feature_extractor</span><span class="p">(</span><span class="n">images_transformed</span><span class="p">)</span>
+</span><span id="__span-9-23"><a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a>
+</span><span id="__span-9-24"><a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a>        <span class="c1"># Compute L2 distance</span>
+</span><span id="__span-9-25"><a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a>        <span class="n">loss_fst</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">embeddings_original</span> <span class="o">-</span> <span class="n">embeddings_transformed</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+</span><span id="__span-9-26"><a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a>        <span class="n">total_loss</span> <span class="o">+=</span> <span class="n">loss_fst</span>
+</span><span id="__span-9-27"><a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a>
+</span><span id="__span-9-28"><a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a>    <span class="c1"># Average over target FST classes</span>
+</span><span id="__span-9-29"><a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a>    <span class="k">return</span> <span class="n">total_loss</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_fsts</span><span class="p">)</span>
+</span></code></pre></div></p>
+<p><strong>Advantages</strong>:
+- More robust (invariant to multiple FST directions)
+- Better OOD generalization (handles unseen FST combinations)</p>
+<p><strong>Disadvantages</strong>:
+- Higher computational cost (K transformations per image)
+- More GPU memory (need to store K transformed images + embeddings)</p>
+<hr />
+<h2 id="4-training-protocol">4. Training Protocol<a class="headerlink" href="#4-training-protocol" title="Permanent link">&para;</a></h2>
+<h3 id="41-full-training-loop">4.1 Full Training Loop<a class="headerlink" href="#41-full-training-loop" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataLoader</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="c1"># Initialize model</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="n">model</span> <span class="o">=</span> <span class="n">ResNet50Classifier</span><span class="p">(</span><span class="n">num_classes</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="c1"># Loss functions</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="n">criterion_cls</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="n">criterion_reg</span> <span class="o">=</span> <span class="n">CIRCLeRegularizationLoss</span><span class="p">(</span><span class="n">distance_metric</span><span class="o">=</span><span class="s2">&quot;l2&quot;</span><span class="p">)</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="c1"># Optimizer</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">AdamW</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">weight_decay</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="c1"># Hyperparameters</span>
+</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="n">lambda_reg</span> <span class="o">=</span> <span class="mf">0.2</span>  <span class="c1"># Regularization strength</span>
+</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="n">target_fsts</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;I&quot;</span><span class="p">,</span> <span class="s2">&quot;VI&quot;</span><span class="p">]</span>  <span class="c1"># Extreme FST classes for regularization</span>
+</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>
+</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="c1"># Training loop</span>
+</span><span id="__span-10-20"><a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_epochs</span><span class="p">):</span>
+</span><span id="__span-10-21"><a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a>    <span class="k">for</span> <span class="n">images</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">fst_labels</span> <span class="ow">in</span> <span class="n">train_loader</span><span class="p">:</span>
+</span><span id="__span-10-22"><a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a>        <span class="n">images</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+</span><span id="__span-10-23"><a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a>        <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+</span><span id="__span-10-24"><a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a>
+</span><span id="__span-10-25"><a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>        <span class="c1"># Forward pass (original images)</span>
+</span><span id="__span-10-26"><a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a>        <span class="n">embeddings_original</span><span class="p">,</span> <span class="n">logits</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">return_embeddings</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-10-27"><a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a>        <span class="n">loss_cls</span> <span class="o">=</span> <span class="n">criterion_cls</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+</span><span id="__span-10-28"><a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a>
+</span><span id="__span-10-29"><a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a>        <span class="c1"># Regularization: Transform to target FST, compute embedding distance</span>
+</span><span id="__span-10-30"><a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a>        <span class="n">loss_reg</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="__span-10-31"><a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a>        <span class="k">for</span> <span class="n">target_fst</span> <span class="ow">in</span> <span class="n">target_fsts</span><span class="p">:</span>
+</span><span id="__span-10-32"><a id="__codelineno-10-32" name="__codelineno-10-32" href="#__codelineno-10-32"></a>            <span class="c1"># Transform images (on-the-fly or pre-computed)</span>
+</span><span id="__span-10-33"><a id="__codelineno-10-33" name="__codelineno-10-33" href="#__codelineno-10-33"></a>            <span class="n">images_transformed</span> <span class="o">=</span> <span class="n">transform_skin_tone</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">target_fst</span><span class="p">)</span>
+</span><span id="__span-10-34"><a id="__codelineno-10-34" name="__codelineno-10-34" href="#__codelineno-10-34"></a>
+</span><span id="__span-10-35"><a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a>            <span class="c1"># Extract embeddings from transformed images</span>
+</span><span id="__span-10-36"><a id="__codelineno-10-36" name="__codelineno-10-36" href="#__codelineno-10-36"></a>            <span class="n">embeddings_transformed</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">images_transformed</span><span class="p">,</span> <span class="n">return_embeddings</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-10-37"><a id="__codelineno-10-37" name="__codelineno-10-37" href="#__codelineno-10-37"></a>
+</span><span id="__span-10-38"><a id="__codelineno-10-38" name="__codelineno-10-38" href="#__codelineno-10-38"></a>            <span class="c1"># Compute regularization loss</span>
+</span><span id="__span-10-39"><a id="__codelineno-10-39" name="__codelineno-10-39" href="#__codelineno-10-39"></a>            <span class="n">loss_reg</span> <span class="o">+=</span> <span class="n">criterion_reg</span><span class="p">(</span><span class="n">embeddings_original</span><span class="p">,</span> <span class="n">embeddings_transformed</span><span class="p">)</span>
+</span><span id="__span-10-40"><a id="__codelineno-10-40" name="__codelineno-10-40" href="#__codelineno-10-40"></a>
+</span><span id="__span-10-41"><a id="__codelineno-10-41" name="__codelineno-10-41" href="#__codelineno-10-41"></a>        <span class="n">loss_reg</span> <span class="o">/=</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_fsts</span><span class="p">)</span>
+</span><span id="__span-10-42"><a id="__codelineno-10-42" name="__codelineno-10-42" href="#__codelineno-10-42"></a>
+</span><span id="__span-10-43"><a id="__codelineno-10-43" name="__codelineno-10-43" href="#__codelineno-10-43"></a>        <span class="c1"># Total loss</span>
+</span><span id="__span-10-44"><a id="__codelineno-10-44" name="__codelineno-10-44" href="#__codelineno-10-44"></a>        <span class="n">loss</span> <span class="o">=</span> <span class="n">loss_cls</span> <span class="o">+</span> <span class="n">lambda_reg</span> <span class="o">*</span> <span class="n">loss_reg</span>
+</span><span id="__span-10-45"><a id="__codelineno-10-45" name="__codelineno-10-45" href="#__codelineno-10-45"></a>
+</span><span id="__span-10-46"><a id="__codelineno-10-46" name="__codelineno-10-46" href="#__codelineno-10-46"></a>        <span class="c1"># Backward pass</span>
+</span><span id="__span-10-47"><a id="__codelineno-10-47" name="__codelineno-10-47" href="#__codelineno-10-47"></a>        <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+</span><span id="__span-10-48"><a id="__codelineno-10-48" name="__codelineno-10-48" href="#__codelineno-10-48"></a>        <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+</span><span id="__span-10-49"><a id="__codelineno-10-49" name="__codelineno-10-49" href="#__codelineno-10-49"></a>        <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+</span><span id="__span-10-50"><a id="__codelineno-10-50" name="__codelineno-10-50" href="#__codelineno-10-50"></a>
+</span><span id="__span-10-51"><a id="__codelineno-10-51" name="__codelineno-10-51" href="#__codelineno-10-51"></a>    <span class="c1"># Validation</span>
+</span><span id="__span-10-52"><a id="__codelineno-10-52" name="__codelineno-10-52" href="#__codelineno-10-52"></a>    <span class="n">val_metrics</span> <span class="o">=</span> <span class="n">evaluate</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">val_loader</span><span class="p">)</span>
+</span><span id="__span-10-53"><a id="__codelineno-10-53" name="__codelineno-10-53" href="#__codelineno-10-53"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s2">: AUROC gap = </span><span class="si">{</span><span class="n">val_metrics</span><span class="p">[</span><span class="s1">&#39;auroc_gap&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">, ECE = </span><span class="si">{</span><span class="n">val_metrics</span><span class="p">[</span><span class="s1">&#39;ece&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="42-data-augmentation-strategy">4.2 Data Augmentation Strategy<a class="headerlink" href="#42-data-augmentation-strategy" title="Permanent link">&para;</a></h3>
+<p><strong>Standard Augmentation</strong> (always applied):
+- Random horizontal flip (p=0.5)
+- Random rotation (±15°)
+- Color jitter (brightness ±0.2, contrast ±0.2, saturation ±0.2)</p>
+<p><strong>Tone Transformation</strong> (for regularization):
+- Applied during training (on-the-fly or pre-computed)
+- Targets: FST I and VI (extreme classes)
+- Frequency: Every batch (all images transformed)</p>
+<p><strong>Pre-computed vs On-the-Fly</strong>:</p>
+<p><strong>Option 1: Pre-compute Transformations</strong> (Recommended for Phase 2)
+- Generate transformed versions of entire dataset BEFORE training
+- Store: original + FST-I + FST-VI versions (3x storage)
+- Training: Load all 3 versions, compute regularization</p>
+<p><strong>Advantages</strong>: Fast training (no transformation overhead)
+<strong>Disadvantages</strong>: 3x storage (e.g., 48GB → 144GB)</p>
+<p><strong>Option 2: On-the-Fly Transformation</strong>
+- Transform images during training (in DataLoader)
+- No extra storage</p>
+<p><strong>Advantages</strong>: Storage-efficient
+<strong>Disadvantages</strong>: CPU overhead (~20ms per transformation), may bottleneck GPU</p>
+<p><strong>Recommendation</strong>: Pre-compute for Phase 2 (easier debugging, faster training)</p>
+<h3 id="43-hyperparameter-tuning">4.3 Hyperparameter Tuning<a class="headerlink" href="#43-hyperparameter-tuning" title="Permanent link">&para;</a></h3>
+<p><strong>Key Hyperparameters</strong>:
+- λ_reg: 0.1, 0.2, 0.3 (start with 0.2)
+- Target FST classes: ["I", "VI"] or ["I", "III", "VI"]
+- Distance metric: "l2" or "cosine"
+- Transformation method: HSV, LAB, or StarGAN</p>
+<p><strong>Tuning Strategy</strong> (Grid Search):
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">hyperparameter_grid</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    <span class="s2">&quot;lambda_reg&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">],</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    <span class="s2">&quot;target_fsts&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="s2">&quot;I&quot;</span><span class="p">,</span> <span class="s2">&quot;VI&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;I&quot;</span><span class="p">,</span> <span class="s2">&quot;III&quot;</span><span class="p">,</span> <span class="s2">&quot;VI&quot;</span><span class="p">]],</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="s2">&quot;distance_metric&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;l2&quot;</span><span class="p">,</span> <span class="s2">&quot;cosine&quot;</span><span class="p">],</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="p">}</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="k">for</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">iterate_grid</span><span class="p">(</span><span class="n">hyperparameter_grid</span><span class="p">):</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>    <span class="n">model</span> <span class="o">=</span> <span class="n">train_circle</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>    <span class="n">val_metrics</span> <span class="o">=</span> <span class="n">evaluate</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">val_loader</span><span class="p">)</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>    <span class="n">log_experiment</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">val_metrics</span><span class="p">)</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="c1"># Select best: Minimize AUROC gap, maximize calibration (minimize ECE)</span>
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="n">best_config</span> <span class="o">=</span> <span class="n">select_best</span><span class="p">(</span>
+</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>    <span class="n">criterion</span><span class="o">=</span><span class="s2">&quot;auroc_gap + ece&quot;</span><span class="p">,</span>  <span class="c1"># Multi-objective</span>
+</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>    <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;minimize&quot;</span>
+</span><span id="__span-11-16"><a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="p">)</span>
+</span></code></pre></div></p>
+<p><strong>Expected Training Time per Config</strong>:
+- 100 epochs × 15 min/epoch = 25 hours (RTX 3090)
+- 9 configs (3 λ_reg × 2 target_fsts × 2 metrics) = <strong>225 hours total</strong>
+- Parallelize: 4 GPUs → 56 hours (2.3 days)</p>
+<hr />
+<h2 id="5-model-architecture">5. Model Architecture<a class="headerlink" href="#5-model-architecture" title="Permanent link">&para;</a></h2>
+<h3 id="51-feature-extractor-with-dual-outputs">5.1 Feature Extractor with Dual Outputs<a class="headerlink" href="#51-feature-extractor-with-dual-outputs" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torchvision.models</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">models</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="k">class</span><span class="w"> </span><span class="nc">CIRCLeModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">backbone</span><span class="o">=</span><span class="s2">&quot;resnet50&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>        <span class="c1"># Backbone</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>        <span class="k">if</span> <span class="n">backbone</span> <span class="o">==</span> <span class="s2">&quot;resnet50&quot;</span><span class="p">:</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">backbone</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">)</span>
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>            <span class="n">feature_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backbone</span><span class="o">.</span><span class="n">fc</span><span class="o">.</span><span class="n">in_features</span>  <span class="c1"># 2048</span>
+</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">backbone</span><span class="o">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Identity</span><span class="p">()</span>  <span class="c1"># Remove original FC</span>
+</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported backbone: </span><span class="si">{</span><span class="n">backbone</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>
+</span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>        <span class="c1"># Classification head</span>
+</span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+</span><span id="__span-12-19"><a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">feature_dim</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span>
+</span><span id="__span-12-20"><a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+</span><span id="__span-12-21"><a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.3</span><span class="p">),</span>
+</span><span id="__span-12-22"><a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a>            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">),</span>
+</span><span id="__span-12-23"><a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a>        <span class="p">)</span>
+</span><span id="__span-12-24"><a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a>
+</span><span id="__span-12-25"><a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">return_embeddings</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="__span-12-26"><a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a>        <span class="c1"># Extract features</span>
+</span><span id="__span-12-27"><a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a>        <span class="n">embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backbone</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="__span-12-28"><a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a>
+</span><span id="__span-12-29"><a id="__codelineno-12-29" name="__codelineno-12-29" href="#__codelineno-12-29"></a>        <span class="c1"># Classification</span>
+</span><span id="__span-12-30"><a id="__codelineno-12-30" name="__codelineno-12-30" href="#__codelineno-12-30"></a>        <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span><span class="p">(</span><span class="n">embeddings</span><span class="p">)</span>
+</span><span id="__span-12-31"><a id="__codelineno-12-31" name="__codelineno-12-31" href="#__codelineno-12-31"></a>
+</span><span id="__span-12-32"><a id="__codelineno-12-32" name="__codelineno-12-32" href="#__codelineno-12-32"></a>        <span class="k">if</span> <span class="n">return_embeddings</span><span class="p">:</span>
+</span><span id="__span-12-33"><a id="__codelineno-12-33" name="__codelineno-12-33" href="#__codelineno-12-33"></a>            <span class="k">return</span> <span class="n">embeddings</span><span class="p">,</span> <span class="n">logits</span>
+</span><span id="__span-12-34"><a id="__codelineno-12-34" name="__codelineno-12-34" href="#__codelineno-12-34"></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-12-35"><a id="__codelineno-12-35" name="__codelineno-12-35" href="#__codelineno-12-35"></a>            <span class="k">return</span> <span class="n">logits</span>
+</span><span id="__span-12-36"><a id="__codelineno-12-36" name="__codelineno-12-36" href="#__codelineno-12-36"></a>
+</span><span id="__span-12-37"><a id="__codelineno-12-37" name="__codelineno-12-37" href="#__codelineno-12-37"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">feature_extractor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+</span><span id="__span-12-38"><a id="__codelineno-12-38" name="__codelineno-12-38" href="#__codelineno-12-38"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract embeddings only (for regularization).&quot;&quot;&quot;</span>
+</span><span id="__span-12-39"><a id="__codelineno-12-39" name="__codelineno-12-39" href="#__codelineno-12-39"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">backbone</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="52-integration-with-existing-models">5.2 Integration with Existing Models<a class="headerlink" href="#52-integration-with-existing-models" title="Permanent link">&para;</a></h3>
+<p><strong>Scenario 1: Add CIRCLe to Baseline ResNet50</strong>
+- Train baseline ResNet50 (Phase 1)
+- Add regularization loss (Phase 2)
+- Continue training for 50-100 epochs</p>
+<p><strong>Scenario 2: Combine CIRCLe + FairDisCo</strong>
+- Use FairDisCo architecture (adversarial + contrastive)
+- Add CIRCLe regularization as third loss term
+- Total loss: L_cls + λ_adv × L_adv + λ_con × L_con + λ_reg × L_reg</p>
+<p><strong>Combined Loss</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">loss</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>    <span class="n">criterion_cls</span><span class="p">(</span><span class="n">diagnosis_logits</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span> <span class="o">+</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    <span class="mf">0.3</span> <span class="o">*</span> <span class="n">criterion_adv</span><span class="p">(</span><span class="n">fst_logits</span><span class="p">,</span> <span class="n">fst_labels</span><span class="p">)</span> <span class="o">+</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    <span class="mf">0.2</span> <span class="o">*</span> <span class="n">criterion_con</span><span class="p">(</span><span class="n">contrastive_embeddings</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">fst_labels</span><span class="p">)</span> <span class="o">+</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="mf">0.2</span> <span class="o">*</span> <span class="n">criterion_circle</span><span class="p">(</span><span class="n">embeddings_original</span><span class="p">,</span> <span class="n">embeddings_transformed</span><span class="p">)</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="p">)</span>
+</span></code></pre></div></p>
+<hr />
+<h2 id="6-computational-requirements">6. Computational Requirements<a class="headerlink" href="#6-computational-requirements" title="Permanent link">&para;</a></h2>
+<h3 id="61-gpu-requirements">6.1 GPU Requirements<a class="headerlink" href="#61-gpu-requirements" title="Permanent link">&para;</a></h3>
+<p><strong>Training</strong> (Batch size 64, ResNet50):
+- VRAM: ~10GB (original images) + ~10GB (transformed images) = <strong>20GB</strong>
+- Minimum: 1x RTX 3090 (24GB VRAM)
+- Recommended: 1x RTX 4090 (24GB VRAM, 1.5x faster)</p>
+<p><strong>VRAM Optimization</strong>:
+- Mixed precision (FP16): Reduces to ~12GB
+- Gradient checkpointing: Reduces to ~10GB (slower training)</p>
+<p><strong>Training Time</strong>:
+- Single epoch: ~18 minutes (Fitzpatrick17k, 16,577 images, batch 64)
+  - Original images: 15 min
+  - Transformed images (2x FST): +3 min overhead
+- 100 epochs: ~30 hours (RTX 3090)</p>
+<p><strong>Inference Time</strong>:
+- No overhead (regularization only during training)
+- Same as baseline: ~30ms per image (RTX 3090)</p>
+<h3 id="62-storage-requirements">6.2 Storage Requirements<a class="headerlink" href="#62-storage-requirements" title="Permanent link">&para;</a></h3>
+<p><strong>Pre-computed Transformations</strong>:
+- Original dataset: 48GB (Fitzpatrick17k, 512×512 PNG)
+- Transformed FST-I: 48GB
+- Transformed FST-VI: 48GB
+- <strong>Total: 144GB</strong> (3x original)</p>
+<p><strong>On-the-Fly Transformation</strong>: No extra storage (0GB)</p>
+<hr />
+<h2 id="7-open-source-implementation">7. Open-Source Implementation<a class="headerlink" href="#7-open-source-implementation" title="Permanent link">&para;</a></h2>
+<h3 id="71-official-circle-repository">7.1 Official CIRCLe Repository<a class="headerlink" href="#71-official-circle-repository" title="Permanent link">&para;</a></h3>
+<p><strong>GitHub</strong>: https://github.com/arezou-pakzad/CIRCLe</p>
+<p><strong>Key Details</strong>:
+- Language: Python
+- Framework: PyTorch
+- License: Not specified (assume academic use, contact for commercial)</p>
+<p><strong>Provided Code</strong>:
+- <code>train_stargan.py</code>: Train StarGAN skin tone transformer
+- <code>train_classifier.py</code>: Train classifier with/without regularization
+- <code>models/</code>: ResNet, DenseNet, MobileNet implementations
+- <code>utils/regularization.py</code>: CIRCLe regularization loss</p>
+<p><strong>Training Command</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Step 1: Train StarGAN (optional, skip if using simple transformations)</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>python<span class="w"> </span>train_stargan.py<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">    </span>--dataset<span class="w"> </span>fitzpatrick17k<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">    </span>--num_domains<span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">    </span>--epochs<span class="w"> </span><span class="m">200</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="c1"># Step 2: Train classifier with CIRCLe regularization</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>python<span class="w"> </span>train_classifier.py<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">    </span>--model<span class="w"> </span>resnet50<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="w">    </span>--dataset<span class="w"> </span>fitzpatrick17k<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">    </span>--use_regularization<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="w">    </span>--lambda_reg<span class="w"> </span><span class="m">0</span>.2<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="w">    </span>--target_fsts<span class="w"> </span>I,VI
+</span></code></pre></div></p>
+<p><strong>Model Checkpoints</strong>: Not publicly released (train from scratch)</p>
+<h3 id="72-mirror-repository">7.2 Mirror Repository<a class="headerlink" href="#72-mirror-repository" title="Permanent link">&para;</a></h3>
+<p><strong>GitHub</strong>: https://github.com/sfu-mial/CIRCLe (Simon Fraser University)
+- Mirror of original repository
+- Same codebase, alternative hosting</p>
+<h3 id="73-integration-assessment">7.3 Integration Assessment<a class="headerlink" href="#73-integration-assessment" title="Permanent link">&para;</a></h3>
+<p><strong>Ease of Integration</strong>: Moderate
+- Well-structured, modular code
+- Supports multiple backbones (ResNet, DenseNet, MobileNet, VGG)
+- Requires StarGAN training (complex) or adaptation to simple transformations</p>
+<p><strong>Code Quality</strong>: Good
+- PyTorch best practices
+- Configurable hyperparameters (command-line arguments)
+- Limited documentation (assume familiarity with paper)</p>
+<p><strong>Recommended Approach</strong>:
+1. Clone repository, install dependencies
+2. <strong>Skip StarGAN training</strong> (Phase 2), use simple LAB transformations
+3. Adapt <code>train_classifier.py</code> to use color transformations (modify data loader)
+4. Run experiments with λ_reg = 0.1, 0.2, 0.3
+5. Integrate into Phase 2 pipeline (after FairSkin + FairDisCo)</p>
+<hr />
+<h2 id="8-implementation-timeline">8. Implementation Timeline<a class="headerlink" href="#8-implementation-timeline" title="Permanent link">&para;</a></h2>
+<p><strong>Week 1: Setup &amp; Simple Transformations</strong>
+- Day 1-2: Install dependencies, download Fitzpatrick17k
+- Day 3-4: Implement simple color transformations (HSV, LAB)
+- Day 5: Validate transformations (visual inspection, LPIPS)
+- Day 6-7: Pre-compute transformed datasets (FST I, VI versions)</p>
+<p><strong>Week 2: CIRCLe Integration</strong>
+- Day 1-2: Implement regularization loss (L2 distance)
+- Day 3: Modify training loop (add regularization term)
+- Day 4-5: Debug (verify gradients flow correctly)
+- Day 6-7: Baseline experiment (λ_reg = 0.2)</p>
+<p><strong>Week 3: Hyperparameter Tuning</strong>
+- Day 1-3: Grid search (λ_reg, target FST, distance metric)
+- Day 4-5: Analyze results (AUROC gap, ECE per config)
+- Day 6-7: Final training with best config</p>
+<p><strong>Week 4: Combined Fairness (CIRCLe + FairDisCo)</strong>
+- Day 1-2: Integrate CIRCLe into FairDisCo architecture
+- Day 3-5: Train combined model (100 epochs, ~30 hours)
+- Day 6-7: Evaluate fairness (AUROC gap, EOD, ECE)</p>
+<p><strong>Total: 4 weeks (28 days)</strong>
+- GPU time: ~150 hours (6 days continuous)
+- Human time: ~50 hours (1.25 weeks full-time equivalent)</p>
+<hr />
+<h2 id="9-success-criteria">9. Success Criteria<a class="headerlink" href="#9-success-criteria" title="Permanent link">&para;</a></h2>
+<p><strong>Fairness Metrics</strong>:
+- AUROC gap reduction: +2-4% (from FairDisCo 8-10% → CIRCLe 6-8%)
+- ECE reduction: 3-5% (improved calibration)
+- OOD generalization: +3-5% AUROC on held-out FST classes</p>
+<p><strong>Accuracy Maintenance</strong>:
+- Overall accuracy: &gt;88% (no degradation from Phase 2 baseline)
+- AUROC (average): &gt;90%</p>
+<p><strong>Calibration</strong>:
+- ECE &lt;0.08 for ALL FST groups (vs 0.10-0.12 baseline)
+- Reliability diagrams: Tighter fit to diagonal (better calibration)</p>
+<hr />
+<h2 id="10-risk-mitigation">10. Risk Mitigation<a class="headerlink" href="#10-risk-mitigation" title="Permanent link">&para;</a></h2>
+<p><strong>Risk 1: Simple Transformations Insufficient (Poor Fairness Gain)</strong>
+<strong>Mitigation</strong>:
+- Increase λ_reg (0.2 → 0.3 → 0.4)
+- Use skin segmentation (apply transformation only to skin)
+- Upgrade to StarGAN (higher quality transformations)</p>
+<p><strong>Risk 2: StarGAN Training Fails (Mode Collapse, Artifacts)</strong>
+<strong>Mitigation</strong>:
+- Use spectral normalization (improves GAN stability)
+- Increase training data (need 5k+ images per FST)
+- Lower expectations (simple transformations may suffice)</p>
+<p><strong>Risk 3: Over-Regularization (Accuracy Drops)</strong>
+<strong>Mitigation</strong>:
+- Reduce λ_reg (0.2 → 0.1)
+- Use cosine distance (softer than L2)
+- Monitor validation accuracy (stop if drops &gt;2%)</p>
+<p><strong>Risk 4: High Storage Overhead (144GB Pre-computed)</strong>
+<strong>Mitigation</strong>:
+- Use on-the-fly transformation (0GB extra storage)
+- Optimize CPU transformation (multi-threading, &lt;10ms overhead)
+- Compress transformed images (lossy JPEG, -50% size)</p>
+<hr />
+<h2 id="11-comparison-stargan-vs-simple-transformations">11. Comparison: StarGAN vs Simple Transformations<a class="headerlink" href="#11-comparison-stargan-vs-simple-transformations" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th><strong>Aspect</strong></th>
+<th><strong>StarGAN</strong></th>
+<th><strong>Simple Color Transformations</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Training Time</strong></td>
+<td>100-200 GPU hours</td>
+<td>0 hours (no training)</td>
+</tr>
+<tr>
+<td><strong>Realism</strong></td>
+<td>High (photo-realistic)</td>
+<td>Low-moderate (heuristic)</td>
+</tr>
+<tr>
+<td><strong>Implementation Complexity</strong></td>
+<td>High (GAN training, hyperparameters)</td>
+<td>Low (10-20 lines of code)</td>
+</tr>
+<tr>
+<td><strong>Fairness Improvement</strong></td>
+<td>+4-5% AUROC gap reduction</td>
+<td>+2-3% AUROC gap reduction</td>
+</tr>
+<tr>
+<td><strong>Artifacts</strong></td>
+<td>Potential (blur, checkerboard)</td>
+<td>Minimal (deterministic)</td>
+</tr>
+<tr>
+<td><strong>Dataset Requirements</strong></td>
+<td>5k+ images per FST</td>
+<td>Any size (even 100 images)</td>
+</tr>
+<tr>
+<td><strong>Recommendation</strong></td>
+<td>Phase 3+ (after MVP)</td>
+<td>Phase 2 (rapid iteration)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommendation</strong>: Use simple transformations for Phase 2, upgrade to StarGAN in Phase 3 if needed.</p>
+<hr />
+<h2 id="12-key-insights-from-literature">12. Key Insights from Literature<a class="headerlink" href="#12-key-insights-from-literature" title="Permanent link">&para;</a></h2>
+<p><strong>Pakzad et al. (2022) Findings</strong>:
+- CIRCLe improves equal opportunity (+5%) and calibration (ECE -3-5%)
+- Regularization most effective on ResNet50 (vs MobileNet, DenseNet)
+- Multi-FST regularization (FST I + VI) outperforms single-FST (FST I only)
+- Combined with data augmentation (FairSkin), achieves 91.3% AUROC with 3.7% gap</p>
+<p><strong>Best Practices</strong>:
+- Start with λ_reg = 0.2, tune ±0.1 based on validation
+- Use both extreme FST classes (I and VI) for regularization
+- Pre-compute transformations for faster training (storage permitting)
+- Combine with adversarial debiasing (FairDisCo) for synergistic effect</p>
+<hr />
+<h2 id="13-references">13. References<a class="headerlink" href="#13-references" title="Permanent link">&para;</a></h2>
+<p><strong>Primary Paper</strong>:
+- Pakzad, A., Abhishek, K., Hamarneh, G. (2023). "CIRCLe: Color Invariant Representation Learning for Unbiased Classification of Skin Lesions." ECCV 2022 Workshops. arXiv:2208.13528</p>
+<p><strong>Skin Tone Transformation</strong>:
+- Choi, Y., et al. (2020). "StarGAN v2: Diverse Image Synthesis for Multiple Domains." CVPR.</p>
+<p><strong>Color Spaces</strong>:
+- Fairchild, M.D. (2013). "Color Appearance Models." Wiley. (LAB color space)</p>
+<p><strong>Calibration</strong>:
+- Guo, C., et al. (2017). "On Calibration of Modern Neural Networks." ICML. (Expected Calibration Error)</p>
+<hr />
+<p><strong>Document Version</strong>: 1.0
+<strong>Last Updated</strong>: 2025-10-13
+<strong>Author</strong>: THE DIDACT (Strategic Research Agent)
+<strong>Status</strong>: IMPLEMENTATION-READY
+<strong>Next Review</strong>: Post-Phase 2 (Week 10)</p>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/zhadyz/fairness-skin-cancer-detection" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:abdul.bari8019@coyote.csusb.edu" target="_blank" rel="noopener" title="" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l208 156a48 48 0 0 0 57.6 0l208-156c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48zM0 196v188c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V196L313.6 344.8c-34.1 25.6-81.1 25.6-115.2 0z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="../javascripts/custom.js"></script>
+      
+    
+  </body>
+</html>

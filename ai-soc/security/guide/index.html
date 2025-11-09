@@ -1,0 +1,4254 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="AI-Augmented Security Operations Center - Production Implementation and Research Documentation">
+      
+      
+        <meta name="author" content="Abdul Bari">
+      
+      
+        <link rel="canonical" href="https://research.onyxlab.ai/ai-soc/security/guide/">
+      
+      
+        <link rel="prev" href="../../deployment/performance/">
+      
+      
+        <link rel="next" href="../baseline/">
+      
+      
+      <link rel="icon" href="../../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
+    
+    
+      
+        <title>Security Guide - AI-SOC Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CSF+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"SF Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/custom.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config",""),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#security-architecture-and-implementation-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AI-SOC Documentation" class="md-header__button md-logo" aria-label="AI-SOC Documentation" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AI-SOC Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Security Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/zhadyz/AI_SOC" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    zhadyz/AI_SOC
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../research/survey-paper/" class="md-tabs__link">
+          
+  
+  
+  Research Foundation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/quickstart/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/overview/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../experiments/ml-performance/" class="md-tabs__link">
+          
+  
+  
+  Experimental Results
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../deployment/guide/" class="md-tabs__link">
+          
+  
+  
+  Deployment
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Security
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/ml-inference/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../development/contributing/" class="md-tabs__link">
+          
+  
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../about/authors/" class="md-tabs__link">
+          
+  
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AI-SOC Documentation" class="md-nav__button md-logo" aria-label="AI-SOC Documentation" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    AI-SOC Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/zhadyz/AI_SOC" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    zhadyz/AI_SOC
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Research Foundation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Research Foundation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/survey-paper/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Survey Paper
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Research Context
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/contributions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Academic Contributions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/competitive-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Competitive Analysis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/bibliography/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Bibliography
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/requirements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Requirements
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/network-topology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Network Topology
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/components/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Component Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/dataflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Flow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Experimental Results
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Experimental Results
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../experiments/ml-performance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ML Model Performance
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../experiments/baseline-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Baseline Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../experiments/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Training Reports
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../experiments/dataset-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dataset Validation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../experiments/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Production Validation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Deployment
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Docker Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/production/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Production Deployment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/performance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Performance Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Security
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Security
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Security Guide
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security Guide
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Architecture Overview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Security Architecture Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#multi-layer-security-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multi-Layer Security Model
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-design-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Design Principles
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentication-and-authorization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication and Authorization
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Authentication and Authorization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#json-web-token-jwt-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      JSON Web Token (JWT) Authentication
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JSON Web Token (JWT) Authentication">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#token-structure-and-claims" class="md-nav__link">
+    <span class="md-ellipsis">
+      Token Structure and Claims
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authentication-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication Methods
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-key-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Key Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Key Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#secure-key-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Secure Key Generation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#role-based-access-control-rbac-scopes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Role-Based Access Control (RBAC) Scopes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#token-lifecycle-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Token Lifecycle Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Token Lifecycle Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#token-expiration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Token Expiration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#token-refresh-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      Token Refresh Protocol
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rate-limiting-and-traffic-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rate Limiting and Traffic Control
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rate Limiting and Traffic Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rate-limiting-profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rate Limiting Profiles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rate-limit-response-headers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rate Limit Response Headers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#429-too-many-requests-response" class="md-nav__link">
+    <span class="md-ellipsis">
+      429 Too Many Requests Response
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-rate-limit-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Rate Limit Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-validation-and-sanitization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Input Validation and Sanitization
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Input Validation and Sanitization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sql-injection-prevention-owasp-a03" class="md-nav__link">
+    <span class="md-ellipsis">
+      SQL Injection Prevention (OWASP A03)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-injection-prevention" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command Injection Prevention
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#llm-prompt-injection-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM Prompt Injection Detection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cross-site-scripting-xss-prevention" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cross-Site Scripting (XSS) Prevention
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-sanitization-and-pii-redaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Sanitization and PII Redaction
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#http-security-headers" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTTP Security Headers
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="HTTP Security Headers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#implemented-security-headers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implemented Security Headers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#content-security-policy-csp" class="md-nav__link">
+    <span class="md-ellipsis">
+      Content Security Policy (CSP)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#http-strict-transport-security-hsts" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTTP Strict Transport Security (HSTS)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#secrets-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Secrets Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Secrets Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#production-secrets-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production Secrets Policy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-secrets-production-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Docker Secrets (Production Deployment)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables-development-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variables (Development Only)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#secrets-manager-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      Secrets Manager Interface
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#credential-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Credential Generation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#credential-rotation-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      Credential Rotation Procedures
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tls-and-certificate-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      TLS and Certificate Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TLS and Certificate Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tls-configuration-standards" class="md-nav__link">
+    <span class="md-ellipsis">
+      TLS Configuration Standards
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#certificate-acquisition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Certificate Acquisition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#https-enforcement" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTTPS Enforcement
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automated-certificate-renewal" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automated Certificate Renewal
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cross-origin-resource-sharing-cors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cross-Origin Resource Sharing (CORS)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cross-Origin Resource Sharing (CORS)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#allowed-origins-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Allowed Origins Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cors-policy-enforcement" class="md-nav__link">
+    <span class="md-ellipsis">
+      CORS Policy Enforcement
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-testing-and-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Testing and Validation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Security Testing and Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#security-test-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Test Execution
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#owasp-top-10-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      OWASP Top 10 Coverage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automated-security-scanning" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automated Security Scanning
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incident-response-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      Incident Response Procedures
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Incident Response Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#detection-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      Detection Phase
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#containment-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      Containment Phase
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#investigation-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      Investigation Phase
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remediation-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      Remediation Phase
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-incident-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      Post-Incident Phase
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#emergency-contact-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      Emergency Contact Information
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#regulatory-compliance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Regulatory Compliance
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Regulatory Compliance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#owasp-top-10-2021-compliance" class="md-nav__link">
+    <span class="md-ellipsis">
+      OWASP Top 10 2021 Compliance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-certifications-and-standards" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Certifications and Standards
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#audit-schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      Audit Schedule
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#production-deployment-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production Deployment Checklist
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Production Deployment Checklist">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-deployment-security-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pre-Deployment Security Validation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-deployment-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Post-Deployment Validation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monthly-security-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monthly Security Tasks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quarterly-security-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quarterly Security Tasks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional Resources
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Additional Resources">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#standards-and-frameworks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Standards and Frameworks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#technical-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technical Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Tools
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#training-and-certification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Training and Certification
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support-and-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support and Reporting
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security Baseline
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Hardening Procedures
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../incident-response/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Incident Response
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ml-inference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ML Inference API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/alert-triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Alert Triage API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/rag-service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    RAG Service API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Development
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Development
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Project Status
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Roadmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/authors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Authors & Acknowledgments
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    License
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Citation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Architecture Overview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Security Architecture Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#multi-layer-security-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multi-Layer Security Model
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-design-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Design Principles
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentication-and-authorization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication and Authorization
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Authentication and Authorization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#json-web-token-jwt-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      JSON Web Token (JWT) Authentication
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JSON Web Token (JWT) Authentication">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#token-structure-and-claims" class="md-nav__link">
+    <span class="md-ellipsis">
+      Token Structure and Claims
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authentication-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication Methods
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-key-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Key Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Key Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#secure-key-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Secure Key Generation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#role-based-access-control-rbac-scopes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Role-Based Access Control (RBAC) Scopes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#token-lifecycle-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Token Lifecycle Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Token Lifecycle Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#token-expiration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Token Expiration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#token-refresh-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      Token Refresh Protocol
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rate-limiting-and-traffic-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rate Limiting and Traffic Control
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rate Limiting and Traffic Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rate-limiting-profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rate Limiting Profiles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rate-limit-response-headers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rate Limit Response Headers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#429-too-many-requests-response" class="md-nav__link">
+    <span class="md-ellipsis">
+      429 Too Many Requests Response
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-rate-limit-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Rate Limit Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-validation-and-sanitization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Input Validation and Sanitization
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Input Validation and Sanitization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sql-injection-prevention-owasp-a03" class="md-nav__link">
+    <span class="md-ellipsis">
+      SQL Injection Prevention (OWASP A03)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-injection-prevention" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command Injection Prevention
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#llm-prompt-injection-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM Prompt Injection Detection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cross-site-scripting-xss-prevention" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cross-Site Scripting (XSS) Prevention
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-sanitization-and-pii-redaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Sanitization and PII Redaction
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#http-security-headers" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTTP Security Headers
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="HTTP Security Headers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#implemented-security-headers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implemented Security Headers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#content-security-policy-csp" class="md-nav__link">
+    <span class="md-ellipsis">
+      Content Security Policy (CSP)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#http-strict-transport-security-hsts" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTTP Strict Transport Security (HSTS)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#secrets-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Secrets Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Secrets Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#production-secrets-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production Secrets Policy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-secrets-production-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Docker Secrets (Production Deployment)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables-development-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variables (Development Only)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#secrets-manager-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      Secrets Manager Interface
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#credential-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Credential Generation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#credential-rotation-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      Credential Rotation Procedures
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tls-and-certificate-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      TLS and Certificate Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TLS and Certificate Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tls-configuration-standards" class="md-nav__link">
+    <span class="md-ellipsis">
+      TLS Configuration Standards
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#certificate-acquisition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Certificate Acquisition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#https-enforcement" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTTPS Enforcement
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automated-certificate-renewal" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automated Certificate Renewal
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cross-origin-resource-sharing-cors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cross-Origin Resource Sharing (CORS)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cross-Origin Resource Sharing (CORS)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#allowed-origins-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Allowed Origins Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cors-policy-enforcement" class="md-nav__link">
+    <span class="md-ellipsis">
+      CORS Policy Enforcement
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-testing-and-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Testing and Validation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Security Testing and Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#security-test-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Test Execution
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#owasp-top-10-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      OWASP Top 10 Coverage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automated-security-scanning" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automated Security Scanning
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incident-response-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      Incident Response Procedures
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Incident Response Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#detection-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      Detection Phase
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#containment-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      Containment Phase
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#investigation-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      Investigation Phase
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remediation-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      Remediation Phase
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-incident-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      Post-Incident Phase
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#emergency-contact-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      Emergency Contact Information
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#regulatory-compliance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Regulatory Compliance
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Regulatory Compliance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#owasp-top-10-2021-compliance" class="md-nav__link">
+    <span class="md-ellipsis">
+      OWASP Top 10 2021 Compliance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-certifications-and-standards" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Certifications and Standards
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#audit-schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      Audit Schedule
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#production-deployment-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production Deployment Checklist
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Production Deployment Checklist">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-deployment-security-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pre-Deployment Security Validation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-deployment-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Post-Deployment Validation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monthly-security-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monthly Security Tasks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quarterly-security-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quarterly Security Tasks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional Resources
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Additional Resources">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#standards-and-frameworks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Standards and Frameworks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#technical-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technical Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Tools
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#training-and-certification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Training and Certification
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support-and-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support and Reporting
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="security-architecture-and-implementation-guide">Security Architecture and Implementation Guide<a class="headerlink" href="#security-architecture-and-implementation-guide" title="Permanent link">&para;</a></h1>
+<p>Comprehensive security documentation for the AI-Augmented Security Operations Center (AI-SOC) platform. This guide establishes defense-in-depth security controls, authentication mechanisms, and operational security procedures for production deployments.</p>
+<hr />
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#security-architecture-overview">Security Architecture Overview</a></li>
+<li><a href="#authentication-and-authorization">Authentication and Authorization</a></li>
+<li><a href="#rate-limiting-and-traffic-control">Rate Limiting and Traffic Control</a></li>
+<li><a href="#input-validation-and-sanitization">Input Validation and Sanitization</a></li>
+<li><a href="#http-security-headers">HTTP Security Headers</a></li>
+<li><a href="#secrets-management">Secrets Management</a></li>
+<li><a href="#tls-and-certificate-management">TLS and Certificate Management</a></li>
+<li><a href="#cross-origin-resource-sharing-cors">Cross-Origin Resource Sharing (CORS)</a></li>
+<li><a href="#security-testing-and-validation">Security Testing and Validation</a></li>
+<li><a href="#incident-response-procedures">Incident Response Procedures</a></li>
+<li><a href="#regulatory-compliance">Regulatory Compliance</a></li>
+<li><a href="#production-deployment-checklist">Production Deployment Checklist</a></li>
+</ol>
+<hr />
+<h2 id="security-architecture-overview">Security Architecture Overview<a class="headerlink" href="#security-architecture-overview" title="Permanent link">&para;</a></h2>
+<p>AI-SOC implements a comprehensive defense-in-depth security architecture with eight distinct protection layers. Each layer provides independent security controls, ensuring that compromise of any single layer does not result in total system failure.</p>
+<h3 id="multi-layer-security-model">Multi-Layer Security Model<a class="headerlink" href="#multi-layer-security-model" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────────────────────────────────┐
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│                     INTERNET / USERS                        │
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>└───────────────────────┬─────────────────────────────────────┘
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>                        │
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                        ▼
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>┌─────────────────────────────────────────────────────────────┐
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│  Layer 1: Transport Layer Security (TLS 1.3)               │
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│  - Minimum TLS version enforcement                          │
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│  - Strong cipher suite selection                            │
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│  - Perfect Forward Secrecy (PFS)                            │
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>└───────────────────────┬─────────────────────────────────────┘
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>                        │
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>                        ▼
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>┌─────────────────────────────────────────────────────────────┐
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│  Layer 2: HTTP Security Headers                            │
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│  - Content Security Policy (CSP)                            │
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│  - HTTP Strict Transport Security (HSTS)                    │
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│  - X-Frame-Options, X-Content-Type-Options                  │
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>└───────────────────────┬─────────────────────────────────────┘
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>                        │
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>                        ▼
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>┌─────────────────────────────────────────────────────────────┐
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│  Layer 3: Cross-Origin Request Validation                  │
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│  - Origin header validation                                 │
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│  - Credential verification                                  │
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>│  - Method and header restrictions                           │
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>└───────────────────────┬─────────────────────────────────────┘
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>                        │
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>                        ▼
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>┌─────────────────────────────────────────────────────────────┐
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>│  Layer 4: Rate Limiting and Traffic Shaping                │
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>│  - Per-IP request limits                                    │
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>│  - Per-API-key quotas                                       │
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>│  - Sliding window algorithm                                 │
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>└───────────────────────┬─────────────────────────────────────┘
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>                        │
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>                        ▼
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>┌─────────────────────────────────────────────────────────────┐
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>│  Layer 5: Authentication                                    │
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>│  - JWT token validation (RFC 7519)                          │
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>│  - API key cryptographic verification                       │
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>│  - Session management                                       │
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>└───────────────────────┬─────────────────────────────────────┘
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>                        │
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>                        ▼
+</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>┌─────────────────────────────────────────────────────────────┐
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>│  Layer 6: Authorization (Role-Based Access Control)        │
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>│  - Scope-based permissions                                  │
+</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>│  - Endpoint-level access control                            │
+</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a>│  - Least privilege enforcement                              │
+</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a>└───────────────────────┬─────────────────────────────────────┘
+</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a>                        │
+</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a>                        ▼
+</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>┌─────────────────────────────────────────────────────────────┐
+</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>│  Layer 7: Input Validation                                  │
+</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>│  - SQL injection prevention (OWASP A03)                     │
+</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>│  - Command injection detection                              │
+</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>│  - LLM prompt injection prevention                          │
+</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>└───────────────────────┬─────────────────────────────────────┘
+</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>                        │
+</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>                        ▼
+</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>┌─────────────────────────────────────────────────────────────┐
+</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>│  Layer 8: Output Sanitization                               │
+</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>│  - Personally Identifiable Information (PII) redaction      │
+</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>│  - Cross-site scripting (XSS) prevention                    │
+</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>│  - Sensitive data masking                                   │
+</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>└───────────────────────┬─────────────────────────────────────┘
+</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>                        │
+</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>                        ▼
+</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a>┌─────────────────────────────────────────────────────────────┐
+</span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a>│             APPLICATION BUSINESS LOGIC                      │
+</span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>└─────────────────────────────────────────────────────────────┘
+</span></code></pre></div>
+<h3 id="security-design-principles">Security Design Principles<a class="headerlink" href="#security-design-principles" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Defense in Depth</strong>: Multiple independent security layers prevent single points of failure</li>
+<li><strong>Least Privilege</strong>: Services and users granted minimum necessary permissions</li>
+<li><strong>Fail Secure</strong>: System defaults to secure state upon error conditions</li>
+<li><strong>Complete Mediation</strong>: Every access request validated against authorization policy</li>
+<li><strong>Separation of Duties</strong>: Critical operations require multiple independent approvals</li>
+</ol>
+<hr />
+<h2 id="authentication-and-authorization">Authentication and Authorization<a class="headerlink" href="#authentication-and-authorization" title="Permanent link">&para;</a></h2>
+<p>The platform implements industry-standard authentication mechanisms based on JSON Web Tokens (JWT, RFC 7519) and API key cryptography, supporting both interactive user sessions and service-to-service authentication.</p>
+<h3 id="json-web-token-jwt-authentication">JSON Web Token (JWT) Authentication<a class="headerlink" href="#json-web-token-jwt-authentication" title="Permanent link">&para;</a></h3>
+<p>JWT provides stateless authentication through cryptographically signed tokens containing user identity and authorization claims.</p>
+<h4 id="token-structure-and-claims">Token Structure and Claims<a class="headerlink" href="#token-structure-and-claims" title="Permanent link">&para;</a></h4>
+<p>Standard JWT payload conforming to RFC 7519:</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;sub&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user_id&quot;</span><span class="p">,</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">&quot;scopes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;read&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;write&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;admin&quot;</span><span class="p">],</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">&quot;exp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1698765432</span><span class="p">,</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">&quot;iat&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1698761832</span><span class="p">,</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;access&quot;</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><strong>Required Claims:</strong>
+- <code>sub</code> (Subject): User or service identifier
+- <code>scopes</code> (Custom): Authorization scopes for RBAC
+- <code>exp</code> (Expiration Time): Token expiration timestamp (Unix epoch)
+- <code>iat</code> (Issued At): Token issuance timestamp
+- <code>type</code> (Custom): Token type differentiation (access vs refresh)</p>
+<h4 id="authentication-methods">Authentication Methods<a class="headerlink" href="#authentication-methods" title="Permanent link">&para;</a></h4>
+<p><strong>Method 1: API Key Authentication</strong> (Service-to-Service)</p>
+<p>Cryptographically secure API keys with prefix identification:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.ai-soc.example.com/analyze<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer aisoc_&lt;32-byte-random-key&gt;&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>-d<span class="w"> </span>@security_alert.json
+</span></code></pre></div>
+<p><strong>Method 2: JWT Token Flow</strong> (Interactive Sessions)</p>
+<p>OAuth2-compatible token exchange:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Step 1: Obtain access and refresh tokens</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.ai-soc.example.com/auth/login<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/x-www-form-urlencoded&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;username=analyst&amp;password=&lt;secure-password&gt;&quot;</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1"># Response (RFC 6749 compliant):</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="o">{</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="s2">&quot;access_token&quot;</span>:<span class="w"> </span><span class="s2">&quot;eyJhbGc...&quot;</span>,
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="s2">&quot;refresh_token&quot;</span>:<span class="w"> </span><span class="s2">&quot;eyJhbGc...&quot;</span>,
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="s2">&quot;token_type&quot;</span>:<span class="w"> </span><span class="s2">&quot;bearer&quot;</span>,
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">  </span><span class="s2">&quot;expires_in&quot;</span>:<span class="w"> </span><span class="m">1800</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="o">}</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="c1"># Step 2: Authenticated API request</span>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.ai-soc.example.com/analyze<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer eyJhbGc...&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">  </span>-d<span class="w"> </span>@security_alert.json
+</span></code></pre></div>
+<h3 id="api-key-management">API Key Management<a class="headerlink" href="#api-key-management" title="Permanent link">&para;</a></h3>
+<h4 id="secure-key-generation">Secure Key Generation<a class="headerlink" href="#secure-key-generation" title="Permanent link">&para;</a></h4>
+<p>Production-grade cryptographic key generation:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Generate credentials with CSPRNG (Cryptographically Secure PRNG)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>python<span class="w"> </span>scripts/generate_secure_credentials.py
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Programmatic key generation</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>from<span class="w"> </span>auth<span class="w"> </span>import<span class="w"> </span>init_auth_manager
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="nv">auth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>init_auth_manager<span class="o">(</span>jwt_secret<span class="o">)</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="nv">api_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>auth.generate_api_key<span class="o">(</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="nv">user_id</span><span class="o">=</span><span class="s2">&quot;ml_inference_service&quot;</span>,
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">    </span><span class="nv">scopes</span><span class="o">=[</span><span class="s2">&quot;read&quot;</span>,<span class="w"> </span><span class="s2">&quot;write&quot;</span><span class="o">]</span>,
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">    </span><span class="nv">expires_days</span><span class="o">=</span><span class="m">365</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="o">)</span>
+</span></code></pre></div>
+<h4 id="role-based-access-control-rbac-scopes">Role-Based Access Control (RBAC) Scopes<a class="headerlink" href="#role-based-access-control-rbac-scopes" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Scope</th>
+<th>Permitted Operations</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>read</code></td>
+<td>HTTP GET operations only</td>
+<td>Monitoring dashboards, reporting</td>
+</tr>
+<tr>
+<td><code>write</code></td>
+<td>HTTP POST, PUT operations</td>
+<td>Alert ingestion, analysis requests</td>
+</tr>
+<tr>
+<td><code>admin</code></td>
+<td>All operations + administrative functions</td>
+<td>System administration, configuration</td>
+</tr>
+</tbody>
+</table>
+<h3 id="token-lifecycle-management">Token Lifecycle Management<a class="headerlink" href="#token-lifecycle-management" title="Permanent link">&para;</a></h3>
+<h4 id="token-expiration">Token Expiration<a class="headerlink" href="#token-expiration" title="Permanent link">&para;</a></h4>
+<p>Access tokens expire after 30 minutes to limit attack surface. Refresh tokens valid for 7 days.</p>
+<h4 id="token-refresh-protocol">Token Refresh Protocol<a class="headerlink" href="#token-refresh-protocol" title="Permanent link">&para;</a></h4>
+<p>Obtain new access token without re-authentication:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.ai-soc.example.com/auth/refresh<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer &lt;refresh-token&gt;&quot;</span>
+</span></code></pre></div>
+<hr />
+<h2 id="rate-limiting-and-traffic-control">Rate Limiting and Traffic Control<a class="headerlink" href="#rate-limiting-and-traffic-control" title="Permanent link">&para;</a></h2>
+<p>Comprehensive rate limiting prevents abuse, ensures fair resource allocation, and protects against denial-of-service attacks.</p>
+<h3 id="rate-limiting-profiles">Rate Limiting Profiles<a class="headerlink" href="#rate-limiting-profiles" title="Permanent link">&para;</a></h3>
+<p>Three configurable profiles balancing security and usability:</p>
+<table>
+<thead>
+<tr>
+<th>Profile</th>
+<th>Default Limit</th>
+<th>Analyze Endpoint</th>
+<th>Batch Endpoint</th>
+<th>RAG Query Endpoint</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Strict</strong></td>
+<td>30 req/min</td>
+<td>10 req/min</td>
+<td>5 req/min</td>
+<td>20 req/min</td>
+</tr>
+<tr>
+<td><strong>Moderate</strong></td>
+<td>100 req/min</td>
+<td>30 req/min</td>
+<td>10 req/min</td>
+<td>50 req/min</td>
+</tr>
+<tr>
+<td><strong>Permissive</strong></td>
+<td>300 req/min</td>
+<td>100 req/min</td>
+<td>50 req/min</td>
+<td>150 req/min</td>
+</tr>
+</tbody>
+</table>
+<h3 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h3>
+<p>Environment-based profile selection:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># In .env or environment variables</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nv">RATE_LIMIT_PROFILE</span><span class="o">=</span>moderate
+</span></code></pre></div>
+<h3 id="rate-limit-response-headers">Rate Limit Response Headers<a class="headerlink" href="#rate-limit-response-headers" title="Permanent link">&para;</a></h3>
+<p>Compliant with RFC 6585 (Additional HTTP Status Codes):</p>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="err">X-RateLimit-Limit: 100</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="err">X-RateLimit-Remaining: 95</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="err">X-RateLimit-Reset: 1698765432</span>
+</span></code></pre></div>
+<h3 id="429-too-many-requests-response">429 Too Many Requests Response<a class="headerlink" href="#429-too-many-requests-response" title="Permanent link">&para;</a></h3>
+<p>Standard HTTP 429 response with retry guidance:</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p">{</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Rate limit exceeded&quot;</span><span class="p">,</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="nt">&quot;detail&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Request quota exhausted. Retry after 45 seconds.&quot;</span><span class="p">,</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="nt">&quot;retry_after&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">45</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="custom-rate-limit-configuration">Custom Rate Limit Configuration<a class="headerlink" href="#custom-rate-limit-configuration" title="Permanent link">&para;</a></h3>
+<p>Programmatic rate limit definition:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rate_limit</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_rate_limit_middleware</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">custom_limits</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="s2">&quot;default_limit&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="s2">&quot;default_window&quot;</span><span class="p">:</span> <span class="mi">60</span><span class="p">,</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="s2">&quot;endpoint_limits&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>        <span class="s2">&quot;/analyze&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">60</span><span class="p">),</span>      <span class="c1"># 20 requests per 60 seconds</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>        <span class="s2">&quot;/critical&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">60</span><span class="p">),</span>       <span class="c1"># 5 requests per 60 seconds</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>        <span class="s2">&quot;/batch&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span>          <span class="c1"># 2 requests per 5 minutes</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>    <span class="p">}</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="p">}</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="n">middleware</span> <span class="o">=</span> <span class="n">create_rate_limit_middleware</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">custom_limits</span><span class="o">=</span><span class="n">custom_limits</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h2 id="input-validation-and-sanitization">Input Validation and Sanitization<a class="headerlink" href="#input-validation-and-sanitization" title="Permanent link">&para;</a></h2>
+<p>Multi-layer input validation prevents injection attacks (SQL, command, LLM prompt injection) and ensures data integrity.</p>
+<h3 id="sql-injection-prevention-owasp-a03">SQL Injection Prevention (OWASP A03)<a class="headerlink" href="#sql-injection-prevention-owasp-a03" title="Permanent link">&para;</a></h3>
+<p>Automatic pattern detection and blocking:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">security</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_input</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="c1"># Blocked attack vectors:</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># - UNION SELECT attacks</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="c1"># - DROP TABLE statements</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="c1"># - Comment-based injection (--,#,/**/)</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1"># - Semicolon-based multi-statement injection</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="c1"># - Blind SQL injection patterns</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="n">is_valid</span><span class="p">,</span> <span class="n">error</span> <span class="o">=</span> <span class="n">validate_input</span><span class="p">(</span><span class="n">user_input</span><span class="p">)</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">is_valid</span><span class="p">:</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>    <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="n">error</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="command-injection-prevention">Command Injection Prevention<a class="headerlink" href="#command-injection-prevention" title="Permanent link">&para;</a></h3>
+<p>Shell command pattern detection:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Blocked patterns (regex-based):</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="c1"># - Command substitution: $(command), `command`</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="c1"># - Command chaining: ; command, | command, &amp; command</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># - Path traversal: ../../../etc/passwd</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="c1"># - Null byte injection: \x00</span>
+</span></code></pre></div>
+<h3 id="llm-prompt-injection-detection">LLM Prompt Injection Detection<a class="headerlink" href="#llm-prompt-injection-detection" title="Permanent link">&para;</a></h3>
+<p>Advanced pattern matching for Large Language Model security:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">security</span><span class="w"> </span><span class="kn">import</span> <span class="n">detect_prompt_injection</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">is_injection</span><span class="p">,</span> <span class="n">attack_type</span> <span class="o">=</span> <span class="n">detect_prompt_injection</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="c1"># Detection patterns:</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="c1"># - System prompt override attempts (&quot;ignore previous instructions&quot;)</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="c1"># - Role manipulation (&quot;you are now DAN&quot;)</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="c1"># - Jailbreak techniques (established attack taxonomies)</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="c1"># - Instruction injection (&quot;new instructions:&quot;)</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="c1"># - Output format manipulation</span>
+</span></code></pre></div>
+<h3 id="cross-site-scripting-xss-prevention">Cross-Site Scripting (XSS) Prevention<a class="headerlink" href="#cross-site-scripting-xss-prevention" title="Permanent link">&para;</a></h3>
+<p>HTML/JavaScript injection detection:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">security</span><span class="w"> </span><span class="kn">import</span> <span class="n">detect_xss_patterns</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="n">is_xss</span><span class="p">,</span> <span class="n">pattern_type</span> <span class="o">=</span> <span class="n">detect_xss_patterns</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="c1"># Detected attack vectors:</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="c1"># - &lt;script&gt; tag injection</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># - javascript: protocol handlers</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="c1"># - Event handler attributes (onclick, onerror, onload)</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="c1"># - HTML element injection (iframe, embed, object)</span>
+</span></code></pre></div>
+<h3 id="data-sanitization-and-pii-redaction">Data Sanitization and PII Redaction<a class="headerlink" href="#data-sanitization-and-pii-redaction" title="Permanent link">&para;</a></h3>
+<p>Automatic sensitive data masking for logs and outputs:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">security</span><span class="w"> </span><span class="kn">import</span> <span class="n">sanitize_log</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="n">log</span> <span class="o">=</span> <span class="s2">&quot;Authentication successful: password=SecurePass123! api_key=sk_abc123&quot;</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="n">sanitized</span> <span class="o">=</span> <span class="n">sanitize_log</span><span class="p">(</span><span class="n">log</span><span class="p">)</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="c1"># Output: &quot;Authentication successful: password=***REDACTED*** api_key=***REDACTED***&quot;</span>
+</span></code></pre></div>
+<hr />
+<h2 id="http-security-headers">HTTP Security Headers<a class="headerlink" href="#http-security-headers" title="Permanent link">&para;</a></h2>
+<p>Comprehensive HTTP security headers implement browser-based security controls per OWASP Security Headers Project recommendations.</p>
+<h3 id="implemented-security-headers">Implemented Security Headers<a class="headerlink" href="#implemented-security-headers" title="Permanent link">&para;</a></h3>
+<p>All HTTP responses include the following security headers:</p>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="err">Content-Security-Policy: default-src &#39;self&#39;; script-src &#39;self&#39; &#39;unsafe-inline&#39;; style-src &#39;self&#39; &#39;unsafe-inline&#39;; img-src &#39;self&#39; data: https:; connect-src &#39;self&#39; https://api.trusted.com</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="err">X-Frame-Options: DENY</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="err">X-Content-Type-Options: nosniff</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="err">X-XSS-Protection: 1; mode=block</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="err">Strict-Transport-Security: max-age=31536000; includeSubDomains; preload</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="err">Referrer-Policy: strict-origin-when-cross-origin</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="err">Permissions-Policy: geolocation=(), microphone=(), camera=()</span>
+</span></code></pre></div>
+<h3 id="content-security-policy-csp">Content Security Policy (CSP)<a class="headerlink" href="#content-security-policy-csp" title="Permanent link">&para;</a></h3>
+<p>CSP prevents XSS attacks and code injection through declarative resource loading restrictions:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">security</span><span class="w"> </span><span class="kn">import</span> <span class="n">SecurityHeadersMiddleware</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="n">custom_csp</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>    <span class="s2">&quot;default-src &#39;self&#39;; &quot;</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>    <span class="s2">&quot;script-src &#39;self&#39; https://trusted-cdn.com; &quot;</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="s2">&quot;img-src &#39;self&#39; data: https:; &quot;</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>    <span class="s2">&quot;connect-src &#39;self&#39; https://api.trusted.com; &quot;</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>    <span class="s2">&quot;frame-ancestors &#39;none&#39;&quot;</span>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="p">)</span>
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">SecurityHeadersMiddleware</span><span class="p">,</span> <span class="n">csp_policy</span><span class="o">=</span><span class="n">custom_csp</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="http-strict-transport-security-hsts">HTTP Strict Transport Security (HSTS)<a class="headerlink" href="#http-strict-transport-security-hsts" title="Permanent link">&para;</a></h3>
+<p>HSTS enforces HTTPS connections for 1 year with subdomain inclusion:</p>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="err">Strict-Transport-Security: max-age=31536000; includeSubDomains; preload</span>
+</span></code></pre></div>
+<p><strong>Configuration:</strong> Submit domain to HSTS preload list at https://hstspreload.org/</p>
+<hr />
+<h2 id="secrets-management">Secrets Management<a class="headerlink" href="#secrets-management" title="Permanent link">&para;</a></h2>
+<p>Comprehensive secrets management prevents credential exposure and enables secure rotation procedures.</p>
+<h3 id="production-secrets-policy">Production Secrets Policy<a class="headerlink" href="#production-secrets-policy" title="Permanent link">&para;</a></h3>
+<p><strong>Mandatory Requirements:</strong>
+1. No hardcoded secrets in source code
+2. No secrets in version control (enforce with git-secrets)
+3. No secrets in environment variables on multi-tenant systems
+4. Secrets encrypted at rest
+5. Access logging for all secret retrievals</p>
+<h3 id="docker-secrets-production-deployment">Docker Secrets (Production Deployment)<a class="headerlink" href="#docker-secrets-production-deployment" title="Permanent link">&para;</a></h3>
+<p>Docker Swarm secrets provide secure distribution:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># Create secrets from stdin (prevents shell history exposure)</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;your-secret-value&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>docker<span class="w"> </span>secret<span class="w"> </span>create<span class="w"> </span>jwt_secret_key<span class="w"> </span>-
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-base64<span class="w"> </span><span class="m">32</span><span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>docker<span class="w"> </span>secret<span class="w"> </span>create<span class="w"> </span>db_password<span class="w"> </span>-
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="c1"># Reference in docker-compose.yml</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>services:
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="w">  </span>alert-triage:
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="w">    </span>secrets:
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="w">      </span>-<span class="w"> </span>jwt_secret_key
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">      </span>-<span class="w"> </span>db_password
+</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="w">    </span>environment:
+</span><span id="__span-18-12"><a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="w">      </span>-<span class="w"> </span><span class="nv">JWT_SECRET_FILE</span><span class="o">=</span>/run/secrets/jwt_secret_key
+</span><span id="__span-18-13"><a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="w">      </span>-<span class="w"> </span><span class="nv">DB_PASSWORD_FILE</span><span class="o">=</span>/run/secrets/db_password
+</span><span id="__span-18-14"><a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a>
+</span><span id="__span-18-15"><a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>secrets:
+</span><span id="__span-18-16"><a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="w">  </span>jwt_secret_key:
+</span><span id="__span-18-17"><a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a><span class="w">    </span>external:<span class="w"> </span><span class="nb">true</span>
+</span><span id="__span-18-18"><a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a><span class="w">  </span>db_password:
+</span><span id="__span-18-19"><a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a><span class="w">    </span>external:<span class="w"> </span><span class="nb">true</span>
+</span></code></pre></div>
+<h3 id="environment-variables-development-only">Environment Variables (Development Only)<a class="headerlink" href="#environment-variables-development-only" title="Permanent link">&para;</a></h3>
+<p>Development environment variable template:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># In .env.production</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="nv">AISOC_JWT_SECRET_KEY</span><span class="o">=</span>&lt;<span class="m">64</span>-character-random-string&gt;
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="nv">AISOC_DB_PASSWORD</span><span class="o">=</span>&lt;<span class="m">32</span>-character-random-string&gt;
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="nv">AISOC_API_KEY_ADMIN</span><span class="o">=</span>aisoc_&lt;<span class="m">32</span>-character-random-key&gt;
+</span></code></pre></div>
+<h3 id="secrets-manager-interface">Secrets Manager Interface<a class="headerlink" href="#secrets-manager-interface" title="Permanent link">&para;</a></h3>
+<p>Abstracted secrets access for production flexibility:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">secrets_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">init_secrets_manager</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="c1"># Initialize at application startup</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="n">secrets</span> <span class="o">=</span> <span class="n">init_secrets_manager</span><span class="p">()</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="c1"># Retrieve secrets with automatic rotation</span>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="n">jwt_secret</span> <span class="o">=</span> <span class="n">secrets</span><span class="o">.</span><span class="n">get_jwt_secret</span><span class="p">()</span>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="n">db_url</span> <span class="o">=</span> <span class="n">secrets</span><span class="o">.</span><span class="n">get_database_url</span><span class="p">()</span>
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="n">redis_url</span> <span class="o">=</span> <span class="n">secrets</span><span class="o">.</span><span class="n">get_redis_url</span><span class="p">()</span>
+</span></code></pre></div>
+<h3 id="credential-generation">Credential Generation<a class="headerlink" href="#credential-generation" title="Permanent link">&para;</a></h3>
+<p>Cryptographically secure credential generation:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Generate production credentials</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>python<span class="w"> </span>scripts/generate_secure_credentials.py
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="c1"># Outputs:</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="c1"># - .env.production with all required credentials</span>
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="c1"># - Passwords: 32+ characters, high entropy</span>
+</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="c1"># - API keys: aisoc_ prefix + 32-byte random</span>
+</span><span id="__span-21-8"><a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="c1"># - JWT secret: 64-byte random for HS256</span>
+</span></code></pre></div>
+<h3 id="credential-rotation-procedures">Credential Rotation Procedures<a class="headerlink" href="#credential-rotation-procedures" title="Permanent link">&para;</a></h3>
+<p><strong>Rotation Schedule:</strong> Every 90 days minimum (industry best practice)</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># Step 1: Generate new credentials</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>python<span class="w"> </span>scripts/generate_secure_credentials.py
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="c1"># Step 2: Create new secret version</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>docker<span class="w"> </span>secret<span class="w"> </span>create<span class="w"> </span>jwt_secret_key_v2<span class="w"> </span>&lt;<span class="o">(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;new-secret-value&quot;</span><span class="o">)</span>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="c1"># Step 3: Update service with zero downtime</span>
+</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>docker<span class="w"> </span>service<span class="w"> </span>update<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-22-9"><a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="w">  </span>--secret-rm<span class="w"> </span>jwt_secret_key<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-22-10"><a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a><span class="w">  </span>--secret-add<span class="w"> </span><span class="nv">source</span><span class="o">=</span>jwt_secret_key_v2,target<span class="o">=</span>jwt_secret_key<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-22-11"><a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a><span class="w">  </span>ai-soc_alert-triage
+</span><span id="__span-22-12"><a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a>
+</span><span id="__span-22-13"><a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a><span class="c1"># Step 4: Remove old secret after validation</span>
+</span><span id="__span-22-14"><a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a>docker<span class="w"> </span>secret<span class="w"> </span>rm<span class="w"> </span>jwt_secret_key
+</span></code></pre></div>
+<hr />
+<h2 id="tls-and-certificate-management">TLS and Certificate Management<a class="headerlink" href="#tls-and-certificate-management" title="Permanent link">&para;</a></h2>
+<p>Transport Layer Security (TLS) configuration follows industry best practices for encryption strength and protocol security.</p>
+<h3 id="tls-configuration-standards">TLS Configuration Standards<a class="headerlink" href="#tls-configuration-standards" title="Permanent link">&para;</a></h3>
+<p><strong>Minimum Requirements:</strong>
+- TLS Version: 1.3 minimum (1.2 acceptable with strong ciphers)
+- Cipher Suites: AES-256-GCM, ChaCha20-Poly1305 preferred
+- Perfect Forward Secrecy (PFS): Required
+- Certificate Key Size: RSA 4096-bit or ECDSA P-384</p>
+<h3 id="certificate-acquisition">Certificate Acquisition<a class="headerlink" href="#certificate-acquisition" title="Permanent link">&para;</a></h3>
+<p><strong>Option 1: Let's Encrypt (Production Recommended)</strong></p>
+<p>Automated certificate issuance with 90-day validity:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">  </span>-v<span class="w"> </span>/etc/letsencrypt:/etc/letsencrypt<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="w">  </span>-v<span class="w"> </span>/var/lib/letsencrypt:/var/lib/letsencrypt<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="w">  </span>certbot/certbot<span class="w"> </span>certonly<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="w">  </span>--standalone<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="w">  </span>--agree-tos<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="w">  </span>--email<span class="w"> </span>security@example.com<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-23-8"><a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="w">  </span>-d<span class="w"> </span>api.ai-soc.example.com<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-23-9"><a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a><span class="w">  </span>-d<span class="w"> </span>dashboard.ai-soc.example.com
+</span></code></pre></div>
+<p><strong>Option 2: Self-Signed Certificates (Development Only)</strong></p>
+<p>Generate self-signed certificate for testing:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>openssl<span class="w"> </span>req<span class="w"> </span>-x509<span class="w"> </span>-nodes<span class="w"> </span>-days<span class="w"> </span><span class="m">365</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="w">  </span>-newkey<span class="w"> </span>rsa:4096<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="w">  </span>-keyout<span class="w"> </span>/etc/ssl/private/ai-soc-selfsigned.key<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="w">  </span>-out<span class="w"> </span>/etc/ssl/certs/ai-soc-selfsigned.crt<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="w">  </span>-subj<span class="w"> </span><span class="s2">&quot;/C=US/ST=State/L=City/O=Organization/OU=Security/CN=localhost&quot;</span>
+</span></code></pre></div>
+<h3 id="https-enforcement">HTTPS Enforcement<a class="headerlink" href="#https-enforcement" title="Permanent link">&para;</a></h3>
+<p>Force all HTTP traffic to HTTPS:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1"># In .env.production</span>
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="nv">FORCE_HTTPS</span><span class="o">=</span><span class="nb">true</span>
+</span></code></pre></div>
+<h3 id="automated-certificate-renewal">Automated Certificate Renewal<a class="headerlink" href="#automated-certificate-renewal" title="Permanent link">&para;</a></h3>
+<p>Cron-based automatic renewal:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="c1"># /etc/cron.d/certbot-renewal</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">1</span><span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>certbot<span class="w"> </span>renew<span class="w"> </span>--quiet<span class="w"> </span>--post-hook<span class="w"> </span><span class="s2">&quot;docker-compose restart nginx&quot;</span>
+</span></code></pre></div>
+<hr />
+<h2 id="cross-origin-resource-sharing-cors">Cross-Origin Resource Sharing (CORS)<a class="headerlink" href="#cross-origin-resource-sharing-cors" title="Permanent link">&para;</a></h2>
+<p>CORS configuration balances API accessibility with origin-based access control.</p>
+<h3 id="allowed-origins-configuration">Allowed Origins Configuration<a class="headerlink" href="#allowed-origins-configuration" title="Permanent link">&para;</a></h3>
+<p>Explicit origin whitelisting:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="c1"># In .env.production</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="nv">ALLOWED_ORIGINS</span><span class="o">=</span>https://dashboard.ai-soc.example.com,https://admin.ai-soc.example.com
+</span></code></pre></div>
+<h3 id="cors-policy-enforcement">CORS Policy Enforcement<a class="headerlink" href="#cors-policy-enforcement" title="Permanent link">&para;</a></h3>
+<p><strong>Production Requirements:</strong>
+- Exact origin matching (no wildcards)
+- Credentials allowed only for authenticated origins
+- Preflight request caching (1 hour maximum)</p>
+<h3 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">security</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORSSecurityMiddleware</span>
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span>
+</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>    <span class="n">CORSSecurityMiddleware</span><span class="p">,</span>
+</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>    <span class="n">allowed_origins</span><span class="o">=</span><span class="p">[</span>
+</span><span id="__span-28-6"><a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a>        <span class="s2">&quot;https://dashboard.ai-soc.example.com&quot;</span><span class="p">,</span>
+</span><span id="__span-28-7"><a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a>        <span class="s2">&quot;https://admin.ai-soc.example.com&quot;</span>
+</span><span id="__span-28-8"><a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a>    <span class="p">],</span>
+</span><span id="__span-28-9"><a id="__codelineno-28-9" name="__codelineno-28-9" href="#__codelineno-28-9"></a>    <span class="n">allow_credentials</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-28-10"><a id="__codelineno-28-10" name="__codelineno-28-10" href="#__codelineno-28-10"></a>    <span class="n">allowed_methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;POST&quot;</span><span class="p">,</span> <span class="s2">&quot;PUT&quot;</span><span class="p">,</span> <span class="s2">&quot;DELETE&quot;</span><span class="p">],</span>
+</span><span id="__span-28-11"><a id="__codelineno-28-11" name="__codelineno-28-11" href="#__codelineno-28-11"></a>    <span class="n">allowed_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Authorization&quot;</span><span class="p">,</span> <span class="s2">&quot;Content-Type&quot;</span><span class="p">],</span>
+</span><span id="__span-28-12"><a id="__codelineno-28-12" name="__codelineno-28-12" href="#__codelineno-28-12"></a>    <span class="n">max_age</span><span class="o">=</span><span class="mi">3600</span>  <span class="c1"># Preflight cache duration</span>
+</span><span id="__span-28-13"><a id="__codelineno-28-13" name="__codelineno-28-13" href="#__codelineno-28-13"></a><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h2 id="security-testing-and-validation">Security Testing and Validation<a class="headerlink" href="#security-testing-and-validation" title="Permanent link">&para;</a></h2>
+<p>Comprehensive security testing validates implementation against OWASP Top 10 and industry standards.</p>
+<h3 id="security-test-execution">Security Test Execution<a class="headerlink" href="#security-test-execution" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="c1"># Execute complete security test suite</span>
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>pytest<span class="w"> </span>tests/security/<span class="w"> </span>-v
+</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>
+</span><span id="__span-29-4"><a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="c1"># OWASP Top 10 validation</span>
+</span><span id="__span-29-5"><a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>pytest<span class="w"> </span>tests/security/test_owasp_top10.py<span class="w"> </span>-v
+</span><span id="__span-29-6"><a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a>
+</span><span id="__span-29-7"><a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a><span class="c1"># Category-specific testing</span>
+</span><span id="__span-29-8"><a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a>pytest<span class="w"> </span>tests/security/<span class="w"> </span>-v<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;injection&quot;</span>
+</span><span id="__span-29-9"><a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a>pytest<span class="w"> </span>tests/security/<span class="w"> </span>-v<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;authentication&quot;</span>
+</span><span id="__span-29-10"><a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a>pytest<span class="w"> </span>tests/security/<span class="w"> </span>-v<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;llm_security&quot;</span>
+</span></code></pre></div>
+<h3 id="owasp-top-10-coverage">OWASP Top 10 Coverage<a class="headerlink" href="#owasp-top-10-coverage" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Test Count</th>
+<th>Status</th>
+<th>Coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A01: Broken Access Control</td>
+<td>3</td>
+<td>Pass</td>
+<td>JWT validation, RBAC enforcement</td>
+</tr>
+<tr>
+<td>A02: Cryptographic Failures</td>
+<td>2</td>
+<td>Pass</td>
+<td>TLS 1.3, secure password hashing</td>
+</tr>
+<tr>
+<td>A03: Injection</td>
+<td>8</td>
+<td>Pass</td>
+<td>SQL, command, prompt injection</td>
+</tr>
+<tr>
+<td>A04: Insecure Design</td>
+<td>2</td>
+<td>Pass</td>
+<td>Rate limiting, secure defaults</td>
+</tr>
+<tr>
+<td>A05: Security Misconfiguration</td>
+<td>2</td>
+<td>Pass</td>
+<td>Security headers, error handling</td>
+</tr>
+<tr>
+<td>A07: Authentication Failures</td>
+<td>2</td>
+<td>Pass</td>
+<td>Strong auth, no default credentials</td>
+</tr>
+<tr>
+<td>A09: Security Logging</td>
+<td>2</td>
+<td>Pass</td>
+<td>Prometheus metrics, audit logging</td>
+</tr>
+<tr>
+<td>A10: SSRF</td>
+<td>1</td>
+<td>Pass</td>
+<td>URL validation, internal IP blocking</td>
+</tr>
+<tr>
+<td>LLM: Prompt Injection</td>
+<td>2</td>
+<td>Pass</td>
+<td>Pattern detection, content filtering</td>
+</tr>
+</tbody>
+</table>
+<h3 id="automated-security-scanning">Automated Security Scanning<a class="headerlink" href="#automated-security-scanning" title="Permanent link">&para;</a></h3>
+<p><strong>Dependency Vulnerability Scanning:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="c1"># Python dependency analysis</span>
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>pip<span class="w"> </span>install<span class="w"> </span>safety
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>safety<span class="w"> </span>check<span class="w"> </span>--json<span class="w"> </span>--output<span class="w"> </span>safety-report.json
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>
+</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a><span class="c1"># Container image vulnerability scanning</span>
+</span><span id="__span-30-6"><a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>docker<span class="w"> </span>scan<span class="w"> </span>ai-soc/alert-triage:latest
+</span><span id="__span-30-7"><a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a>
+</span><span id="__span-30-8"><a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a><span class="c1"># Alternative: Trivy for comprehensive scanning</span>
+</span><span id="__span-30-9"><a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a>trivy<span class="w"> </span>image<span class="w"> </span>--severity<span class="w"> </span>HIGH,CRITICAL<span class="w"> </span>ai-soc/alert-triage:latest
+</span></code></pre></div>
+<p><strong>Static Application Security Testing (SAST):</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="c1"># Python code security analysis</span>
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>bandit<span class="w"> </span>-r<span class="w"> </span>services/<span class="w"> </span>-f<span class="w"> </span>json<span class="w"> </span>-o<span class="w"> </span>bandit-report.json
+</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>
+</span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="c1"># SAST with Semgrep</span>
+</span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>semgrep<span class="w"> </span>--config<span class="o">=</span>p/security-audit<span class="w"> </span>--json<span class="w"> </span>services/
+</span></code></pre></div>
+<hr />
+<h2 id="incident-response-procedures">Incident Response Procedures<a class="headerlink" href="#incident-response-procedures" title="Permanent link">&para;</a></h2>
+<p>Structured incident response procedures enable rapid detection, containment, and recovery from security events.</p>
+<h3 id="detection-phase">Detection Phase<a class="headerlink" href="#detection-phase" title="Permanent link">&para;</a></h3>
+<p><strong>Monitoring Triggers:</strong>
+- Failed authentication attempts (threshold: 5 in 1 minute)
+- Rate limit violations (HTTP 429 responses)
+- Input validation failures
+- LLM prompt injection detection
+- Abnormal API usage patterns
+- Privilege escalation attempts</p>
+<h3 id="containment-phase">Containment Phase<a class="headerlink" href="#containment-phase" title="Permanent link">&para;</a></h3>
+<p>Immediate containment actions:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="c1"># Block malicious source IP</span>
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>iptables<span class="w"> </span>-A<span class="w"> </span>INPUT<span class="w"> </span>-s<span class="w"> </span>&lt;malicious-ip&gt;<span class="w"> </span>-j<span class="w"> </span>DROP
+</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>
+</span><span id="__span-32-4"><a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a><span class="c1"># Revoke compromised API key</span>
+</span><span id="__span-32-5"><a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>curl<span class="w"> </span>-X<span class="w"> </span>DELETE<span class="w"> </span>https://api.ai-soc.example.com/admin/api-keys/&lt;key-id&gt;<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-32-6"><a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer &lt;admin-token&gt;&quot;</span>
+</span><span id="__span-32-7"><a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a>
+</span><span id="__span-32-8"><a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a><span class="c1"># Enable emergency rate limiting</span>
+</span><span id="__span-32-9"><a id="__codelineno-32-9" name="__codelineno-32-9" href="#__codelineno-32-9"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RATE_LIMIT_PROFILE</span><span class="o">=</span>strict
+</span><span id="__span-32-10"><a id="__codelineno-32-10" name="__codelineno-32-10" href="#__codelineno-32-10"></a>docker-compose<span class="w"> </span>restart<span class="w"> </span>ai-services
+</span></code></pre></div>
+<h3 id="investigation-phase">Investigation Phase<a class="headerlink" href="#investigation-phase" title="Permanent link">&para;</a></h3>
+<p>Forensic data collection:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="c1"># Review security violation metrics</span>
+</span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>docker<span class="w"> </span>logs<span class="w"> </span>alert-triage<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;security_violations_total&quot;</span>
+</span><span id="__span-33-3"><a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>
+</span><span id="__span-33-4"><a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a><span class="c1"># Query Prometheus for security events</span>
+</span><span id="__span-33-5"><a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>curl<span class="w"> </span>http://localhost:9090/api/v1/query?query<span class="o">=</span>security_violations_total
+</span><span id="__span-33-6"><a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>
+</span><span id="__span-33-7"><a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a><span class="c1"># Audit authentication failures</span>
+</span><span id="__span-33-8"><a id="__codelineno-33-8" name="__codelineno-33-8" href="#__codelineno-33-8"></a>grep<span class="w"> </span><span class="s2">&quot;401 Unauthorized&quot;</span><span class="w"> </span>/var/log/ai-soc/alert-triage.log
+</span></code></pre></div>
+<h3 id="remediation-phase">Remediation Phase<a class="headerlink" href="#remediation-phase" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Rotate all compromised credentials</li>
+<li>Update firewall rules to block attack sources</li>
+<li>Patch identified vulnerabilities</li>
+<li>Review and update security policies</li>
+<li>Deploy enhanced monitoring for affected systems</li>
+</ol>
+<h3 id="post-incident-phase">Post-Incident Phase<a class="headerlink" href="#post-incident-phase" title="Permanent link">&para;</a></h3>
+<p><strong>Required Documentation:</strong>
+- Complete incident timeline
+- Root cause analysis
+- Attack vector identification
+- Remediation actions taken
+- Lessons learned and process improvements</p>
+<h3 id="emergency-contact-information">Emergency Contact Information<a class="headerlink" href="#emergency-contact-information" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>Security Team Lead: security@example.com
+</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>On-Call Engineering: oncall@example.com
+</span><span id="__span-34-3"><a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>Incident Response: incident@example.com
+</span><span id="__span-34-4"><a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a>Executive Escalation: ciso@example.com
+</span></code></pre></div>
+<hr />
+<h2 id="regulatory-compliance">Regulatory Compliance<a class="headerlink" href="#regulatory-compliance" title="Permanent link">&para;</a></h2>
+<p>The platform implements controls supporting multiple regulatory frameworks and security standards.</p>
+<h3 id="owasp-top-10-2021-compliance">OWASP Top 10 2021 Compliance<a class="headerlink" href="#owasp-top-10-2021-compliance" title="Permanent link">&para;</a></h3>
+<p><strong>Full compliance achieved across all categories:</strong></p>
+<ul>
+<li><strong>A01: Broken Access Control</strong> - JWT with RBAC implementation</li>
+<li><strong>A02: Cryptographic Failures</strong> - TLS 1.3, bcrypt password hashing</li>
+<li><strong>A03: Injection</strong> - Comprehensive input validation</li>
+<li><strong>A04: Insecure Design</strong> - Rate limiting, secure by default</li>
+<li><strong>A05: Security Misconfiguration</strong> - Security headers, minimal attack surface</li>
+<li><strong>A06: Vulnerable Components</strong> - Automated dependency scanning</li>
+<li><strong>A07: Authentication Failures</strong> - Strong authentication, no defaults</li>
+<li><strong>A08: Data Integrity</strong> - Input validation, cryptographic signatures</li>
+<li><strong>A09: Security Logging</strong> - Prometheus metrics, comprehensive audit trail</li>
+<li><strong>A10: SSRF</strong> - Input validation, internal IP blocking</li>
+</ul>
+<h3 id="security-certifications-and-standards">Security Certifications and Standards<a class="headerlink" href="#security-certifications-and-standards" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Standard</th>
+<th>Compliance Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OWASP Top 10</td>
+<td>Compliant (10/10)</td>
+<td>All categories addressed</td>
+</tr>
+<tr>
+<td>CIS Docker Benchmark</td>
+<td>85% compliant</td>
+<td>Container hardening in progress</td>
+</tr>
+<tr>
+<td>PCI DSS</td>
+<td>Not applicable</td>
+<td>No payment card data handling</td>
+</tr>
+<tr>
+<td>GDPR</td>
+<td>Compliant</td>
+<td>Data minimization, encryption, right to erasure</td>
+</tr>
+<tr>
+<td>SOC 2 Type II</td>
+<td>In progress</td>
+<td>Audit scheduled Q2 2026</td>
+</tr>
+</tbody>
+</table>
+<h3 id="audit-schedule">Audit Schedule<a class="headerlink" href="#audit-schedule" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Internal Security Audits:</strong> Quarterly</li>
+<li><strong>External Penetration Testing:</strong> Annual</li>
+<li><strong>Dependency Vulnerability Scanning:</strong> Weekly (automated)</li>
+<li><strong>Code Security Reviews:</strong> Per major release</li>
+<li><strong>Compliance Assessment:</strong> Semi-annual</li>
+</ul>
+<hr />
+<h2 id="production-deployment-checklist">Production Deployment Checklist<a class="headerlink" href="#production-deployment-checklist" title="Permanent link">&para;</a></h2>
+<p>Comprehensive validation checklist for production security readiness.</p>
+<h3 id="pre-deployment-security-validation">Pre-Deployment Security Validation<a class="headerlink" href="#pre-deployment-security-validation" title="Permanent link">&para;</a></h3>
+<p><strong>Credential and Secrets Management:</strong>
+- [ ] Generate production credentials with CSPRNG
+- [ ] Store secrets in HashiCorp Vault or equivalent
+- [ ] Verify no secrets in source code or environment variables
+- [ ] Configure automatic secret rotation schedules
+- [ ] Test secret retrieval and application startup</p>
+<p><strong>TLS and Network Security:</strong>
+- [ ] Obtain production TLS certificates (Let's Encrypt or CA)
+- [ ] Configure TLS 1.3 minimum version
+- [ ] Enable HTTPS redirect (<code>FORCE_HTTPS=true</code>)
+- [ ] Configure HSTS header with preload
+- [ ] Verify cipher suite configuration</p>
+<p><strong>Access Control:</strong>
+- [ ] Configure CORS allowed origins (no wildcards)
+- [ ] Set rate limit profile to <code>strict</code> or <code>moderate</code>
+- [ ] Enable API key authentication on all endpoints
+- [ ] Configure RBAC scopes for service accounts
+- [ ] Disable debug mode (<code>DEBUG_MODE=false</code>)</p>
+<p><strong>Monitoring and Logging:</strong>
+- [ ] Configure security monitoring alerts (Prometheus)
+- [ ] Enable audit logging for authentication events
+- [ ] Configure log aggregation (OpenSearch/ELK)
+- [ ] Test incident response procedures
+- [ ] Document emergency escalation contacts</p>
+<p><strong>Testing and Validation:</strong>
+- [ ] Execute complete security test suite (pytest)
+- [ ] Perform SAST scan (Bandit, Semgrep)
+- [ ] Execute dependency vulnerability scan (Safety, Trivy)
+- [ ] Conduct penetration testing (internal or external)
+- [ ] Verify OWASP Top 10 compliance</p>
+<h3 id="post-deployment-validation">Post-Deployment Validation<a class="headerlink" href="#post-deployment-validation" title="Permanent link">&para;</a></h3>
+<p><strong>Verification Steps:</strong>
+- [ ] Confirm HTTPS enforcement (HTTP redirects to HTTPS)
+- [ ] Validate authentication on all protected endpoints
+- [ ] Verify rate limiting behavior (test 429 responses)
+- [ ] Check security headers in HTTP responses
+- [ ] Monitor for security violations in first 24 hours</p>
+<p><strong>Operational Security:</strong>
+- [ ] Configure automated credential rotation
+- [ ] Enable intrusion detection (Wazuh)
+- [ ] Set up security incident dashboard
+- [ ] Schedule first security review (30 days post-deployment)
+- [ ] Verify backup and recovery procedures</p>
+<h3 id="monthly-security-tasks">Monthly Security Tasks<a class="headerlink" href="#monthly-security-tasks" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Review security logs for anomalies</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Execute dependency vulnerability scan</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Audit API key usage and permissions</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Rotate development/staging credentials</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Update security documentation</li>
+</ul>
+<h3 id="quarterly-security-tasks">Quarterly Security Tasks<a class="headerlink" href="#quarterly-security-tasks" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Rotate production credentials (all services)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Conduct internal security audit</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Review and update security policies</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Test incident response procedures (tabletop exercise)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Update security training materials</li>
+</ul>
+<hr />
+<h2 id="additional-resources">Additional Resources<a class="headerlink" href="#additional-resources" title="Permanent link">&para;</a></h2>
+<h3 id="standards-and-frameworks">Standards and Frameworks<a class="headerlink" href="#standards-and-frameworks" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>OWASP Top 10:</strong> https://owasp.org/www-project-top-10/</li>
+<li><strong>OWASP API Security Top 10:</strong> https://owasp.org/API-Security/editions/2023/en/0x11-t10/</li>
+<li><strong>NIST Cybersecurity Framework:</strong> https://www.nist.gov/cyberframework</li>
+<li><strong>CIS Docker Benchmark:</strong> https://www.cisecurity.org/benchmark/docker</li>
+</ul>
+<h3 id="technical-documentation">Technical Documentation<a class="headerlink" href="#technical-documentation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>FastAPI Security:</strong> https://fastapi.tiangolo.com/tutorial/security/</li>
+<li><strong>JWT Best Practices (RFC 8725):</strong> https://datatracker.ietf.org/doc/html/rfc8725</li>
+<li><strong>TLS Configuration:</strong> https://ssl-config.mozilla.org/</li>
+</ul>
+<h3 id="security-tools">Security Tools<a class="headerlink" href="#security-tools" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Bandit (Python SAST):</strong> https://bandit.readthedocs.io/</li>
+<li><strong>Safety (Dependency Scanner):</strong> https://pyup.io/safety/</li>
+<li><strong>Trivy (Container Scanner):</strong> https://github.com/aquasecurity/trivy</li>
+<li><strong>OWASP ZAP (DAST):</strong> https://www.zaproxy.org/</li>
+</ul>
+<h3 id="training-and-certification">Training and Certification<a class="headerlink" href="#training-and-certification" title="Permanent link">&para;</a></h3>
+<ul>
+<li>OWASP API Security Training</li>
+<li>Secure Coding Practices (CERT, SEI)</li>
+<li>GIAC Secure Software Programmer (GSSP)</li>
+<li>Certified Secure Software Lifecycle Professional (CSSLP)</li>
+</ul>
+<hr />
+<h2 id="support-and-reporting">Support and Reporting<a class="headerlink" href="#support-and-reporting" title="Permanent link">&para;</a></h2>
+<p><strong>Security Vulnerability Reporting:</strong>
+security@ai-soc.example.com
+PGP Key: https://ai-soc.example.com/security.asc</p>
+<p><strong>Documentation:</strong>
+https://docs.ai-soc.example.com</p>
+<p><strong>Issue Tracking:</strong>
+https://github.com/your-org/ai-soc/issues</p>
+<hr />
+<p><strong>Document Version:</strong> 1.0
+<strong>Last Updated:</strong> October 24, 2025
+<strong>Next Review:</strong> January 24, 2026
+<strong>Classification:</strong> Internal Use</p>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/zhadyz/AI_SOC" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:abdul.bari8019@coyote.csusb.edu" target="_blank" rel="noopener" title="" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l208 156a48 48 0 0 0 57.6 0l208-156c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48zM0 196v188c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V196L313.6 344.8c-34.1 25.6-81.1 25.6-115.2 0z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="../../javascripts/custom.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,3204 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="AI-Augmented Security Operations Center - Production Implementation and Research Documentation">
+      
+      
+        <meta name="author" content="Abdul Bari">
+      
+      
+        <link rel="canonical" href="https://research.onyxlab.ai/ai-soc/experiments/ml-performance/">
+      
+      
+        <link rel="prev" href="../../architecture/dataflow/">
+      
+      
+        <link rel="next" href="../baseline-models/">
+      
+      
+      <link rel="icon" href="../../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
+    
+    
+      
+        <title>ML Model Performance - AI-SOC Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CSF+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"SF Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/custom.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config",""),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#machine-learning-model-performance" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AI-SOC Documentation" class="md-header__button md-logo" aria-label="AI-SOC Documentation" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AI-SOC Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ML Model Performance
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/zhadyz/AI_SOC" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    zhadyz/AI_SOC
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../research/survey-paper/" class="md-tabs__link">
+          
+  
+  
+  Research Foundation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/quickstart/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/overview/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Experimental Results
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../deployment/guide/" class="md-tabs__link">
+          
+  
+  
+  Deployment
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../security/guide/" class="md-tabs__link">
+          
+  
+  
+  Security
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/ml-inference/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../development/contributing/" class="md-tabs__link">
+          
+  
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../about/authors/" class="md-tabs__link">
+          
+  
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AI-SOC Documentation" class="md-nav__button md-logo" aria-label="AI-SOC Documentation" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    AI-SOC Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/zhadyz/AI_SOC" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    zhadyz/AI_SOC
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Research Foundation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Research Foundation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/survey-paper/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Survey Paper
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Research Context
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/contributions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Academic Contributions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/competitive-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Competitive Analysis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/bibliography/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Bibliography
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/requirements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Requirements
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/network-topology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Network Topology
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/components/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Component Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/dataflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Flow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Experimental Results
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Experimental Results
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    ML Model Performance
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    ML Model Performance
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Executive Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model Comparison
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model Comparison">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#performance-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Metrics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computational-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Computational Performance
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#random-forest-production-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Random Forest (Production Model)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Random Forest (Production Model)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#classification-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Classification Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operational-implications" class="md-nav__link">
+    <span class="md-ellipsis">
+      Operational Implications
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#classification-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      Classification Report
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xgboost-low-fp-alternative" class="md-nav__link">
+    <span class="md-ellipsis">
+      XGBoost (Low FP Alternative)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="XGBoost (Low FP Alternative)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#classification-performance_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Classification Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use Cases
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-tree-interpretable-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      Decision Tree (Interpretable Baseline)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Decision Tree (Interpretable Baseline)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#classification-performance_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Classification Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interpretability-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interpretability Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-cases_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use Cases
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparative-analysis-with-published-research" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparative Analysis with Published Research
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Comparative Analysis with Published Research">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#literature-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Literature Comparison
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-importance-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Feature Importance Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Importance Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#top-10-most-influential-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Top 10 Most Influential Features
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model Validation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cross-validation-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cross-Validation Results
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overfitting-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overfitting Analysis
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-under-load" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Under Load
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance Under Load">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#throughput-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Throughput Testing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#latency-distribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Latency Distribution
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#production-deployment-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production Deployment Validation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Production Deployment Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-performance-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Real-World Performance Testing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accuracy-validation-on-unseen-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Accuracy Validation on Unseen Data
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitations-and-future-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      Limitations and Future Work
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Limitations and Future Work">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#current-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current Limitations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#research-directions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Research Directions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Conclusions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Findings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#production-readiness-assessment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production Readiness Assessment
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Baseline Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Training Reports
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dataset Validation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Production Validation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Deployment
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Docker Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/production/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Production Deployment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/performance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Performance Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Security
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Security
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/baseline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security Baseline
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Hardening Procedures
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/incident-response/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Incident Response
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ml-inference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ML Inference API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/alert-triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Alert Triage API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/rag-service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    RAG Service API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Development
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Development
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Project Status
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Roadmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/authors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Authors & Acknowledgments
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    License
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Citation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Executive Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model Comparison
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model Comparison">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#performance-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Metrics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computational-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Computational Performance
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#random-forest-production-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Random Forest (Production Model)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Random Forest (Production Model)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#classification-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Classification Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operational-implications" class="md-nav__link">
+    <span class="md-ellipsis">
+      Operational Implications
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#classification-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      Classification Report
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xgboost-low-fp-alternative" class="md-nav__link">
+    <span class="md-ellipsis">
+      XGBoost (Low FP Alternative)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="XGBoost (Low FP Alternative)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#classification-performance_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Classification Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use Cases
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-tree-interpretable-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      Decision Tree (Interpretable Baseline)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Decision Tree (Interpretable Baseline)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#classification-performance_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Classification Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interpretability-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interpretability Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-cases_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use Cases
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparative-analysis-with-published-research" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparative Analysis with Published Research
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Comparative Analysis with Published Research">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#literature-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Literature Comparison
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-importance-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Feature Importance Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature Importance Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#top-10-most-influential-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Top 10 Most Influential Features
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model Validation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Model Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cross-validation-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cross-Validation Results
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overfitting-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overfitting Analysis
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-under-load" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Under Load
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance Under Load">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#throughput-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Throughput Testing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#latency-distribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Latency Distribution
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#production-deployment-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production Deployment Validation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Production Deployment Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-performance-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Real-World Performance Testing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accuracy-validation-on-unseen-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Accuracy Validation on Unseen Data
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitations-and-future-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      Limitations and Future Work
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Limitations and Future Work">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#current-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current Limitations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#research-directions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Research Directions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Conclusions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Findings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#production-readiness-assessment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production Readiness Assessment
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="machine-learning-model-performance">Machine Learning Model Performance<a class="headerlink" href="#machine-learning-model-performance" title="Permanent link">&para;</a></h1>
+<p>Comprehensive analysis of ML model performance on the CICIDS2017 intrusion detection dataset for binary classification.</p>
+<hr />
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">&para;</a></h2>
+<p>This research implementation achieved state-of-the-art performance on the CICIDS2017 dataset, exceeding published baselines while maintaining production-viable inference latency. The Random Forest classifier achieved 99.28% accuracy with a false positive rate of 0.25%, significantly outperforming industry standards.</p>
+<p><strong>Key Results:</strong>
+- <strong>Best Model:</strong> Random Forest (99.28% accuracy)
+- <strong>Lowest FP Rate:</strong> XGBoost (0.09%)
+- <strong>Fastest Inference:</strong> Decision Tree (0.2ms)
+- <strong>Dataset:</strong> 2,830,743 labeled network flows
+- <strong>Evaluation:</strong> Stratified 80/20 train/test split</p>
+<hr />
+<h2 id="model-comparison">Model Comparison<a class="headerlink" href="#model-comparison" title="Permanent link">&para;</a></h2>
+<h3 id="performance-metrics">Performance Metrics<a class="headerlink" href="#performance-metrics" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Accuracy</th>
+<th>Precision</th>
+<th>Recall</th>
+<th>F1-Score</th>
+<th>False Positive Rate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Random Forest</strong></td>
+<td>99.28%</td>
+<td>99.29%</td>
+<td>99.28%</td>
+<td>99.28%</td>
+<td>0.25%</td>
+</tr>
+<tr>
+<td><strong>XGBoost</strong></td>
+<td>99.21%</td>
+<td>99.23%</td>
+<td>99.21%</td>
+<td>99.21%</td>
+<td>0.09%</td>
+</tr>
+<tr>
+<td><strong>Decision Tree</strong></td>
+<td>99.10%</td>
+<td>99.13%</td>
+<td>99.10%</td>
+<td>99.11%</td>
+<td>0.24%</td>
+</tr>
+</tbody>
+</table>
+<h3 id="computational-performance">Computational Performance<a class="headerlink" href="#computational-performance" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Training Time</th>
+<th>Inference Time (avg)</th>
+<th>Model Size</th>
+<th>Throughput</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Random Forest</strong></td>
+<td>2.57s</td>
+<td>0.8ms</td>
+<td>2.93MB</td>
+<td>1,250 predictions/sec</td>
+</tr>
+<tr>
+<td><strong>XGBoost</strong></td>
+<td>0.79s</td>
+<td>0.3ms</td>
+<td>0.18MB</td>
+<td>3,333 predictions/sec</td>
+</tr>
+<tr>
+<td><strong>Decision Tree</strong></td>
+<td>5.22s</td>
+<td>0.2ms</td>
+<td>0.03MB</td>
+<td>5,000 predictions/sec</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="random-forest-production-model">Random Forest (Production Model)<a class="headerlink" href="#random-forest-production-model" title="Permanent link">&para;</a></h2>
+<p>Selected as the primary model for production deployment based on superior accuracy and balanced performance characteristics.</p>
+<h3 id="classification-performance">Classification Performance<a class="headerlink" href="#classification-performance" title="Permanent link">&para;</a></h3>
+<p><strong>Confusion Matrix:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>                    Predicted
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>                BENIGN    ATTACK
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Actual  BENIGN   8,840        22
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        ATTACK     282    32,858
+</span></code></pre></div></p>
+<p><strong>Detailed Metrics:</strong>
+- <strong>True Negative Rate:</strong> 99.75% (8,840/8,862)
+- <strong>True Positive Rate:</strong> 99.15% (32,858/33,140)
+- <strong>False Positive Rate:</strong> 0.25% (22/8,862)
+- <strong>False Negative Rate:</strong> 0.85% (282/33,140)</p>
+<h3 id="operational-implications">Operational Implications<a class="headerlink" href="#operational-implications" title="Permanent link">&para;</a></h3>
+<p>In a production environment processing 10,000 events/day:</p>
+<p><strong>False Positives:</strong>
+- Expected: ~25 false positives per 10,000 benign events
+- Industry Average: 100-500 false positives
+- <strong>Improvement:</strong> 4-20x reduction in analyst workload</p>
+<p><strong>False Negatives:</strong>
+- Expected: ~85 missed attacks per 10,000 true attacks
+- Critical Attack Detection: 99.15% probability
+- <strong>Risk:</strong> Acceptable with proper defense-in-depth</p>
+<h3 id="classification-report">Classification Report<a class="headerlink" href="#classification-report" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>              precision    recall  f1-score   support
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>      BENIGN       0.97      0.99      0.98      8862
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>      ATTACK       1.00      0.99      0.99     33140
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    accuracy                           0.99     42002
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>   macro avg       0.99      0.99      0.99     42002
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>weighted avg       0.99      0.99      0.99     42002
+</span></code></pre></div>
+<hr />
+<h2 id="xgboost-low-fp-alternative">XGBoost (Low FP Alternative)<a class="headerlink" href="#xgboost-low-fp-alternative" title="Permanent link">&para;</a></h2>
+<p>Optimized for scenarios where false positive minimization is paramount.</p>
+<h3 id="classification-performance_1">Classification Performance<a class="headerlink" href="#classification-performance_1" title="Permanent link">&para;</a></h3>
+<p><strong>Confusion Matrix:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>                    Predicted
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>                BENIGN    ATTACK
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>Actual  BENIGN   8,854         8
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>        ATTACK     325    32,815
+</span></code></pre></div></p>
+<p><strong>Key Advantage:</strong> Lowest False Positive Rate (0.09%)
+- Only 8 false positives out of 8,862 benign samples
+- <strong>Trade-off:</strong> Slightly higher false negatives (325 vs 282 for Random Forest)</p>
+<h3 id="use-cases">Use Cases<a class="headerlink" href="#use-cases" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>High-Security Environments:</strong></li>
+<li>Where false alarms significantly impact operations</li>
+<li>SOC teams with limited analyst capacity</li>
+<li>
+<p>Regulatory environments requiring low FP documentation</p>
+</li>
+<li>
+<p><strong>Resource-Constrained Deployments:</strong></p>
+</li>
+<li>Smallest model size (0.18MB)</li>
+<li>Fastest inference (0.3ms)</li>
+<li>Suitable for edge devices or embedded systems</li>
+</ol>
+<hr />
+<h2 id="decision-tree-interpretable-baseline">Decision Tree (Interpretable Baseline)<a class="headerlink" href="#decision-tree-interpretable-baseline" title="Permanent link">&para;</a></h2>
+<p>Provides full decision path explainability for regulatory compliance.</p>
+<h3 id="classification-performance_2">Classification Performance<a class="headerlink" href="#classification-performance_2" title="Permanent link">&para;</a></h3>
+<p><strong>Confusion Matrix:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>                    Predicted
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>                BENIGN    ATTACK
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>Actual  BENIGN   8,841        21
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>        ATTACK     355    32,785
+</span></code></pre></div></p>
+<h3 id="interpretability-features">Interpretability Features<a class="headerlink" href="#interpretability-features" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Full Decision Path Transparency:</strong></li>
+<li>Every prediction traceable through decision tree</li>
+<li>No "black box" components</li>
+<li>
+<p>Satisfies regulatory explainability requirements</p>
+</li>
+<li>
+<p><strong>Feature Importance Clear:</strong></p>
+</li>
+<li>Direct feature splitting criteria visible</li>
+<li>Easy to explain to non-technical stakeholders</li>
+<li>Auditability for compliance</li>
+</ol>
+<h3 id="use-cases_1">Use Cases<a class="headerlink" href="#use-cases_1" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Regulatory Compliance:</strong> Healthcare, finance, government</li>
+<li><strong>Educational/Training:</strong> SOC analyst training</li>
+<li><strong>Resource-Constrained:</strong> Smallest model (0.03MB), fastest (0.2ms)</li>
+</ol>
+<hr />
+<h2 id="comparative-analysis-with-published-research">Comparative Analysis with Published Research<a class="headerlink" href="#comparative-analysis-with-published-research" title="Permanent link">&para;</a></h2>
+<h3 id="literature-comparison">Literature Comparison<a class="headerlink" href="#literature-comparison" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Study</th>
+<th>Model</th>
+<th>Accuracy</th>
+<th>FP Rate</th>
+<th>Dataset</th>
+<th>Year</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>This Work</strong></td>
+<td><strong>Random Forest</strong></td>
+<td><strong>99.28%</strong></td>
+<td><strong>0.25%</strong></td>
+<td><strong>CICIDS2017</strong></td>
+<td><strong>2025</strong></td>
+</tr>
+<tr>
+<td>Sharafaldin et al.</td>
+<td>Random Forest</td>
+<td>99.1%</td>
+<td>Not reported</td>
+<td>CICIDS2017</td>
+<td>2018</td>
+</tr>
+<tr>
+<td>Bhattacharya et al.</td>
+<td>Deep Learning</td>
+<td>98.8%</td>
+<td>1.2%</td>
+<td>CICIDS2017</td>
+<td>2020</td>
+</tr>
+<tr>
+<td>Zhang et al.</td>
+<td>SVM</td>
+<td>97.5%</td>
+<td>2.3%</td>
+<td>CICIDS2017</td>
+<td>2019</td>
+</tr>
+<tr>
+<td>Kumar et al.</td>
+<td>Ensemble</td>
+<td>98.2%</td>
+<td>1.8%</td>
+<td>CICIDS2017</td>
+<td>2021</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key Finding:</strong> This implementation achieves state-of-the-art performance, exceeding all reviewed published baselines.</p>
+<hr />
+<h2 id="feature-importance-analysis">Feature Importance Analysis<a class="headerlink" href="#feature-importance-analysis" title="Permanent link">&para;</a></h2>
+<h3 id="top-10-most-influential-features">Top 10 Most Influential Features<a class="headerlink" href="#top-10-most-influential-features" title="Permanent link">&para;</a></h3>
+<p>Random Forest feature importance rankings:</p>
+<table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>Feature</th>
+<th>Importance</th>
+<th>Category</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Fwd Packet Length Mean</td>
+<td>15.2%</td>
+<td>Flow Statistics</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Flow Bytes/s</td>
+<td>12.8%</td>
+<td>Throughput</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Flow Packets/s</td>
+<td>11.3%</td>
+<td>Throughput</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Bwd Packet Length Mean</td>
+<td>9.7%</td>
+<td>Flow Statistics</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Flow Duration</td>
+<td>8.4%</td>
+<td>Timing</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Fwd IAT Total</td>
+<td>7.2%</td>
+<td>Inter-Arrival Time</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Active Mean</td>
+<td>6.9%</td>
+<td>Session Activity</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Idle Mean</td>
+<td>5.8%</td>
+<td>Session Activity</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Subflow Fwd Bytes</td>
+<td>5.3%</td>
+<td>Subflow Statistics</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Destination Port</td>
+<td>4.7%</td>
+<td>Network Layer</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Interpretation:</strong>
+- Model relies heavily on <strong>behavioral patterns</strong> (flow stats, timing)
+- Minimal reliance on payload inspection (privacy-preserving)
+- Aligns with established intrusion detection research emphasizing traffic analysis</p>
+<hr />
+<h2 id="model-validation">Model Validation<a class="headerlink" href="#model-validation" title="Permanent link">&para;</a></h2>
+<h3 id="cross-validation-results">Cross-Validation Results<a class="headerlink" href="#cross-validation-results" title="Permanent link">&para;</a></h3>
+<p><strong>5-Fold Cross-Validation:</strong>
+- <strong>Mean Accuracy:</strong> 99.26%
+- <strong>Standard Deviation:</strong> ±0.03%
+- <strong>Min Accuracy:</strong> 99.23%
+- <strong>Max Accuracy:</strong> 99.30%</p>
+<p><strong>Interpretation:</strong>
+- Minimal variance indicates <strong>stable performance</strong>
+- No evidence of overfitting
+- Performance generalizes across data splits</p>
+<h3 id="overfitting-analysis">Overfitting Analysis<a class="headerlink" href="#overfitting-analysis" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Accuracy</th>
+<th>Conclusion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Training Set</td>
+<td>99.30%</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Test Set</td>
+<td>99.28%</td>
+<td>No overfitting</td>
+</tr>
+<tr>
+<td>Cross-Validation</td>
+<td>99.26% ± 0.03%</td>
+<td>Stable generalization</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Finding:</strong> Negligible gap between training and test performance indicates proper generalization.</p>
+<hr />
+<h2 id="performance-under-load">Performance Under Load<a class="headerlink" href="#performance-under-load" title="Permanent link">&para;</a></h2>
+<h3 id="throughput-testing">Throughput Testing<a class="headerlink" href="#throughput-testing" title="Permanent link">&para;</a></h3>
+<p><strong>Random Forest Inference Throughput:</strong>
+- <strong>Single Prediction:</strong> 0.8ms average
+- <strong>Batch Prediction (100):</strong> 45ms total (0.45ms per prediction)
+- <strong>Batch Prediction (1000):</strong> 380ms total (0.38ms per prediction)</p>
+<p><strong>Maximum Sustained Throughput:</strong>
+- <strong>Single-threaded:</strong> 1,250 predictions/second
+- <strong>Multi-threaded (4 cores):</strong> 4,500 predictions/second
+- <strong>Multi-threaded (8 cores):</strong> 8,200 predictions/second</p>
+<h3 id="latency-distribution">Latency Distribution<a class="headerlink" href="#latency-distribution" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Percentile</th>
+<th>Latency (ms)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>p50 (median)</td>
+<td>0.7</td>
+</tr>
+<tr>
+<td>p95</td>
+<td>1.2</td>
+</tr>
+<tr>
+<td>p99</td>
+<td>1.8</td>
+</tr>
+<tr>
+<td>p99.9</td>
+<td>2.5</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Production SLA:</strong> 99% of predictions complete within 2ms.</p>
+<hr />
+<h2 id="production-deployment-validation">Production Deployment Validation<a class="headerlink" href="#production-deployment-validation" title="Permanent link">&para;</a></h2>
+<h3 id="real-world-performance-testing">Real-World Performance Testing<a class="headerlink" href="#real-world-performance-testing" title="Permanent link">&para;</a></h3>
+<p><strong>Test Environment:</strong>
+- Duration: 3 hours continuous operation
+- Load: 10,000 events/second
+- Infrastructure: Docker containerized deployment</p>
+<p><strong>Results:</strong>
+- <strong>Zero Service Crashes:</strong> 100% uptime
+- <strong>Zero Model Failures:</strong> All predictions successful
+- <strong>Consistent Latency:</strong> p95 latency stable at 1.2ms
+- <strong>Memory Stability:</strong> No memory leaks detected</p>
+<h3 id="accuracy-validation-on-unseen-data">Accuracy Validation on Unseen Data<a class="headerlink" href="#accuracy-validation-on-unseen-data" title="Permanent link">&para;</a></h3>
+<p><strong>Holdout Dataset (Never Used in Training/Validation):</strong>
+- <strong>Size:</strong> 50,000 samples
+- <strong>Accuracy:</strong> 99.26%
+- <strong>Consistency:</strong> Within 0.02% of test set performance</p>
+<p><strong>Conclusion:</strong> Model generalizes well to completely unseen data.</p>
+<hr />
+<h2 id="limitations-and-future-work">Limitations and Future Work<a class="headerlink" href="#limitations-and-future-work" title="Permanent link">&para;</a></h2>
+<h3 id="current-limitations">Current Limitations<a class="headerlink" href="#current-limitations" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Binary Classification Only:</strong></li>
+<li>Current: BENIGN vs ATTACK</li>
+<li>
+<p>Future: 14-class attack categorization (DoS, Port Scan, Brute Force, etc.)</p>
+</li>
+<li>
+<p><strong>Single Dataset Training:</strong></p>
+</li>
+<li>Trained exclusively on CICIDS2017</li>
+<li>
+<p>Future: Multi-dataset training for broader generalization</p>
+</li>
+<li>
+<p><strong>No Adversarial Testing:</strong></p>
+</li>
+<li>Model vulnerability to evasion attacks untested</li>
+<li>Future: Adversarial robustness evaluation</li>
+</ol>
+<h3 id="research-directions">Research Directions<a class="headerlink" href="#research-directions" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Multi-Class Classification:</strong></li>
+<li>Extend to full 14-class CICIDS2017 taxonomy</li>
+<li>
+<p>Hierarchical classification (coarse → fine-grained)</p>
+</li>
+<li>
+<p><strong>Transfer Learning:</strong></p>
+</li>
+<li>Evaluate on UNSW-NB15, CICIoT2023</li>
+<li>
+<p>Quantify cross-dataset generalization</p>
+</li>
+<li>
+<p><strong>Explainable AI:</strong></p>
+</li>
+<li>SHAP/LIME integration</li>
+<li>Per-prediction explanations</li>
+<li>
+<p>Analyst-friendly visualizations</p>
+</li>
+<li>
+<p><strong>Online Learning:</strong></p>
+</li>
+<li>Concept drift detection</li>
+<li>Automated model retraining</li>
+<li>Active learning for efficient labeling</li>
+</ol>
+<hr />
+<h2 id="conclusions">Conclusions<a class="headerlink" href="#conclusions" title="Permanent link">&para;</a></h2>
+<h3 id="key-findings">Key Findings<a class="headerlink" href="#key-findings" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>State-of-the-Art Performance Achieved:</strong></li>
+<li>99.28% accuracy exceeds published baselines</li>
+<li>
+<p>0.25% FP rate significantly below industry average (1-5%)</p>
+</li>
+<li>
+<p><strong>Production Viability Confirmed:</strong></p>
+</li>
+<li>Sub-millisecond inference latency</li>
+<li>Stable performance under sustained load</li>
+<li>
+<p>Zero service failures during testing</p>
+</li>
+<li>
+<p><strong>Research Validation:</strong></p>
+</li>
+<li>Empirically validates survey predictions of 95-99% accuracy</li>
+<li>Demonstrates feasibility of ML-based intrusion detection</li>
+<li>Provides open-source reference implementation</li>
+</ol>
+<h3 id="production-readiness-assessment">Production Readiness Assessment<a class="headerlink" href="#production-readiness-assessment" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Criterion</th>
+<th>Status</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Accuracy</strong></td>
+<td>Ready</td>
+<td>99.28% exceeds 95% requirement</td>
+</tr>
+<tr>
+<td><strong>Latency</strong></td>
+<td>Ready</td>
+<td>&lt;1ms significantly below 100ms requirement</td>
+</tr>
+<tr>
+<td><strong>Stability</strong></td>
+<td>Ready</td>
+<td>3-hour stress test passed</td>
+</tr>
+<tr>
+<td><strong>Scalability</strong></td>
+<td>Ready</td>
+<td>10,000 events/sec validated</td>
+</tr>
+<tr>
+<td><strong>Interpretability</strong></td>
+<td>Partial</td>
+<td>Feature importance available, SHAP pending</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Overall Assessment:</strong> PRODUCTION READY for deployment in enterprise SOC environments.</p>
+<hr />
+<p><strong>Performance Report Version:</strong> 1.0
+<strong>Dataset:</strong> CICIDS2017 (2.8M flows)
+<strong>Evaluation Date:</strong> October 2025
+<strong>Maintained By:</strong> AI-SOC Research Team</p>
+<p>For detailed training procedures, see <a href="../training/">Training Reports</a>.
+For baseline model comparisons, see <a href="../baseline-models/">Baseline Models</a>.</p>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/zhadyz/AI_SOC" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:abdul.bari8019@coyote.csusb.edu" target="_blank" rel="noopener" title="" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l208 156a48 48 0 0 0 57.6 0l208-156c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48zM0 196v188c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V196L313.6 344.8c-34.1 25.6-81.1 25.6-115.2 0z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="../../javascripts/custom.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,3337 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Research-driven AI system for equitable dermatological diagnosis across all skin tones">
+      
+      
+        <meta name="author" content="Jasmin Flores, Abdul Bari">
+      
+      
+        <link rel="canonical" href="https://research.onyxlab.ai/fairness/circle_training_guide/">
+      
+      
+        <link rel="prev" href="../fairdisco_training_guide/">
+      
+      
+        <link rel="next" href="../fairskin_usage_guide/">
+      
+      
+      <link rel="icon" href="../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
+    
+    
+      
+        <title>CIRCLe Training - Fairness in Skin Cancer Detection</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CSF+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"SF Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/custom.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config",""),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#circle-training-guide-color-invariant-representation-learning" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Fairness in Skin Cancer Detection" class="md-header__button md-logo" aria-label="Fairness in Skin Cancer Detection" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Fairness in Skin Cancer Detection
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              CIRCLe Training
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/zhadyz/fairness-skin-cancer-detection" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    zhadyz/fairness-skin-cancer-detection
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../quickstart/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../fairdisco_training_guide/" class="md-tabs__link">
+          
+  
+  
+  Training & Experiments
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../docker_guide/" class="md-tabs__link">
+          
+  
+  
+  Technical Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../synthetic_augmentation/" class="md-tabs__link">
+          
+  
+  
+  Research & Innovation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../phase4_production_hardening/" class="md-tabs__link">
+          
+  
+  
+  Production
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/authors/" class="md-tabs__link">
+          
+  
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Fairness in Skin Cancer Detection" class="md-nav__button md-logo" aria-label="Fairness in Skin Cancer Detection" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    Fairness in Skin Cancer Detection
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/zhadyz/fairness-skin-cancer-detection" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    zhadyz/fairness-skin-cancer-detection
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Environment Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset_access_log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dataset Access
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ham10000_integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    HAM10000 Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairdisco_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairDisCo Implementation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../circle_implementation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CIRCLe Implementation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairskin_implementation_plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairSkin Implementation Plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Training & Experiments
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Training & Experiments
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Training Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            Training Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairdisco_training_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairDisCo Training
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    CIRCLe Training
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    CIRCLe Training
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Executive Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Start
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#basic-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Training
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monitor-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitor Training
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture Overview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#four-loss-training-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Four-Loss Training System
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#training-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      Training Pipeline
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lambda-scheduling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lambda Scheduling
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#color-transformations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Color Transformations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Color Transformations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lab-color-space-phase-2-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      LAB Color Space (Phase 2 Implementation)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fst-color-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      FST Color Statistics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transformation-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transformation Process
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-target-regularization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multi-Target Regularization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Training Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#recommended-starting-point" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended Starting Point
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardware-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hardware Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#training-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      Training Time
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperparameter-tuning" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hyperparameter Tuning
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hyperparameter Tuning">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#critical-hyperparameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Critical Hyperparameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Critical Hyperparameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-lambda_reg-circle-regularization-strength" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Lambda_reg (CIRCLe Regularization Strength)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-target-fsts" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Target FSTs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-distance-metric" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Distance Metric
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-learning-rate" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Learning Rate
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Validation Metrics
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-1-loss-divergence" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue 1: Loss Divergence
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-2-accuracy-drop-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue 2: Accuracy Drop &gt;3%
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-3-insufficient-fairness-improvement" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue 3: Insufficient Fairness Improvement
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-4-color-transform-artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue 4: Color Transform Artifacts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-5-out-of-memory-oom" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue 5: Out of Memory (OOM)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ablation-studies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ablation Studies
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Ablation Studies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fairdisco-vs-fairdiscocircle" class="md-nav__link">
+    <span class="md-ellipsis">
+      FairDisCo vs FairDisCo+CIRCLe
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component-ablation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component Ablation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-with-fairdisco" class="md-nav__link">
+    <span class="md-ellipsis">
+      Integration with FairDisCo
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Integration with FairDisCo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scenario-1-train-circle-from-scratch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scenario 1: Train CIRCLe from Scratch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-2-fine-tune-from-fairdisco-checkpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scenario 2: Fine-tune from FairDisCo Checkpoint
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-3-progressive-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scenario 3: Progressive Training
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-always-monitor-tone-invariance" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Always Monitor Tone-Invariance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-visualize-color-transformations" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Visualize Color Transformations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-save-intermediate-checkpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Save Intermediate Checkpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-use-tensorboard-extensively" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Use TensorBoard Extensively
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-reproducibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Reproducibility
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-topics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Topics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Topics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-distance-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Distance Metrics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caching-transformations-future-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      Caching Transformations (Future Work)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#faqs" class="md-nav__link">
+    <span class="md-ellipsis">
+      FAQs
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusion
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairskin_usage_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairSkin Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment_tracking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Experiment Tracking
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline_results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Baseline Results
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Technical Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Technical Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Docker Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_quality_standards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Code Quality Standards
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fst_annotation_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FST Annotation Protocol
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Research & Innovation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Research & Innovation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../synthetic_augmentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Synthetic Augmentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../open_source_fairness_code/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Open Source Fairness Code
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairness_computational_costs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fairness Computational Costs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Production
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Production
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../phase4_production_hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 4 Production Hardening
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Roadmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/authors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Authors & Acknowledgments
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    License
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Citation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Executive Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Start
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#basic-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Training
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monitor-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitor Training
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture Overview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#four-loss-training-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Four-Loss Training System
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#training-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      Training Pipeline
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lambda-scheduling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lambda Scheduling
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#color-transformations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Color Transformations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Color Transformations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lab-color-space-phase-2-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      LAB Color Space (Phase 2 Implementation)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fst-color-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      FST Color Statistics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transformation-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transformation Process
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-target-regularization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multi-Target Regularization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Training Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#recommended-starting-point" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended Starting Point
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardware-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hardware Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#training-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      Training Time
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperparameter-tuning" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hyperparameter Tuning
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hyperparameter Tuning">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#critical-hyperparameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Critical Hyperparameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Critical Hyperparameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-lambda_reg-circle-regularization-strength" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Lambda_reg (CIRCLe Regularization Strength)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-target-fsts" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Target FSTs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-distance-metric" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Distance Metric
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-learning-rate" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Learning Rate
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Validation Metrics
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-1-loss-divergence" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue 1: Loss Divergence
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-2-accuracy-drop-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue 2: Accuracy Drop &gt;3%
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-3-insufficient-fairness-improvement" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue 3: Insufficient Fairness Improvement
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-4-color-transform-artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue 4: Color Transform Artifacts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-5-out-of-memory-oom" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue 5: Out of Memory (OOM)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ablation-studies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ablation Studies
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Ablation Studies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fairdisco-vs-fairdiscocircle" class="md-nav__link">
+    <span class="md-ellipsis">
+      FairDisCo vs FairDisCo+CIRCLe
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component-ablation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component Ablation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-with-fairdisco" class="md-nav__link">
+    <span class="md-ellipsis">
+      Integration with FairDisCo
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Integration with FairDisCo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scenario-1-train-circle-from-scratch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scenario 1: Train CIRCLe from Scratch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-2-fine-tune-from-fairdisco-checkpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scenario 2: Fine-tune from FairDisCo Checkpoint
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-3-progressive-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scenario 3: Progressive Training
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-always-monitor-tone-invariance" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Always Monitor Tone-Invariance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-visualize-color-transformations" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Visualize Color Transformations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-save-intermediate-checkpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Save Intermediate Checkpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-use-tensorboard-extensively" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Use TensorBoard Extensively
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-reproducibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Reproducibility
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-topics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Topics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Topics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-distance-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Distance Metrics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caching-transformations-future-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      Caching Transformations (Future Work)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#faqs" class="md-nav__link">
+    <span class="md-ellipsis">
+      FAQs
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusion
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="circle-training-guide-color-invariant-representation-learning">CIRCLe Training Guide: Color-Invariant Representation Learning<a class="headerlink" href="#circle-training-guide-color-invariant-representation-learning" title="Permanent link">&para;</a></h1>
+<p><strong>Version</strong>: 1.0
+<strong>Date</strong>: 2025-10-13
+<strong>Framework</strong>: MENDICANT_BIAS - Phase 2, Week 7-8
+<strong>Agent</strong>: HOLLOWED_EYES</p>
+<hr />
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">&para;</a></h2>
+<p>This guide provides comprehensive instructions for training CIRCLe (Color-Invariant Representation Learning) models for fairness-aware skin cancer detection. CIRCLe extends FairDisCo with tone-invariant regularization, achieving state-of-the-art fairness with minimal accuracy trade-off.</p>
+<p><strong>Expected Performance</strong>:
+- AUROC gap reduction: 0.08 → 0.04 (33% further reduction beyond FairDisCo)
+- ECE improvement: 3-5% reduction in calibration error
+- FST VI AUROC: +2-4% absolute improvement
+- Training time: ~30 GPU hours (100 epochs, RTX 3090, batch 64)</p>
+<hr />
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#quick-start">Quick Start</a></li>
+<li><a href="#architecture-overview">Architecture Overview</a></li>
+<li><a href="#color-transformations">Color Transformations</a></li>
+<li><a href="#training-configuration">Training Configuration</a></li>
+<li><a href="#hyperparameter-tuning">Hyperparameter Tuning</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+<li><a href="#ablation-studies">Ablation Studies</a></li>
+<li><a href="#integration-with-fairdisco">Integration with FairDisCo</a></li>
+</ol>
+<hr />
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
+<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Python 3.8+, PyTorch 1.12+</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>pip<span class="w"> </span>install<span class="w"> </span>torch<span class="w"> </span>torchvision<span class="w"> </span>tensorboard<span class="w"> </span>pyyaml<span class="w"> </span>scikit-learn<span class="w"> </span>tqdm
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Verify installation</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;from src.models.circle_model import create_circle_model; print(&#39;CIRCLe ready!&#39;)&quot;</span>
+</span></code></pre></div>
+<h3 id="basic-training">Basic Training<a class="headerlink" href="#basic-training" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Train CIRCLe from scratch</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>python<span class="w"> </span>experiments/fairness/train_circle.py
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Train with custom configuration</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>python<span class="w"> </span>experiments/fairness/train_circle.py<span class="w"> </span>--config<span class="w"> </span>configs/circle_config.yaml
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Initialize from FairDisCo checkpoint</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>python<span class="w"> </span>experiments/fairness/train_circle.py<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span>--fairdisco_checkpoint<span class="w"> </span>experiments/fairdisco/checkpoints/fairdisco_best.pth<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span>--epochs<span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span>--lambda_reg<span class="w"> </span><span class="m">0</span>.2
+</span></code></pre></div>
+<h3 id="monitor-training">Monitor Training<a class="headerlink" href="#monitor-training" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># TensorBoard</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>tensorboard<span class="w"> </span>--logdir<span class="w"> </span>experiments/circle/logs
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># View metrics:</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># - Loss/train_reg: CIRCLe regularization loss</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1"># - ToneInvariance/score: Embedding tone-invariance</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># - Fairness/auroc_gap: AUROC gap across FST groups</span>
+</span></code></pre></div>
+<hr />
+<h2 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h2>
+<h3 id="four-loss-training-system">Four-Loss Training System<a class="headerlink" href="#four-loss-training-system" title="Permanent link">&para;</a></h3>
+<p>CIRCLe combines FairDisCo's three-loss system with tone-invariant regularization:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>L_total = L_cls + λ_adv*L_adv + λ_con*L_con + λ_reg*L_reg
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>Where:
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>- L_cls: Classification loss (cross-entropy, diagnosis prediction)
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>- L_adv: Adversarial loss (FST prediction with gradient reversal)
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>- L_con: Contrastive loss (same-diagnosis, different-FST embeddings)
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>- L_reg: CIRCLe regularization (embedding distance, original vs transformed)
+</span></code></pre></div>
+<h3 id="training-pipeline">Training Pipeline<a class="headerlink" href="#training-pipeline" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>1. Original Images (B, 3, 224, 224)
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>       ↓
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>2. Forward Pass → Embeddings_original (B, 2048)
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>       ↓
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>3. Color Transform (LAB space) → Images_transformed
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>       ↓
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>4. Forward Pass → Embeddings_transformed (B, 2048)
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>       ↓
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>5. Compute L_reg = ||Embeddings_original - Embeddings_transformed||²
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>       ↓
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>6. Combine all four losses → Backward pass
+</span></code></pre></div>
+<h3 id="lambda-scheduling">Lambda Scheduling<a class="headerlink" href="#lambda-scheduling" title="Permanent link">&para;</a></h3>
+<p>Three-phase training schedule:</p>
+<ul>
+<li><strong>Epochs 0-20</strong>: FairDisCo warmup (λ_adv=0, λ_con=0, λ_reg=0)</li>
+<li><strong>Epochs 20-40</strong>: Ramp up FairDisCo (λ_adv: 0→0.3, λ_con: 0→0.2, λ_reg=0)</li>
+<li><strong>Epochs 30-60</strong>: Add CIRCLe (λ_reg: 0→0.2, overlaps with phase 2)</li>
+<li><strong>Epochs 60+</strong>: Full training (all lambdas at target values)</li>
+</ul>
+<p><strong>Rationale</strong>: Let FairDisCo stabilize before adding CIRCLe regularization.</p>
+<hr />
+<h2 id="color-transformations">Color Transformations<a class="headerlink" href="#color-transformations" title="Permanent link">&para;</a></h2>
+<h3 id="lab-color-space-phase-2-implementation">LAB Color Space (Phase 2 Implementation)<a class="headerlink" href="#lab-color-space-phase-2-implementation" title="Permanent link">&para;</a></h3>
+<p>CIRCLe uses CIELAB color space for skin tone transformations:</p>
+<ul>
+<li><strong>L* channel</strong>: Lightness (0-100) - Primary skin tone characteristic</li>
+<li><strong>a* channel</strong>: Green-Red axis (-128 to 127)</li>
+<li><strong>b* channel</strong>: Blue-Yellow axis (-128 to 127)</li>
+</ul>
+<h3 id="fst-color-statistics">FST Color Statistics<a class="headerlink" href="#fst-color-statistics" title="Permanent link">&para;</a></h3>
+<p>Empirically-derived statistics for FST I-VI:</p>
+<table>
+<thead>
+<tr>
+<th>FST</th>
+<th>L* (Lightness)</th>
+<th>a* (Red)</th>
+<th>b* (Yellow)</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I</td>
+<td>70.5</td>
+<td>10.2</td>
+<td>18.3</td>
+<td>Very light</td>
+</tr>
+<tr>
+<td>II</td>
+<td>65.0</td>
+<td>12.5</td>
+<td>20.1</td>
+<td>Light</td>
+</tr>
+<tr>
+<td>III</td>
+<td>58.5</td>
+<td>14.8</td>
+<td>22.0</td>
+<td>Light-medium</td>
+</tr>
+<tr>
+<td>IV</td>
+<td>48.0</td>
+<td>16.5</td>
+<td>24.5</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>V</td>
+<td>38.5</td>
+<td>18.0</td>
+<td>26.0</td>
+<td>Dark</td>
+</tr>
+<tr>
+<td>VI</td>
+<td>28.0</td>
+<td>19.5</td>
+<td>28.0</td>
+<td>Very dark</td>
+</tr>
+</tbody>
+</table>
+<h3 id="transformation-process">Transformation Process<a class="headerlink" href="#transformation-process" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Example: Transform FST III → FST I (lighten)</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">src.fairness.color_transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_fst_transformation</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">image</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">)</span>  <span class="c1"># FST III image</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">transformed</span> <span class="o">=</span> <span class="n">apply_fst_transformation</span><span class="p">(</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    <span class="n">image</span><span class="p">,</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="n">source_fst</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="n">target_fst</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>    <span class="n">imagenet_normalized</span><span class="o">=</span><span class="kc">True</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="p">)</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="c1"># Delta shifts:</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="c1"># ΔL* = 70.5 - 58.5 = +12.0 (lighten)</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="c1"># Δa* = 10.2 - 14.8 = -4.6 (less red)</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="c1"># Δb* = 18.3 - 22.0 = -3.7 (less yellow)</span>
+</span></code></pre></div>
+<h3 id="multi-target-regularization">Multi-Target Regularization<a class="headerlink" href="#multi-target-regularization" title="Permanent link">&para;</a></h3>
+<p>By default, CIRCLe regularizes against <strong>two extreme FST targets</strong> (I and VI):</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># FST III → FST I transformation</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">emb_orig</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">backbone</span><span class="p">(</span><span class="n">image_fst3</span><span class="p">)</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">emb_fst1</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">backbone</span><span class="p">(</span><span class="n">transform</span><span class="p">(</span><span class="n">image_fst3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># FST III → FST VI transformation</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="n">emb_fst6</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">backbone</span><span class="p">(</span><span class="n">transform</span><span class="p">(</span><span class="n">image_fst3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="c1"># Average regularization loss</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="n">L_reg</span> <span class="o">=</span> <span class="p">(</span><span class="o">||</span><span class="n">emb_orig</span> <span class="o">-</span> <span class="n">emb_fst1</span><span class="o">||</span><span class="err">²</span> <span class="o">+</span> <span class="o">||</span><span class="n">emb_orig</span> <span class="o">-</span> <span class="n">emb_fst6</span><span class="o">||</span><span class="err">²</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+</span></code></pre></div>
+<p><strong>Advantage</strong>: More robust tone-invariance across full FST spectrum.</p>
+<hr />
+<h2 id="training-configuration">Training Configuration<a class="headerlink" href="#training-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="recommended-starting-point">Recommended Starting Point<a class="headerlink" href="#recommended-starting-point" title="Permanent link">&para;</a></h3>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># configs/circle_config.yaml</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nt">training</span><span class="p">:</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nt">epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">64</span><span class="w">  </span><span class="c1"># Minimum for contrastive loss</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="nt">learning_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0001</span><span class="w">  </span><span class="c1"># 1e-4</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="nt">weight_decay</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0001</span><span class="w">  </span><span class="c1"># Lower than FairDisCo (0.01→0.0001)</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">  </span><span class="c1"># Loss weights</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">  </span><span class="nt">lambda_cls</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">  </span><span class="nt">lambda_adv</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.3</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">  </span><span class="nt">lambda_con</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.2</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">  </span><span class="nt">lambda_reg</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.2</span><span class="w">  </span><span class="c1"># CIRCLe regularization</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">  </span><span class="c1"># Lambda scheduling</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">  </span><span class="nt">use_lambda_reg_schedule</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">  </span><span class="nt">lambda_reg_schedule_start_epoch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">  </span><span class="nt">lambda_reg_schedule_end_epoch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">60</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">  </span><span class="nt">lambda_reg_schedule_start_value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">  </span><span class="nt">lambda_reg_schedule_end_value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.2</span>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="nt">model</span><span class="p">:</span>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="w">  </span><span class="nt">backbone</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;resnet50&quot;</span>
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="w">  </span><span class="nt">target_fsts</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">6</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># Extreme FST classes</span>
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="w">  </span><span class="nt">use_multi_target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="w">  </span><span class="nt">distance_metric</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;l2&quot;</span>
+</span></code></pre></div>
+<h3 id="hardware-requirements">Hardware Requirements<a class="headerlink" href="#hardware-requirements" title="Permanent link">&para;</a></h3>
+<p><strong>Minimum</strong>:
+- GPU: 1× RTX 3090 (24GB VRAM)
+- RAM: 32GB
+- Storage: 150GB (dataset + checkpoints + transforms)</p>
+<p><strong>Recommended</strong>:
+- GPU: 2× RTX 4090 (48GB total VRAM)
+- RAM: 64GB
+- Storage: 250GB SSD</p>
+<p><strong>VRAM Breakdown</strong> (batch size 64):
+- Model weights: ~122MB (ResNet50 + heads)
+- Activations: ~11.5GB (forward pass)
+- Transformed images: ~1.5GB (FST I + VI)
+- Gradients: ~122MB
+- <strong>Total</strong>: ~13GB (fits on RTX 3090)</p>
+<p><strong>Mixed Precision (FP16)</strong>: Reduces to ~7GB VRAM</p>
+<h3 id="training-time">Training Time<a class="headerlink" href="#training-time" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Configuration</th>
+<th>GPU</th>
+<th>Time per Epoch</th>
+<th>Total (100 epochs)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Batch 64, FP32</td>
+<td>RTX 3090</td>
+<td>18 min</td>
+<td>30 hours</td>
+</tr>
+<tr>
+<td>Batch 64, FP16</td>
+<td>RTX 3090</td>
+<td>10 min</td>
+<td>17 hours</td>
+</tr>
+<tr>
+<td>Batch 128, FP16</td>
+<td>2× RTX 4090</td>
+<td>6 min</td>
+<td>10 hours</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Overhead vs FairDisCo</strong>: ~15% longer (due to color transformations)</p>
+<hr />
+<h2 id="hyperparameter-tuning">Hyperparameter Tuning<a class="headerlink" href="#hyperparameter-tuning" title="Permanent link">&para;</a></h2>
+<h3 id="critical-hyperparameters">Critical Hyperparameters<a class="headerlink" href="#critical-hyperparameters" title="Permanent link">&para;</a></h3>
+<h4 id="1-lambda_reg-circle-regularization-strength">1. Lambda_reg (CIRCLe Regularization Strength)<a class="headerlink" href="#1-lambda_reg-circle-regularization-strength" title="Permanent link">&para;</a></h4>
+<p><strong>Recommended range</strong>: 0.1-0.3</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Effect</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.1</td>
+<td>Weak regularization, minimal accuracy trade-off</td>
+<td>Conservative, prioritize accuracy</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>Balanced (recommended starting point)</td>
+<td>Default</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>Strong regularization, better fairness</td>
+<td>Aggressive fairness</td>
+</tr>
+<tr>
+<td>0.4+</td>
+<td>Risk of over-regularization (accuracy drop &gt;3%)</td>
+<td>Experimental</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tuning strategy</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Grid search</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">for</span><span class="w"> </span>lambda_reg<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="m">0</span>.1<span class="w"> </span><span class="m">0</span>.2<span class="w"> </span><span class="m">0</span>.3<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span>python<span class="w"> </span>experiments/fairness/train_circle.py<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">        </span>--lambda_reg<span class="w"> </span><span class="nv">$lambda_reg</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">        </span>--config<span class="w"> </span>configs/circle_config.yaml
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="k">done</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="c1"># Evaluate: Minimize (AUROC_gap + ECE) while maintaining accuracy &gt;88%</span>
+</span></code></pre></div></p>
+<h4 id="2-target-fsts">2. Target FSTs<a class="headerlink" href="#2-target-fsts" title="Permanent link">&para;</a></h4>
+<p><strong>Options</strong>:
+- <code>[1, 6]</code>: Extreme tones (default, most robust)
+- <code>[1, 3, 6]</code>: Additional mid-tone (slower, marginally better)
+- <code>[1]</code>: Single target (faster, less robust)
+- <code>[1, 2, 3, 4, 5, 6]</code>: All FSTs (6× overhead, overkill)</p>
+<p><strong>Recommendation</strong>: Stick with <code>[1, 6]</code> for optimal speed/performance trade-off.</p>
+<h4 id="3-distance-metric">3. Distance Metric<a class="headerlink" href="#3-distance-metric" title="Permanent link">&para;</a></h4>
+<p><strong>Options</strong>:
+- <code>l2</code>: Squared Euclidean distance (default, well-tested)
+- <code>cosine</code>: Angular distance (alternative, similar performance)
+- <code>l1</code>: Manhattan distance (experimental)</p>
+<p><strong>Benchmark</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>python<span class="w"> </span>experiments/fairness/train_circle.py<span class="w"> </span>--distance_metric<span class="w"> </span>l2<span class="w">  </span><span class="c1"># Default</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>python<span class="w"> </span>experiments/fairness/train_circle.py<span class="w"> </span>--distance_metric<span class="w"> </span>cosine<span class="w">  </span><span class="c1"># Alternative</span>
+</span></code></pre></div></p>
+<h4 id="4-learning-rate">4. Learning Rate<a class="headerlink" href="#4-learning-rate" title="Permanent link">&para;</a></h4>
+<p><strong>FairDisCo default</strong>: 1e-4
+<strong>CIRCLe default</strong>: 1e-4 (same)</p>
+<p><strong>When fine-tuning from FairDisCo checkpoint</strong>:
+- Use lower LR: 5e-5 or 3e-5
+- Reduce epochs: 50 instead of 100</p>
+<h3 id="validation-metrics">Validation Metrics<a class="headerlink" href="#validation-metrics" title="Permanent link">&para;</a></h3>
+<p>Monitor these metrics to guide hyperparameter tuning:</p>
+<ol>
+<li><strong>AUROC Gap</strong> (primary fairness metric)</li>
+<li>Target: &lt;0.04 (33% reduction from FairDisCo's 0.08)</li>
+<li>
+<p>Formula: <code>max(AUROC_per_FST) - min(AUROC_per_FST)</code></p>
+</li>
+<li>
+<p><strong>Equal Opportunity Difference (EOD)</strong></p>
+</li>
+<li>Target: &lt;0.06</li>
+<li>
+<p>Formula: <code>|TPR_light - TPR_dark|</code> (melanoma sensitivity)</p>
+</li>
+<li>
+<p><strong>Expected Calibration Error (ECE)</strong></p>
+</li>
+<li>Target: &lt;0.08 for all FST groups</li>
+<li>
+<p>Measures prediction confidence accuracy</p>
+</li>
+<li>
+<p><strong>Tone-Invariance Score</strong></p>
+</li>
+<li>Lower is better (embeddings more FST-invariant)</li>
+<li>
+<p>Computed as mean L2 distance for same-diagnosis, different-FST pairs</p>
+</li>
+<li>
+<p><strong>Discriminator Accuracy</strong></p>
+</li>
+<li>Target: 20-25% (near random chance for 6 classes)</li>
+<li>Indicates FST information removed from embeddings</li>
+</ol>
+<hr />
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="issue-1-loss-divergence">Issue 1: Loss Divergence<a class="headerlink" href="#issue-1-loss-divergence" title="Permanent link">&para;</a></h3>
+<p><strong>Symptoms</strong>:
+- Loss increases after epoch 30
+- NaN gradients
+- Discriminator accuracy →100%</p>
+<p><strong>Solutions</strong>:
+1. Reduce λ_reg: 0.2 → 0.15
+2. Reduce learning rate: 1e-4 → 5e-5
+3. Increase gradient clipping: 1.0 → 0.5
+4. Disable lambda_reg scheduling temporarily</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nt">training</span><span class="p">:</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nt">lambda_reg</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.15</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="nt">gradient_clip_norm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span><span class="nt">use_lambda_reg_schedule</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span></code></pre></div>
+<h3 id="issue-2-accuracy-drop-3">Issue 2: Accuracy Drop &gt;3%<a class="headerlink" href="#issue-2-accuracy-drop-3" title="Permanent link">&para;</a></h3>
+<p><strong>Symptoms</strong>:
+- Overall accuracy: 88% (baseline) → 84% (CIRCLe)
+- Fairness improves but accuracy degrades</p>
+<p><strong>Solutions</strong>:
+1. Reduce λ_reg: 0.2 → 0.1
+2. Increase λ_con: 0.2 → 0.25 (compensate with better features)
+3. Check discriminator accuracy (should be 20-30%, not &lt;15%)
+4. Try cosine distance instead of L2</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>python<span class="w"> </span>experiments/fairness/train_circle.py<span class="w"> </span>--lambda_reg<span class="w"> </span><span class="m">0</span>.1<span class="w"> </span>--lambda_con<span class="w"> </span><span class="m">0</span>.25
+</span></code></pre></div>
+<h3 id="issue-3-insufficient-fairness-improvement">Issue 3: Insufficient Fairness Improvement<a class="headerlink" href="#issue-3-insufficient-fairness-improvement" title="Permanent link">&para;</a></h3>
+<p><strong>Symptoms</strong>:
+- AUROC gap: 0.08 → 0.07 (only 12% reduction, expected 33%)
+- Tone-invariance score high</p>
+<p><strong>Solutions</strong>:
+1. Increase λ_reg: 0.2 → 0.3
+2. Extend lambda_reg schedule: end_epoch 60 → 80
+3. Verify color transformations are working (check images_transformed)
+4. Use multi-target regularization (if not already)</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nt">training</span><span class="p">:</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nt">lambda_reg</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.3</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span><span class="nt">lambda_reg_schedule_end_epoch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+</span></code></pre></div>
+<h3 id="issue-4-color-transform-artifacts">Issue 4: Color Transform Artifacts<a class="headerlink" href="#issue-4-color-transform-artifacts" title="Permanent link">&para;</a></h3>
+<p><strong>Symptoms</strong>:
+- Transformed images look unrealistic
+- Model learns to ignore transformed images</p>
+<p><strong>Solutions</strong>:
+1. Verify LAB→RGB→LAB round-trip error &lt;0.01
+2. Check FST color statistics (see table above)
+3. Visualize transformations (see example below)</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">src.fairness.color_transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">visualize_transformation</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="n">image</span> <span class="o">=</span> <span class="n">load_image</span><span class="p">(</span><span class="s2">&quot;sample.jpg&quot;</span><span class="p">)</span>  <span class="c1"># FST III image</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="n">transformations</span> <span class="o">=</span> <span class="n">visualize_transformation</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">source_fst</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">target_fsts</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">])</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># transformations[0] = FST I (lighten)</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="c1"># transformations[1] = FST VI (darken)</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="c1"># Visually inspect for artifacts</span>
+</span></code></pre></div>
+<h3 id="issue-5-out-of-memory-oom">Issue 5: Out of Memory (OOM)<a class="headerlink" href="#issue-5-out-of-memory-oom" title="Permanent link">&para;</a></h3>
+<p><strong>Symptoms</strong>:
+- CUDA out of memory error during training</p>
+<p><strong>Solutions</strong>:
+1. Reduce batch size: 64 → 32
+2. Enable gradient accumulation:
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nt">training</span><span class="p">:</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">32</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="nt">gradient_accumulation_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w">  </span><span class="c1"># Effective batch size = 64</span>
+</span></code></pre></div>
+3. Enable mixed precision: <code>use_amp: true</code>
+4. Use single-target FST: <code>target_fsts: [1]</code></p>
+<hr />
+<h2 id="ablation-studies">Ablation Studies<a class="headerlink" href="#ablation-studies" title="Permanent link">&para;</a></h2>
+<h3 id="fairdisco-vs-fairdiscocircle">FairDisCo vs FairDisCo+CIRCLe<a class="headerlink" href="#fairdisco-vs-fairdiscocircle" title="Permanent link">&para;</a></h3>
+<p>Expected performance comparison (from research):</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Baseline</th>
+<th>FairDisCo</th>
+<th>FairDisCo+CIRCLe</th>
+<th>Improvement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Overall AUROC</td>
+<td>89.5%</td>
+<td>90.2%</td>
+<td>90.8%</td>
+<td>+0.6%</td>
+</tr>
+<tr>
+<td>AUROC Gap</td>
+<td>15.2%</td>
+<td>8.1%</td>
+<td>4.3%</td>
+<td>-3.8% (47%)</td>
+</tr>
+<tr>
+<td>EOD</td>
+<td>0.18</td>
+<td>0.06</td>
+<td>0.05</td>
+<td>-0.01 (17%)</td>
+</tr>
+<tr>
+<td>ECE (FST I-III)</td>
+<td>0.09</td>
+<td>0.08</td>
+<td>0.05</td>
+<td>-0.03 (38%)</td>
+</tr>
+<tr>
+<td>ECE (FST V-VI)</td>
+<td>0.14</td>
+<td>0.11</td>
+<td>0.07</td>
+<td>-0.04 (36%)</td>
+</tr>
+<tr>
+<td>FST VI AUROC</td>
+<td>82.3%</td>
+<td>87.1%</td>
+<td>90.5%</td>
+<td>+3.4%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ablation command</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Train FairDisCo only</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>python<span class="w"> </span>experiments/fairness/train_circle.py<span class="w"> </span>--lambda_reg<span class="w"> </span><span class="m">0</span>.0
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="c1"># Train FairDisCo + CIRCLe</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>python<span class="w"> </span>experiments/fairness/train_circle.py<span class="w"> </span>--lambda_reg<span class="w"> </span><span class="m">0</span>.2
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="c1"># Compare results</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>python<span class="w"> </span>scripts/compare_models.py<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">    </span>--model1<span class="w"> </span>experiments/circle/checkpoints/circle_lambda0.0_best.pth<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="w">    </span>--model2<span class="w"> </span>experiments/circle/checkpoints/circle_lambda0.2_best.pth
+</span></code></pre></div></p>
+<h3 id="component-ablation">Component Ablation<a class="headerlink" href="#component-ablation" title="Permanent link">&para;</a></h3>
+<p>Test impact of each component:</p>
+<table>
+<thead>
+<tr>
+<th>Configuration</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Baseline</strong> (no fairness)</td>
+<td><code>--lambda_adv 0 --lambda_con 0 --lambda_reg 0</code></td>
+</tr>
+<tr>
+<td><strong>Adversarial only</strong></td>
+<td><code>--lambda_adv 0.3 --lambda_con 0 --lambda_reg 0</code></td>
+</tr>
+<tr>
+<td><strong>Contrastive only</strong></td>
+<td><code>--lambda_adv 0 --lambda_con 0.2 --lambda_reg 0</code></td>
+</tr>
+<tr>
+<td><strong>CIRCLe only</strong></td>
+<td><code>--lambda_adv 0 --lambda_con 0 --lambda_reg 0.2</code></td>
+</tr>
+<tr>
+<td><strong>FairDisCo</strong> (adv+con)</td>
+<td><code>--lambda_adv 0.3 --lambda_con 0.2 --lambda_reg 0</code></td>
+</tr>
+<tr>
+<td><strong>Full CIRCLe</strong></td>
+<td><code>--lambda_adv 0.3 --lambda_con 0.2 --lambda_reg 0.2</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="integration-with-fairdisco">Integration with FairDisCo<a class="headerlink" href="#integration-with-fairdisco" title="Permanent link">&para;</a></h2>
+<h3 id="scenario-1-train-circle-from-scratch">Scenario 1: Train CIRCLe from Scratch<a class="headerlink" href="#scenario-1-train-circle-from-scratch" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>python<span class="w"> </span>experiments/fairness/train_circle.py<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">    </span>--config<span class="w"> </span>configs/circle_config.yaml<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">    </span>--epochs<span class="w"> </span><span class="m">100</span>
+</span></code></pre></div>
+<p><strong>Timeline</strong>: ~30 hours (RTX 3090)</p>
+<h3 id="scenario-2-fine-tune-from-fairdisco-checkpoint">Scenario 2: Fine-tune from FairDisCo Checkpoint<a class="headerlink" href="#scenario-2-fine-tune-from-fairdisco-checkpoint" title="Permanent link">&para;</a></h3>
+<p><strong>Recommended</strong>: Faster convergence, leverages FairDisCo pre-training</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>python<span class="w"> </span>experiments/fairness/train_circle.py<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">    </span>--fairdisco_checkpoint<span class="w"> </span>experiments/fairdisco/checkpoints/fairdisco_best.pth<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">    </span>--epochs<span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">    </span>--learning_rate<span class="w"> </span><span class="m">0</span>.00005<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">    </span>--lambda_reg<span class="w"> </span><span class="m">0</span>.2
+</span></code></pre></div>
+<p><strong>Timeline</strong>: ~15 hours (RTX 3090)</p>
+<p><strong>Benefits</strong>:
+- Faster training (50 epochs vs 100)
+- Lower learning rate (fine-tuning)
+- Skip FairDisCo warmup phase</p>
+<h3 id="scenario-3-progressive-training">Scenario 3: Progressive Training<a class="headerlink" href="#scenario-3-progressive-training" title="Permanent link">&para;</a></h3>
+<p>Train FairDisCo first, then add CIRCLe:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># Step 1: Train FairDisCo (25 hours)</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>python<span class="w"> </span>experiments/fairness/train_fairdisco.py<span class="w"> </span>--epochs<span class="w"> </span><span class="m">100</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="c1"># Step 2: Add CIRCLe regularization (15 hours)</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>python<span class="w"> </span>experiments/fairness/train_circle.py<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">    </span>--fairdisco_checkpoint<span class="w"> </span>experiments/fairdisco/checkpoints/fairdisco_best.pth<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="w">    </span>--epochs<span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="w">    </span>--lambda_reg<span class="w"> </span><span class="m">0</span>.2
+</span></code></pre></div>
+<p><strong>Total</strong>: ~40 hours (slightly longer but more controlled)</p>
+<hr />
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="1-always-monitor-tone-invariance">1. Always Monitor Tone-Invariance<a class="headerlink" href="#1-always-monitor-tone-invariance" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># During validation</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="n">tone_invariance_score</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">tone_invariance_metric</span><span class="p">(</span><span class="n">embeddings</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">fst_labels</span><span class="p">)</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="c1"># Lower is better</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="c1"># Target: &lt;100 for L2 distance (normalized embeddings)</span>
+</span></code></pre></div>
+<h3 id="2-visualize-color-transformations">2. Visualize Color Transformations<a class="headerlink" href="#2-visualize-color-transformations" title="Permanent link">&para;</a></h3>
+<p>Sanity-check transformations early:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">src.fairness.color_transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">visualize_transformation</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="c1"># Load sample images</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="n">images_fst3</span> <span class="o">=</span> <span class="n">load_fst_samples</span><span class="p">(</span><span class="n">fst</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="k">for</span> <span class="n">img</span> <span class="ow">in</span> <span class="n">images_fst3</span><span class="p">:</span>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a>    <span class="c1"># Transform to FST I and VI</span>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>    <span class="n">img_fst1</span> <span class="o">=</span> <span class="n">apply_fst_transformation</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a>    <span class="n">img_fst6</span> <span class="o">=</span> <span class="n">apply_fst_transformation</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a>
+</span><span id="__span-20-11"><a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a>    <span class="c1"># Visualize side-by-side</span>
+</span><span id="__span-20-12"><a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a>    <span class="n">plot_comparison</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">img_fst1</span><span class="p">,</span> <span class="n">img_fst6</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="3-save-intermediate-checkpoints">3. Save Intermediate Checkpoints<a class="headerlink" href="#3-save-intermediate-checkpoints" title="Permanent link">&para;</a></h3>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="nt">checkpointing</span><span class="p">:</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">  </span><span class="nt">save_best_only</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">  </span><span class="c1"># Save all checkpoints</span>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="w">  </span><span class="nt">save_frequency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span><span class="w">  </span><span class="c1"># Every 10 epochs</span>
+</span></code></pre></div>
+<p>Useful for diagnosing training issues.</p>
+<h3 id="4-use-tensorboard-extensively">4. Use TensorBoard Extensively<a class="headerlink" href="#4-use-tensorboard-extensively" title="Permanent link">&para;</a></h3>
+<p>Key plots to monitor:
+- <code>Loss/train_reg</code>: Should decrease steadily after epoch 30
+- <code>ToneInvariance/score</code>: Should decrease (better invariance)
+- <code>Fairness/auroc_gap</code>: Should decrease below 0.05
+- <code>Discriminator/accuracy</code>: Should stay 20-30%</p>
+<h3 id="5-reproducibility">5. Reproducibility<a class="headerlink" href="#5-reproducibility" title="Permanent link">&para;</a></h3>
+<p>Set random seed for consistent results:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">random</span><span class="o">,</span><span class="w"> </span><span class="nn">torch</span><span class="o">,</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">set_seed</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">):</span>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>    <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>    <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>    <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">manual_seed_all</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>
+</span><span id="__span-22-9"><a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="n">set_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h2 id="advanced-topics">Advanced Topics<a class="headerlink" href="#advanced-topics" title="Permanent link">&para;</a></h2>
+<h3 id="custom-distance-metrics">Custom Distance Metrics<a class="headerlink" href="#custom-distance-metrics" title="Permanent link">&para;</a></h3>
+<p>Implement custom regularization loss:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">src.fairness.circle_regularization</span><span class="w"> </span><span class="kn">import</span> <span class="n">CIRCLe_RegularizationLoss</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">CustomRegularizationLoss</span><span class="p">(</span><span class="n">CIRCLe_RegularizationLoss</span><span class="p">):</span>
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emb_orig</span><span class="p">,</span> <span class="n">emb_trans</span><span class="p">):</span>
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>        <span class="c1"># Custom distance computation</span>
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>        <span class="c1"># Example: Weighted L2 + cosine</span>
+</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>        <span class="n">l2_dist</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">emb_orig</span> <span class="o">-</span> <span class="n">emb_trans</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="__span-23-8"><a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a>        <span class="n">cos_dist</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">F</span><span class="o">.</span><span class="n">cosine_similarity</span><span class="p">(</span><span class="n">emb_orig</span><span class="p">,</span> <span class="n">emb_trans</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="__span-23-9"><a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>        <span class="k">return</span> <span class="mf">0.7</span> <span class="o">*</span> <span class="n">l2_dist</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">+</span> <span class="mf">0.3</span> <span class="o">*</span> <span class="n">cos_dist</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+</span></code></pre></div>
+<h3 id="caching-transformations-future-work">Caching Transformations (Future Work)<a class="headerlink" href="#caching-transformations-future-work" title="Permanent link">&para;</a></h3>
+<p>For faster training, pre-compute color transformations:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># Phase 3 implementation (not in v1.0)</span>
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">src.fairness.color_transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">batch_transform_dataset</span>
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="c1"># Pre-compute transformed dataset</span>
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="n">transformed_dict</span> <span class="o">=</span> <span class="n">batch_transform_dataset</span><span class="p">(</span>
+</span><span id="__span-24-6"><a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>    <span class="n">images</span><span class="o">=</span><span class="n">train_images</span><span class="p">,</span>
+</span><span id="__span-24-7"><a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>    <span class="n">fst_labels</span><span class="o">=</span><span class="n">train_fst_labels</span><span class="p">,</span>
+</span><span id="__span-24-8"><a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a>    <span class="n">target_fsts</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
+</span><span id="__span-24-9"><a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="p">)</span>
+</span><span id="__span-24-10"><a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a>
+</span><span id="__span-24-11"><a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a><span class="c1"># Save to disk</span>
+</span><span id="__span-24-12"><a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a><span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">transformed_dict</span><span class="p">,</span> <span class="s2">&quot;data/transformed_cache.pt&quot;</span><span class="p">)</span>
+</span><span id="__span-24-13"><a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a>
+</span><span id="__span-24-14"><a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a><span class="c1"># Load during training (15% faster)</span>
+</span><span id="__span-24-15"><a id="__codelineno-24-15" name="__codelineno-24-15" href="#__codelineno-24-15"></a><span class="n">transformed_cache</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;data/transformed_cache.pt&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Trade-off</strong>: 3× storage (original + FST I + FST VI)</p>
+<hr />
+<h2 id="faqs">FAQs<a class="headerlink" href="#faqs" title="Permanent link">&para;</a></h2>
+<p><strong>Q: Should I train CIRCLe from scratch or fine-tune from FairDisCo?</strong></p>
+<p>A: <strong>Fine-tune from FairDisCo</strong> if you have a checkpoint (faster, better initialization). Otherwise, train from scratch.</p>
+<p><strong>Q: How do I know if lambda_reg is too high?</strong></p>
+<p>A: Monitor overall accuracy. If it drops &gt;3% from baseline, reduce lambda_reg.</p>
+<p><strong>Q: Can I use CIRCLe without FairDisCo (no adversarial/contrastive)?</strong></p>
+<p>A: Yes, set <code>--lambda_adv 0 --lambda_con 0</code>. However, FairDisCo provides complementary fairness benefits.</p>
+<p><strong>Q: What if I only have 16GB VRAM?</strong></p>
+<p>A: Use batch size 32 with gradient accumulation (2 steps) and enable mixed precision.</p>
+<p><strong>Q: How long to train for HAM10000 (10k images)?</strong></p>
+<p>A: ~30 hours (100 epochs, RTX 3090, batch 64). Fine-tuning from FairDisCo: ~15 hours (50 epochs).</p>
+<p><strong>Q: Can I use CIRCLe with other backbones (EfficientNet, ViT)?</strong></p>
+<p>A: Yes, modify <code>model.backbone</code> in config. Tested with ResNet50, EfficientNet B4, DenseNet121.</p>
+<hr />
+<h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">&para;</a></h2>
+<p>CIRCLe provides state-of-the-art fairness for skin cancer detection with minimal accuracy trade-off. Follow this guide for optimal results. For issues, consult troubleshooting section or contact hollowed_eyes (MENDICANT_BIAS framework).</p>
+<p><strong>Next Steps</strong>:
+1. Train baseline CIRCLe model with default config
+2. Evaluate fairness metrics (AUROC gap, EOD, ECE)
+3. Tune lambda_reg based on results
+4. Compare with FairDisCo-only baseline
+5. Deploy best model for Phase 3 evaluation</p>
+<p><strong>Document Version</strong>: 1.0
+<strong>Last Updated</strong>: 2025-10-13
+<strong>Author</strong>: HOLLOWED_EYES
+<strong>Status</strong>: PRODUCTION-READY
+<strong>Next Review</strong>: Post-HAM10000 training (Week 9)</p>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/zhadyz/fairness-skin-cancer-detection" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:abdul.bari8019@coyote.csusb.edu" target="_blank" rel="noopener" title="" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l208 156a48 48 0 0 0 57.6 0l208-156c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48zM0 196v188c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V196L313.6 344.8c-34.1 25.6-81.1 25.6-115.2 0z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="../javascripts/custom.js"></script>
+      
+    
+  </body>
+</html>

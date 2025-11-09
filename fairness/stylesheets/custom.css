@@ -1,0 +1,840 @@
+/* AI-SOC Documentation - Sophisticated Dark Theme */
+/* Inspired by Apple's refined aesthetic */
+
+:root {
+  /* Refined Typography Scale - Elegant & Balanced (20% larger) */
+  --md-text-font-size: 1.05rem;
+  --md-typeset-h1-font-size: 2.1rem;
+  --md-typeset-h2-font-size: 1.68rem;
+  --md-typeset-h3-font-size: 1.32rem;
+  --md-typeset-h4-font-size: 1.2rem;
+  --md-typeset-h5-font-size: 1.08rem;
+
+  /* Premium spacing */
+  --md-typeset-line-height: 1.7;
+  --md-typeset-letter-spacing: 0.01em;
+}
+
+/* Light Mode Disabled - Dark Mode Only */
+/* No light mode styles needed */
+
+/* Enhanced Dark Theme - Pure Black Background */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #1a1a1a;
+  --md-primary-fg-color--light: #2a2a2a;
+  --md-primary-fg-color--dark: #0a0a0a;
+
+  /* Pure black backgrounds */
+  --md-default-bg-color: #000000;
+  --md-default-fg-color: #e0e0e0;
+  --md-code-bg-color: #0a0a0a;
+  --md-code-fg-color: #e8e8e8;
+
+  /* Subtle accents - Apple-inspired blue */
+  --md-accent-fg-color: #0a84ff;
+  --md-accent-fg-color--transparent: rgba(10, 132, 255, 0.1);
+
+  /* Refined text colors */
+  --md-typeset-color: #d4d4d4;
+  --md-typeset-a-color: #0a84ff;
+
+  /* Subtle borders */
+  --md-typeset-table-color: rgba(255, 255, 255, 0.05);
+  --md-code-hl-color: rgba(10, 132, 255, 0.15);
+}
+
+/* Refined Body Typography - Force Override */
+.md-typeset {
+  font-size: var(--md-text-font-size) !important;
+  line-height: var(--md-typeset-line-height);
+  letter-spacing: var(--md-typeset-letter-spacing);
+  font-weight: 400;
+  color: var(--md-typeset-color);
+}
+
+/* Balanced base font throughout */
+html {
+  font-size: 15px !important;
+}
+
+.md-content {
+  font-size: 0.875rem !important;
+}
+
+/* Elegant Headings - Force Override */
+.md-typeset h1 {
+  font-size: 1.75rem !important;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #ffffff;
+}
+
+.md-typeset h2 {
+  font-size: 1.4rem !important;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  color: #f5f5f5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.5rem;
+}
+
+.md-typeset h3 {
+  font-size: 1.1rem !important;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-top: 2rem;
+  margin-bottom: 0.8rem;
+  color: #e8e8e8;
+}
+
+.md-typeset h4 {
+  font-size: 1.0rem !important;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.6rem;
+  color: #d4d4d4;
+}
+
+/* Refined Paragraphs - Force Override */
+.md-typeset p {
+  margin-bottom: 1rem;
+  font-size: 0.875rem !important;
+  line-height: 1.7;
+  font-weight: 400;
+}
+
+/* Dark mode only - no light mode overrides needed */
+
+/* Balanced text in all content */
+.md-typeset li,
+.md-typeset td,
+.md-typeset th {
+  font-size: 0.875rem !important;
+}
+
+/* Elegant Code Blocks */
+.md-typeset code {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+}
+
+.md-typeset pre {
+  border-radius: 8px;
+  background-color: #0a0a0a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.md-typeset pre > code {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  background-color: transparent;
+  border: none;
+}
+
+/* Refined Tables */
+.md-typeset table:not([class]) {
+  font-size: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.md-typeset table:not([class]) th {
+  background-color: rgba(255, 255, 255, 0.03);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #b0b0b0;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.md-typeset table:not([class]) td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Elegant Links */
+.md-typeset a {
+  color: #0a84ff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.md-typeset a:hover {
+  color: #409cff;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* Refined Lists */
+.md-typeset ul,
+.md-typeset ol {
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+
+.md-typeset ul li,
+.md-typeset ol li {
+  margin-bottom: 0.3rem;
+}
+
+/* Elegant Blockquotes */
+.md-typeset blockquote {
+  border-left: 3px solid #0a84ff;
+  background-color: rgba(10, 132, 255, 0.05);
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: #c8c8c8;
+}
+
+/* Sophisticated Admonitions */
+.md-typeset .admonition {
+  font-size: 0.8rem;
+  border-radius: 6px;
+  border-left: 3px solid;
+  background-color: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.md-typeset .admonition-title {
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
+
+/* Navigation Refinements */
+.md-nav {
+  font-size: 0.75rem;
+}
+
+.md-nav__link {
+  font-weight: 400;
+  transition: all 0.2s ease;
+}
+
+.md-nav__link:hover {
+  color: #0a84ff;
+}
+
+.md-nav__link--active {
+  color: #0a84ff;
+  font-weight: 600;
+}
+
+/* Header Refinement */
+.md-header {
+  background-color: #000000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.md-header__title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Sidebar Refinement */
+.md-sidebar {
+  background-color: #000000;
+}
+
+.md-sidebar__scrollwrap {
+  background-color: #000000;
+}
+
+/* Search Refinement */
+.md-search__input {
+  font-size: 0.8rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+}
+
+.md-search__input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Footer Refinement */
+.md-footer {
+  background-color: #000000;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.75rem;
+}
+
+/* Scrollbar Styling - Minimal & Elegant */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Content Container - Refined Width */
+.md-content {
+  max-width: 65rem;
+}
+
+.md-content__inner {
+  padding-top: 1.5rem;
+  padding-bottom: 3rem;
+}
+
+/* Enhanced Focus States */
+*:focus-visible {
+  outline: 2px solid #0a84ff;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Smooth Transitions */
+* {
+  transition-property: color, background-color, border-color;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}
+
+/* Remove transitions from layout properties */
+*:not(a):not(button) {
+  transition-property: color, background-color, border-color;
+}
+
+/* ========================================
+   SURGICAL PAGE-SPECIFIC REFINEMENTS
+   ======================================== */
+
+/* Home Page - Hero Layout */
+article[data-md-component="content"] h1:first-of-type {
+  font-size: 2.25rem !important;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1rem;
+}
+
+article[data-md-component="content"] h1:first-of-type + p {
+  font-size: 1.05rem !important;
+  color: #b8b8b8;
+  margin-bottom: 2.5rem;
+  font-weight: 300;
+  line-height: 1.8;
+}
+
+/* API Reference Pages - Technical Documentation */
+article h1:contains("API"),
+article h1:contains("Reference") {
+  border-left: 4px solid #0a84ff;
+  padding-left: 1rem;
+  background: linear-gradient(90deg, rgba(10, 132, 255, 0.08) 0%, transparent 100%);
+  padding: 1rem 0 1rem 1rem;
+  border-radius: 0 4px 4px 0;
+}
+
+/* Code Blocks - Enhanced Presentation */
+.md-typeset .highlight {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 1.5rem 0;
+}
+
+.md-typeset .highlight::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  pointer-events: none;
+}
+
+/* Tables - Premium Data Display */
+.md-typeset table:not([class]) {
+  margin: 2rem 0;
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.02) 0%, transparent 100%);
+}
+
+.md-typeset table:not([class]) thead {
+  background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+}
+
+.md-typeset table:not([class]) tbody tr:hover {
+  background-color: rgba(10, 132, 255, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+/* Performance Metrics - Highlight Key Stats */
+.md-typeset strong:contains("%"),
+.md-typeset strong:contains("ms"),
+.md-typeset strong:contains("GB"),
+.md-typeset strong:contains("accuracy") {
+  color: #0a84ff;
+  font-weight: 700;
+  padding: 0.1rem 0.3rem;
+  background: rgba(10, 132, 255, 0.1);
+  border-radius: 3px;
+}
+
+/* Section Dividers - Visual Hierarchy */
+.md-typeset hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+  margin: 3rem 0;
+}
+
+/* Inline Code - Refined Presentation */
+.md-typeset code {
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.08) 0%, rgba(10, 132, 255, 0.04) 100%);
+  border: 1px solid rgba(10, 132, 255, 0.15);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Lists - Enhanced Visual Structure */
+.md-typeset ul li::marker {
+  color: #0a84ff;
+}
+
+.md-typeset ol li::marker {
+  color: #0a84ff;
+  font-weight: 600;
+}
+
+.md-typeset ul ul,
+.md-typeset ol ul,
+.md-typeset ul ol,
+.md-typeset ol ol {
+  margin-top: 0.5rem;
+  padding-left: 1.5rem;
+  border-left: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Architecture Diagrams - Code Block Enhancements */
+.md-typeset pre code:contains("┌"),
+.md-typeset pre code:contains("└"),
+.md-typeset pre code:contains("├"),
+.md-typeset pre code:contains("│") {
+  font-family: 'Courier New', monospace;
+  line-height: 1.4;
+}
+
+/* Key-Value Pairs in Tables */
+.md-typeset table:not([class]) td:first-child {
+  font-weight: 500;
+  color: #c8c8c8;
+}
+
+.md-typeset table:not([class]) td:first-child code {
+  font-weight: 600;
+  color: #0a84ff;
+}
+
+/* Note/Warning Callouts - Refined Admonitions */
+.md-typeset .admonition.note {
+  border-left-color: #0a84ff;
+}
+
+.md-typeset .admonition.warning {
+  border-left-color: #ff9500;
+  background-color: rgba(255, 149, 0, 0.05);
+}
+
+.md-typeset .admonition.danger {
+  border-left-color: #ff3b30;
+  background-color: rgba(255, 59, 48, 0.05);
+}
+
+.md-typeset .admonition.success {
+  border-left-color: #34c759;
+  background-color: rgba(52, 199, 89, 0.05);
+}
+
+/* Experimental Results - Highlight Metrics */
+article[data-md-component="content"]:has(h1:contains("Performance")),
+article[data-md-component="content"]:has(h1:contains("Results")) {
+  counter-reset: metric-counter;
+}
+
+/* Definition Lists - Enhanced Formatting */
+.md-typeset dl dt {
+  font-weight: 600;
+  color: #e8e8e8;
+  margin-top: 1rem;
+}
+
+.md-typeset dl dd {
+  margin-left: 1.5rem;
+  padding-left: 1rem;
+  border-left: 2px solid rgba(10, 132, 255, 0.3);
+  color: #c8c8c8;
+}
+
+/* Deployment Section - Command Highlighting */
+article h1:contains("Deployment") ~ * pre,
+article h1:contains("Docker") ~ * pre {
+  border-left: 3px solid #0a84ff;
+}
+
+/* Security Section - Visual Emphasis */
+article h1:contains("Security") ~ h2,
+article h1:contains("Hardening") ~ h2 {
+  color: #ff9500;
+}
+
+/* Research Papers - Academic Styling */
+article h1:contains("Survey") ~ *,
+article h1:contains("Research") ~ * {
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* Footer Metadata - Refined Presentation */
+.md-typeset p:has(strong:contains("Version")),
+.md-typeset p:has(strong:contains("Updated")),
+.md-typeset p:has(strong:contains("Maintained")) {
+  font-size: 0.75rem;
+  color: #808080;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 1.5rem;
+  margin-top: 3rem;
+}
+
+/* ============================================================================
+   Authors Page - Elegant Team Presentation
+   ============================================================================ */
+
+/* Authors Page Title */
+article h1:contains("Authors") {
+  font-size: 2rem !important;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid rgba(10, 132, 255, 0.3);
+  padding-bottom: 1rem;
+}
+
+/* Section Dividers */
+.md-typeset hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+  margin: 3rem 0;
+}
+
+/* Research Foundation Section */
+article h2:contains("Research Foundation") {
+  font-size: 1.6rem !important;
+  color: #0a84ff;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+/* Survey Paper Title */
+article h3:contains("AI-Augmented SOC") {
+  font-size: 1.25rem !important;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.5;
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.08) 0%, rgba(10, 132, 255, 0.03) 100%);
+  border-left: 4px solid #0a84ff;
+  border-radius: 0 6px 6px 0;
+  letter-spacing: -0.01em;
+}
+
+/* Authors List Container */
+article h2:contains("Research Foundation") ~ p strong:contains("Authors:") {
+  font-size: 1rem !important;
+  color: #0a84ff;
+  display: block;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+/* Author Names and Emails List */
+article h2:contains("Research Foundation") ~ ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 1rem 0 2rem 0;
+}
+
+article h2:contains("Research Foundation") ~ ul li {
+  padding: 0.75rem 1.25rem;
+  margin: 0.5rem 0;
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.04) 0%, rgba(10, 132, 255, 0.01) 100%);
+  border-left: 2px solid rgba(10, 132, 255, 0.3);
+  border-radius: 0 4px 4px 0;
+  transition: all 0.2s ease;
+}
+
+article h2:contains("Research Foundation") ~ ul li:hover {
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.08) 0%, rgba(10, 132, 255, 0.03) 100%);
+  border-left-color: #0a84ff;
+  transform: translateX(4px);
+}
+
+article h2:contains("Research Foundation") ~ ul li strong {
+  font-size: 0.95rem !important;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+/* Email Styling */
+article h2:contains("Research Foundation") ~ ul li {
+  font-size: 0.85rem !important;
+  color: #a0a0a0;
+}
+
+/* Faculty Advisors Section Label */
+article h2:contains("Research Foundation") ~ p strong:contains("Faculty") {
+  font-size: 1rem !important;
+  color: #0a84ff;
+  display: block;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+/* Institution Section Label */
+article h2:contains("Research Foundation") ~ p strong:contains("Institution") {
+  font-size: 1rem !important;
+  color: #0a84ff;
+  display: block;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.02em;
+}
+
+/* Institution Text */
+article h2:contains("Research Foundation") ~ p strong:contains("Institution") ~ * {
+  color: #d0d0d0;
+  line-height: 1.8;
+}
+
+/* Implementation Developer Section */
+article h2:contains("Implementation") {
+  margin-top: 3rem;
+  color: #0a84ff;
+  font-size: 1.5rem !important;
+}
+
+article h2:contains("Implementation") ~ p {
+  line-height: 1.8;
+}
+
+article h2:contains("Implementation") ~ p strong {
+  color: #ffffff;
+  font-size: 1.15rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* Contact Links */
+article h2:contains("Implementation") ~ p a {
+  color: #0a84ff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+article h2:contains("Implementation") ~ p a:hover {
+  color: #4da6ff;
+  text-decoration: underline;
+}
+
+/* Acknowledgments Section */
+article h2:contains("Acknowledgments") {
+  margin-top: 3rem;
+  font-size: 1.4rem !important;
+  color: #e0e0e0;
+}
+
+article h2:contains("Acknowledgments") ~ p {
+  line-height: 1.8;
+  color: #b0b0b0;
+  margin-bottom: 1.25rem;
+}
+
+/* Open Source Acknowledgments List */
+article h2:contains("Open Source") ~ ul {
+  margin-top: 1.5rem;
+}
+
+article h2:contains("Open Source") ~ ul li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+article h2:contains("Open Source") ~ ul li:last-child {
+  border-bottom: none;
+}
+
+article h2:contains("Open Source") ~ ul li strong {
+  color: #0a84ff;
+  font-size: 0.95rem;
+}
+
+/* ============================================================================
+   Survey Paper Page - Research Foundation
+   ============================================================================ */
+
+/* Survey Paper Title */
+article h1:contains("AI-Augmented SOC") {
+  font-size: 2rem !important;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #ffffff;
+  margin-bottom: 2rem;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.12) 0%, rgba(10, 132, 255, 0.04) 100%);
+  border-left: 4px solid #0a84ff;
+  border-radius: 0 8px 8px 0;
+  letter-spacing: -0.02em;
+}
+
+/* Authors/Faculty Section Labels */
+article h1:contains("AI-Augmented SOC") ~ p strong {
+  font-size: 1rem !important;
+  color: #0a84ff;
+  display: block;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+/* Author/Faculty Lists */
+article h1:contains("AI-Augmented SOC") ~ ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 1rem 0 2rem 0;
+}
+
+article h1:contains("AI-Augmented SOC") ~ ul li {
+  padding: 0.75rem 1.25rem;
+  margin: 0.5rem 0;
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.04) 0%, rgba(10, 132, 255, 0.01) 100%);
+  border-left: 2px solid rgba(10, 132, 255, 0.3);
+  border-radius: 0 4px 4px 0;
+  transition: all 0.2s ease;
+  font-size: 0.85rem !important;
+  color: #a0a0a0;
+}
+
+article h1:contains("AI-Augmented SOC") ~ ul li:hover {
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.08) 0%, rgba(10, 132, 255, 0.03) 100%);
+  border-left-color: #0a84ff;
+  transform: translateX(4px);
+}
+
+article h1:contains("AI-Augmented SOC") ~ ul li strong {
+  font-size: 0.95rem !important;
+  font-weight: 600;
+  color: #ffffff !important;
+  letter-spacing: -0.01em;
+  margin: 0 !important;
+  display: inline;
+}
+
+/* Institution Text Styling */
+article h1:contains("AI-Augmented SOC") ~ p:not(:has(strong)) {
+  color: #d0d0d0;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+/* Abstract Section */
+article h3:contains("Abstract") {
+  font-size: 1.3rem !important;
+  color: #0a84ff;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(10, 132, 255, 0.2);
+  padding-bottom: 0.75rem;
+}
+
+/* Survey Paper Content - General Text */
+article h1:contains("AI-Augmented SOC") ~ * {
+  line-height: 1.8;
+}
+
+/* Survey Paper Horizontal Divider */
+article h1:contains("AI-Augmented SOC") ~ hr {
+  margin: 2.5rem 0;
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(10, 132, 255, 0.3) 50%, transparent 100%);
+}
+
+/* Survey Paper Images/Figures - Enhanced Display */
+article h1:contains("AI-Augmented SOC") ~ p img {
+  max-width: none !important;
+  width: 120% !important;
+  min-width: 900px !important;
+  height: auto !important;
+  margin: 2rem auto;
+  margin-left: -10% !important;
+  display: block;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(10, 132, 255, 0.2);
+  image-rendering: -webkit-optimize-contrast !important;
+  image-rendering: crisp-edges !important;
+  image-rendering: pixelated !important;
+  -ms-interpolation-mode: nearest-neighbor !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: zoom-in;
+}
+
+article h1:contains("AI-Augmented SOC") ~ p img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 24px rgba(10, 132, 255, 0.3);
+  border-color: rgba(10, 132, 255, 0.4);
+}
+
+/* Figure Captions */
+article h1:contains("AI-Augmented SOC") ~ p:has(img) {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+/* Fig. X. Caption text styling */
+article h1:contains("AI-Augmented SOC") ~ p:has(img):not(:has(img)):not(:has(strong)) {
+  font-size: 0.85rem !important;
+  color: #a0a0a0;
+  font-style: italic;
+  margin-top: 0.75rem;
+}

@@ -1,0 +1,2568 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Research-driven AI system for equitable dermatological diagnosis across all skin tones">
+      
+      
+        <meta name="author" content="Jasmin Flores, Abdul Bari">
+      
+      
+        <link rel="canonical" href="https://research.onyxlab.ai/fairness/roadmap/">
+      
+      
+        <link rel="prev" href="../phase4_production_hardening/">
+      
+      
+        <link rel="next" href="../about/authors/">
+      
+      
+      <link rel="icon" href="../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
+    
+    
+      
+        <title>Implementation Roadmap - Fairness in Skin Cancer Detection</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CSF+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"SF Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/custom.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config",""),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#fairness-aware-ai-for-skin-cancer-detection-implementation-roadmap" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Fairness in Skin Cancer Detection" class="md-header__button md-logo" aria-label="Fairness in Skin Cancer Detection" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Fairness in Skin Cancer Detection
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Implementation Roadmap
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/zhadyz/fairness-skin-cancer-detection" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    zhadyz/fairness-skin-cancer-detection
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../quickstart/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../fairdisco_training_guide/" class="md-tabs__link">
+          
+  
+  
+  Training & Experiments
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../docker_guide/" class="md-tabs__link">
+          
+  
+  
+  Technical Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../synthetic_augmentation/" class="md-tabs__link">
+          
+  
+  
+  Research & Innovation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../phase4_production_hardening/" class="md-tabs__link">
+          
+  
+  
+  Production
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/authors/" class="md-tabs__link">
+          
+  
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Fairness in Skin Cancer Detection" class="md-nav__button md-logo" aria-label="Fairness in Skin Cancer Detection" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    Fairness in Skin Cancer Detection
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/zhadyz/fairness-skin-cancer-detection" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    zhadyz/fairness-skin-cancer-detection
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Environment Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset_access_log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dataset Access
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ham10000_integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    HAM10000 Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairdisco_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairDisCo Implementation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../circle_implementation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CIRCLe Implementation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairskin_implementation_plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairSkin Implementation Plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Training & Experiments
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Training & Experiments
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Training Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            Training Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairdisco_training_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairDisCo Training
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../circle_training_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CIRCLe Training
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairskin_usage_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FairSkin Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment_tracking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Experiment Tracking
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline_results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Baseline Results
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Technical Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Technical Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Docker Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_quality_standards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Code Quality Standards
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fst_annotation_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FST Annotation Protocol
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Research & Innovation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Research & Innovation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../synthetic_augmentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Synthetic Augmentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../open_source_fairness_code/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Open Source Fairness Code
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fairness_computational_costs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fairness Computational Costs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Production
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Production
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../phase4_production_hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 4 Production Hardening
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Implementation Roadmap
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Roadmap
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#project-vision" class="md-nav__link">
+    <span class="md-ellipsis">
+      Project Vision
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-phases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation Phases
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation Phases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-foundation-weeks-1-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Foundation (Weeks 1-4)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-fairness-mvp-weeks-5-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Fairness MVP (Weeks 5-12)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 2: Fairness MVP (Weeks 5-12)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#week-5-6-fairdisco-adversarial-debiasing-highest-roi" class="md-nav__link">
+    <span class="md-ellipsis">
+      Week 5-6: FairDisCo Adversarial Debiasing (Highest ROI)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#week-7-8-circle-color-invariant-learning-low-complexity-fast" class="md-nav__link">
+    <span class="md-ellipsis">
+      Week 7-8: CIRCLe Color-Invariant Learning (Low Complexity, Fast)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#week-9-11-fairskin-diffusion-augmentation-highest-absolute-gain" class="md-nav__link">
+    <span class="md-ellipsis">
+      Week 9-11: FairSkin Diffusion Augmentation (Highest Absolute Gain)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#week-12-integration-evaluation-phase-2-completion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Week 12: Integration, Evaluation &amp; Phase 2 Completion
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-hybrid-architecture-weeks-11-18" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Hybrid Architecture (Weeks 11-18)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-4-production-hardening-weeks-19-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 4: Production Hardening (Weeks 19-24)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-5-deployment-validation-weeks-25-32" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 5: Deployment &amp; Validation (Weeks 25-32)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#target-performance-benchmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Target Performance Benchmarks
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-datasets" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Datasets
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fairness-techniques-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fairness Techniques Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technology-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Stack
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#regulatory-pathway" class="md-nav__link">
+    <span class="md-ellipsis">
+      Regulatory Pathway
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ethical-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ethical Considerations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#success-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Success Metrics
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      References
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acknowledgments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acknowledgments
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/authors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Authors & Acknowledgments
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    License
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Citation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#project-vision" class="md-nav__link">
+    <span class="md-ellipsis">
+      Project Vision
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-phases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation Phases
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation Phases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-foundation-weeks-1-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Foundation (Weeks 1-4)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-fairness-mvp-weeks-5-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Fairness MVP (Weeks 5-12)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 2: Fairness MVP (Weeks 5-12)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#week-5-6-fairdisco-adversarial-debiasing-highest-roi" class="md-nav__link">
+    <span class="md-ellipsis">
+      Week 5-6: FairDisCo Adversarial Debiasing (Highest ROI)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#week-7-8-circle-color-invariant-learning-low-complexity-fast" class="md-nav__link">
+    <span class="md-ellipsis">
+      Week 7-8: CIRCLe Color-Invariant Learning (Low Complexity, Fast)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#week-9-11-fairskin-diffusion-augmentation-highest-absolute-gain" class="md-nav__link">
+    <span class="md-ellipsis">
+      Week 9-11: FairSkin Diffusion Augmentation (Highest Absolute Gain)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#week-12-integration-evaluation-phase-2-completion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Week 12: Integration, Evaluation &amp; Phase 2 Completion
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-hybrid-architecture-weeks-11-18" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Hybrid Architecture (Weeks 11-18)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-4-production-hardening-weeks-19-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 4: Production Hardening (Weeks 19-24)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-5-deployment-validation-weeks-25-32" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 5: Deployment &amp; Validation (Weeks 25-32)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#target-performance-benchmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Target Performance Benchmarks
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-datasets" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Datasets
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fairness-techniques-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fairness Techniques Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technology-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Stack
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#regulatory-pathway" class="md-nav__link">
+    <span class="md-ellipsis">
+      Regulatory Pathway
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ethical-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ethical Considerations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#success-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Success Metrics
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      References
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acknowledgments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acknowledgments
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="fairness-aware-ai-for-skin-cancer-detection-implementation-roadmap">Fairness-Aware AI for Skin Cancer Detection: Implementation Roadmap<a class="headerlink" href="#fairness-aware-ai-for-skin-cancer-detection-implementation-roadmap" title="Permanent link">&para;</a></h1>
+<p><strong>Research Foundation</strong>
+This project is inspired by and builds upon the comprehensive survey:</p>
+<blockquote>
+<p>Flores, J., &amp; Alzahrani, N. (2025). <em>AI Skin Cancer Detection Across Skin Tones: A Survey of Experimental Advances, Fairness Techniques, and Dataset Limitations</em>. Submitted to <em>Computers</em> (MDPI).</p>
+</blockquote>
+<p><strong>Authors</strong>: Jasmin Flores &amp; Dr. Nabeel Alzahrani
+<strong>Institution</strong>: School of Computer Science &amp; Engineering, California State University, San Bernardino, USA</p>
+<hr />
+<h2 id="project-vision">Project Vision<a class="headerlink" href="#project-vision" title="Permanent link">&para;</a></h2>
+<p>Develop a production-grade, fairness-aware AI system for skin cancer detection that achieves equitable diagnostic performance across all Fitzpatrick skin types (FST I-VI), addressing the critical healthcare disparity where existing models show 15-30% performance drops on darker skin tones.</p>
+<p><strong>Core Principles</strong>:
+1. <strong>Fairness-First Development</strong>: Equity across skin tones is not an afterthought—it's embedded from Phase 1
+2. <strong>Evidence-Based Design</strong>: Every architectural and methodological decision grounded in peer-reviewed research
+3. <strong>Clinical Viability</strong>: Target performance benchmarks from deployed systems (NHS DERM: 97% sensitivity across all FST)
+4. <strong>Open Science</strong>: Transparent methodology, reproducible experiments, public model cards with subgroup metrics
+5. <strong>Ethical AI</strong>: Patient co-design, informed consent, continuous fairness monitoring</p>
+<hr />
+<h2 id="implementation-phases">Implementation Phases<a class="headerlink" href="#implementation-phases" title="Permanent link">&para;</a></h2>
+<h3 id="phase-1-foundation-weeks-1-4"><strong>Phase 1: Foundation (Weeks 1-4)</strong><a class="headerlink" href="#phase-1-foundation-weeks-1-4" title="Permanent link">&para;</a></h3>
+<p><strong>Objective</strong>: Establish baseline infrastructure, quantify fairness gap, validate evaluation framework</p>
+<p><strong>Key Activities</strong>:
+1. <strong>Dataset Acquisition</strong>
+   - Primary: Fitzpatrick17k, DDI (Diverse Dermatology Images), MIDAS, SCIN
+   - Baseline: HAM10000, ISIC 2019 (for comparison)
+   - Target FST distribution: Minimum 25% FST IV-VI (vs &lt;5% in standard datasets)</p>
+<ol>
+<li><strong>Baseline Model Training</strong></li>
+<li>ResNet50, EfficientNet B4 (transfer learning)</li>
+<li>Quantify fairness gap: AUROC per FST group</li>
+<li>
+<p>Expected: 15-20% AUROC drop for FST V-VI (literature benchmark)</p>
+</li>
+<li>
+<p><strong>Evaluation Framework</strong></p>
+</li>
+<li>Metrics: AUROC, Sensitivity, Specificity, Equal Opportunity Difference (EOD), Expected Calibration Error (ECE)</li>
+<li>Per-FST reporting: Disaggregate ALL metrics by skin tone</li>
+<li>
+<p>Visualization: ROC curves per FST, calibration plots, confusion matrices</p>
+</li>
+<li>
+<p><strong>Tone Annotation Pipeline</strong></p>
+</li>
+<li>Monk Skin Tone (MST) scale (10-point, superior to Fitzpatrick 6-point)</li>
+<li>Dual annotation (2 annotators per image, adjudication protocol)</li>
+<li>ITA (Individual Typology Angle) validation</li>
+</ol>
+<p><strong>Success Criteria</strong>:
+- Dataset access confirmed (4/5 datasets)
+- Baseline AUROC gap quantified: 15-20% (FST I-III vs V-VI)
+- Evaluation pipeline operational: Automated subgroup metrics
+- 5,000 images annotated with MST labels</p>
+<p><strong>Deliverables</strong>:
+- <code>src/data/datasets.py</code>: Dataset loaders (Fitzpatrick17k, DDI, HAM10000)
+- <code>src/evaluation/metrics.py</code>: Fairness metrics (AUROC per FST, EOD, ECE)
+- <code>experiments/baseline/</code>: Baseline model training scripts + results
+- <code>docs/datasets.md</code>: Dataset documentation with FST distributions</p>
+<hr />
+<h3 id="phase-2-fairness-mvp-weeks-5-12"><strong>Phase 2: Fairness MVP (Weeks 5-12)</strong><a class="headerlink" href="#phase-2-fairness-mvp-weeks-5-12" title="Permanent link">&para;</a></h3>
+<p><strong>Objective</strong>: Implement core fairness techniques, reduce AUROC gap to &lt;8%</p>
+<p><strong>Strategic Implementation Order</strong> (ROI-optimized, from THE DIDACT analysis):</p>
+<h4 id="week-5-6-fairdisco-adversarial-debiasing-highest-roi"><strong>Week 5-6: FairDisCo Adversarial Debiasing</strong> (Highest ROI)<a class="headerlink" href="#week-5-6-fairdisco-adversarial-debiasing-highest-roi" title="Permanent link">&para;</a></h4>
+<p><strong>Rationale</strong>: Best EOD reduction (65%), fastest implementation, moderate complexity</p>
+<p><strong>Implementation Plan</strong>:
+- Day 1-2: Clone siyi-wind/FairDisCo repository, setup environment (PyTorch 2.1+, CUDA 12.1)
+- Day 3-4: Adapt for HAM10000 + Fitzpatrick17k combined dataset
+- Day 5-7: Implement gradient reversal layer (GRL), verify gradients flow correctly
+- Day 8-10: Implement supervised contrastive loss (temperature 0.07, batch 64)
+- Day 11-12: Integrate into training loop (multi-task loss: classification + adversarial + contrastive)
+- Day 13-14: Train 100 epochs (~25 GPU hours, RTX 3090)</p>
+<p><strong>Expected Results</strong>:
+- AUROC gap: 20% → 10% (50% reduction)
+- EOD: 0.18 → 0.06 (65% reduction)
+- Accuracy trade-off: -0.5% to -2% (acceptable)</p>
+<p><strong>Key Metrics to Monitor</strong>:
+- Discriminator accuracy: Should decrease from 50-70% (early) → 20-25% (late)
+- If discriminator accuracy &gt;50% after epoch 50: Increase λ_adv (0.3 → 0.4)</p>
+<p><strong>Deliverables</strong>:
+- <code>src/fairness/gradient_reversal.py</code>: GRL PyTorch autograd function
+- <code>src/fairness/fairdisco_model.py</code>: Full architecture (backbone + discriminator + contrastive)
+- <code>src/fairness/supervised_contrastive_loss.py</code>: Contrastive loss implementation
+- <code>experiments/phase2_week5-6_fairdisco/</code>: Training scripts, logs, checkpoints</p>
+<hr />
+<h4 id="week-7-8-circle-color-invariant-learning-low-complexity-fast"><strong>Week 7-8: CIRCLe Color-Invariant Learning</strong> (Low Complexity, Fast)<a class="headerlink" href="#week-7-8-circle-color-invariant-learning-low-complexity-fast" title="Permanent link">&para;</a></h4>
+<p><strong>Rationale</strong>: Improves calibration (ECE -3-5%), easiest implementation</p>
+<p><strong>Implementation Plan</strong>:
+- Day 1-2: Clone arezou-pakzad/CIRCLe repository, setup environment
+- Day 3-4: Implement simple LAB color transformations (skip StarGAN for Phase 2)
+  - Transform images to FST I and VI (extreme classes)
+  - Pre-compute transformations: 3x dataset size (~48GB → 144GB)
+- Day 5-7: Implement regularization loss (L2 distance between original and transformed embeddings)
+- Day 8-10: Integrate into FairDisCo architecture (add 4th loss term)
+- Day 11-14: Train combined model (FairDisCo + CIRCLe, 100 epochs, ~30 GPU hours)</p>
+<p><strong>Expected Results</strong>:
+- AUROC gap: 10% → 7% (additional 30% reduction)
+- ECE: 0.10 → 0.07 (improved calibration)
+- OOD generalization: +8-12% on unseen FST combinations</p>
+<p><strong>Hyperparameter Tuning</strong>:
+- λ_reg: Start with 0.2, tune [0.1, 0.2, 0.3] if needed
+- Target FST: ["I", "VI"] (extreme classes, most effective)
+- Distance metric: L2 (simpler than cosine for Phase 2)</p>
+<p><strong>Deliverables</strong>:
+- <code>src/fairness/color_transforms.py</code>: LAB transformation functions
+- <code>src/fairness/circle_regularization.py</code>: Regularization loss
+- <code>experiments/phase2_week7-8_circle/</code>: Training scripts, ablation studies</p>
+<hr />
+<h4 id="week-9-11-fairskin-diffusion-augmentation-highest-absolute-gain"><strong>Week 9-11: FairSkin Diffusion Augmentation</strong> (Highest Absolute Gain)<a class="headerlink" href="#week-9-11-fairskin-diffusion-augmentation-highest-absolute-gain" title="Permanent link">&para;</a></h4>
+<p><strong>Rationale</strong>: Largest AUROC improvement (+18-21%), one-time synthetic generation cost</p>
+<p><strong>Implementation Plan</strong>:
+- <strong>Week 9 (Textual Inversion + LoRA Setup)</strong>:
+  - Day 1-2: Clone janet-sw/skin-diff repository, install Hugging Face Diffusers
+  - Day 3-4: Prepare training data (Fitzpatrick17k + DDI, resize 512x512, hair removal)
+  - Day 5: Train textual inversion (2000 steps, ~4 hours)
+    - Learn tokens: <code>&lt;melanoma-FST-VI&gt;</code>, <code>&lt;nevus-FST-I&gt;</code>, etc.
+  - Day 6-7: Validate: Generate 100 test images from prompts, qualitative review</p>
+<ul>
+<li><strong>Week 10 (LoRA Training)</strong>:</li>
+<li>Day 1-3: Train LoRA adapters (rank 16, alpha 32, 10k steps, ~20 hours)</li>
+<li>Day 4-5: Validate: Generate 500 images (all diagnosis × FST combinations)</li>
+<li>
+<p>Day 6-7: Quality metrics: FID &lt;20, LPIPS &lt;0.15, classifier confidence &gt;0.7</p>
+</li>
+<li>
+<p><strong>Week 11 (Batch Generation + Classifier Training)</strong>:</p>
+</li>
+<li>Day 1-3: Generate 60k synthetic images (50-100 GPU hours, parallelizable on 4 GPUs → 12-25 hours)<ul>
+<li>Balanced FST distribution: FST V-VI 50% (vs &lt;5% in real data)</li>
+<li>Quality filtering: Accept if FID &lt;30, LPIPS &lt;0.2, no artifacts</li>
+</ul>
+</li>
+<li>Day 4: Expert review: Sample 500 images, dermatologist rating (target: &gt;5.0/7.0)</li>
+<li>Day 5-7: Train classifier on mixed dataset (real + synthetic, FST-dependent weighting)<ul>
+<li>FST I-III: 20% synthetic, 80% real</li>
+<li>FST V-VI: 80% synthetic, 20% real</li>
+</ul>
+</li>
+</ul>
+<p><strong>Expected Results</strong>:
+- AUROC gap: 7% → 3.5% (achieve &lt;4% Phase 2 target)
+- Synthetic dataset: 60k images, FID &lt;20, expert rating &gt;5.0/7.0
+- EOD: 0.06 → 0.04 (additional 33% reduction)</p>
+<p><strong>Risk Mitigation</strong>:
+- If GAN mode collapse: Increase class diversity loss (λ_diversity = 0.1 → 0.2)
+- If poor quality (FID &gt;30): Increase LoRA rank (16 → 32), more training steps (10k → 20k)
+- If expert rating &lt;5.0: Generate 1.5-2x images, filter more aggressively</p>
+<p><strong>Deliverables</strong>:
+- <code>data/synthetic/fairskin/</code>: 60,000 synthetic images (balanced FST)
+- <code>checkpoints/textual_inversion/</code>: Learned token embeddings
+- <code>checkpoints/lora/</code>: LoRA adapter weights
+- <code>experiments/phase2_week9-11_fairskin/</code>: Generation scripts, quality reports</p>
+<hr />
+<h4 id="week-12-integration-evaluation-phase-2-completion"><strong>Week 12: Integration, Evaluation &amp; Phase 2 Completion</strong><a class="headerlink" href="#week-12-integration-evaluation-phase-2-completion" title="Permanent link">&para;</a></h4>
+<p><strong>Objective</strong>: Train final combined model, comprehensive evaluation, Phase 3 readiness</p>
+<p><strong>Activities</strong>:
+- Day 1-2: Train final model with all three techniques
+  - Loss: L_cls + 0.3×L_adv + 0.2×L_con + 0.2×L_reg
+  - Dataset: 60k synthetic + 16.5k real (Fitzpatrick17k + DDI)
+  - 100 epochs, ~35 GPU hours
+- Day 3-4: Comprehensive fairness evaluation
+  - AUROC per FST (I-VI), overall AUROC
+  - EOD, DPD, Equalized Odds
+  - ECE, calibration curves per FST
+  - Confusion matrices, sensitivity/specificity per FST
+- Day 5: Ablation studies
+  - Baseline (no fairness)
+  - FairDisCo only
+  - FairDisCo + CIRCLe
+  - FairDisCo + CIRCLe + FairSkin (full)
+  - Quantify each technique's contribution
+- Day 6-7: Documentation and handoff
+  - Model card: Dataset composition, subgroup metrics, limitations
+  - Experiment report: Figures, tables, statistical tests
+  - Phase 3 preparation: Hybrid architecture requirements</p>
+<p><strong>Success Criteria</strong> (Phase 2 Targets):
+- AUROC gap: &lt;8% (target: 3.5-4.0%)
+- EOD: &lt;0.08 (target: 0.04-0.05)
+- ECE: &lt;0.10 (target: 0.06-0.08)
+- Overall accuracy: &gt;88% (target: 89-91%)
+- Synthetic quality: FID &lt;20, expert rating &gt;5.0/7.0</p>
+<p><strong>Deliverables</strong>:
+- <code>models/phase2_final_fairness_mvp.pth</code>: Final combined model
+- <code>experiments/phase2_week12_final/</code>: Complete evaluation results
+- <code>docs/phase2_results.md</code>: Comprehensive results report
+- <code>docs/phase3_requirements.md</code>: Hybrid architecture specifications</p>
+<hr />
+<p><strong>Total Phase 2 Timeline</strong>: 8 weeks (56 days)
+<strong>Total GPU Hours</strong>: ~227 hours (risk-adjusted, see computational_costs.md)
+<strong>Human Time</strong>: 8 weeks full-time equivalent (1 developer)</p>
+<p><strong>Phase 2 Checkpoints</strong>:
+- Week 6: FairDisCo complete (AUROC gap &lt;12%)
+- Week 8: CIRCLe complete (AUROC gap &lt;9%)
+- Week 11: FairSkin complete (AUROC gap &lt;5%)
+- Week 12: Phase 2 MVP complete (AUROC gap &lt;4%, Phase 3 ready)</p>
+<p><strong>Reference Documents</strong> (created by THE DIDACT):
+- <code>docs/fairskin_implementation_plan.md</code>: Detailed FairSkin guide
+- <code>docs/fairdisco_architecture.md</code>: Complete FairDisCo specifications
+- <code>docs/circle_implementation.md</code>: CIRCLe methodology
+- <code>docs/open_source_fairness_code.md</code>: Repository evaluation
+- <code>docs/fairness_computational_costs.md</code>: Cost analysis and ROI</p>
+<hr />
+<h3 id="phase-3-hybrid-architecture-weeks-11-18"><strong>Phase 3: Hybrid Architecture (Weeks 11-18)</strong><a class="headerlink" href="#phase-3-hybrid-architecture-weeks-11-18" title="Permanent link">&para;</a></h3>
+<p><strong>Objective</strong>: Implement state-of-the-art hybrid model, achieve 93%+ accuracy with &lt;4% gap</p>
+<p><strong>Architecture: ConvNeXtV2-Swin Transformer Hybrid</strong></p>
+<p><strong>Components</strong>:
+1. <strong>ConvNeXtV2-Base</strong> (first 2 stages)
+   - Local feature extraction (lesion borders, texture)
+   - 36.44M parameters, efficient (80-100ms inference)</p>
+<ol>
+<li><strong>Swin Transformer V2 Small</strong> (later stages)</li>
+<li>Global attention (tone-invariant contextual features)</li>
+<li>
+<p>Hierarchical windows (7×7, 14×14, 28×28)</p>
+</li>
+<li>
+<p><strong>Attentional Feature Fusion (AFF)</strong></p>
+</li>
+<li>Merge ConvNeXt + Swin features</li>
+<li>
+<p>Learned attention weights per branch</p>
+</li>
+<li>
+<p><strong>Metadata Encoder</strong></p>
+</li>
+<li>Attention-MLP: FST, age, anatomical site → 64-dim embedding</li>
+<li>Late fusion with image features</li>
+</ol>
+<p><strong>Training Strategy</strong>:
+- Pre-train: Synthetic-augmented dataset (Phase 2 output)
+- Fine-tune: Real data (Fitzpatrick17k + DDI + MIDAS)
+- Multi-task loss: Classification + adversarial + color-invariant + metadata
+- Loss weights: [1.0, 0.3, 0.2, 0.1] (classification dominant)</p>
+<p><strong>Hyperparameters</strong> (from literature synthesis):
+- Optimizer: AdamW (lr=1e-4, weight_decay=0.01)
+- Scheduler: CosineAnnealingWarmRestarts
+- Batch size: 32
+- Epochs: 100
+- Augmentation: RandAugment + FairSkin synthetic</p>
+<p><strong>Success Criteria</strong>:
+- Overall accuracy: 93-95% (ISIC 2019 benchmark)
+- AUROC gap: &lt;4% (FST I-III vs FST V-VI)
+- EOD: &lt;0.05, ECE: &lt;0.08 (ALL FST groups)
+- Inference time: &lt;120ms (clinical acceptability)</p>
+<p><strong>Deliverables</strong>:
+- <code>src/models/hybrid_convnext_swin.py</code>: Hybrid architecture implementation
+- <code>src/models/attention_fusion.py</code>: AFF module
+- <code>experiments/hybrid_architecture/</code>: Training pipeline + ablation studies
+- <code>docs/architecture.md</code>: Technical documentation with diagrams</p>
+<hr />
+<h3 id="phase-4-production-hardening-weeks-19-24"><strong>Phase 4: Production Hardening (Weeks 19-24)</strong><a class="headerlink" href="#phase-4-production-hardening-weeks-19-24" title="Permanent link">&para;</a></h3>
+<p><strong>Objective</strong>: Optimize for edge deployment, add explainability, prepare for clinical validation</p>
+<p><strong>Key Activities</strong>:</p>
+<ol>
+<li><strong>FairPrune Edge Optimization</strong></li>
+<li>Analyze activation saliency per FST subgroup</li>
+<li>Prune 30-40% of filters contributing to light-tone overfitting</li>
+<li>Fine-tune pruned model</li>
+<li>
+<p><strong>Target</strong>: &lt;50MB model, &lt;80ms inference on mobile, maintained fairness</p>
+</li>
+<li>
+<p><strong>Quantization</strong></p>
+</li>
+<li>INT8 quantization (TensorFlow Lite, ONNX Runtime)</li>
+<li>Platform-specific: Core ML (iOS), TF Lite (Android)</li>
+<li>
+<p><strong>Target</strong>: &lt;12MB model (75% size reduction), &lt;1% accuracy loss</p>
+</li>
+<li>
+<p><strong>Grad-CAM Explainability</strong></p>
+</li>
+<li>Heatmap overlays: Show model attention regions</li>
+<li>Clinical feature alignment: ABCD rule (Asymmetry, Border, Color, Diameter)</li>
+<li>
+<p>Tone-specific failure mode analysis: Qualitative review per FST</p>
+</li>
+<li>
+<p><strong>Model Card Documentation</strong></p>
+</li>
+<li>Dataset composition: FST distribution, disease categories</li>
+<li>Subgroup metrics: AUROC, Sensitivity, Specificity per FST</li>
+<li>Limitations: Intermediate tone subjectivity, OOD performance</li>
+<li>
+<p>Intended use: Teledermatology decision support (not standalone diagnosis)</p>
+</li>
+<li>
+<p><strong>Fairness Monitoring Dashboard</strong></p>
+</li>
+<li>Real-time metrics: AUROC, EOD, ECE per FST (updated daily)</li>
+<li>Model drift detection: KL divergence, population stability index</li>
+<li>Alert system: Email/SMS when fairness thresholds exceeded</li>
+</ol>
+<p><strong>Success Criteria</strong>:
+- Edge model deployed: &lt;50MB, &lt;80ms inference on mobile
+- Grad-CAM validated: Dermatologist feedback (qualitative)
+- Model card complete: 10+ pages, public disclosure
+- Monitoring dashboard operational: Real-time fairness tracking</p>
+<p><strong>Deliverables</strong>:
+- <code>src/optimization/fairprune.py</code>: Pruning implementation
+- <code>src/explainability/gradcam.py</code>: Grad-CAM visualization
+- <code>docs/model_card.md</code>: Comprehensive model documentation
+- <code>scripts/monitoring_dashboard.py</code>: Fairness monitoring (Streamlit/Gradana)</p>
+<hr />
+<h3 id="phase-5-deployment-validation-weeks-25-32"><strong>Phase 5: Deployment &amp; Validation (Weeks 25-32)</strong><a class="headerlink" href="#phase-5-deployment-validation-weeks-25-32" title="Permanent link">&para;</a></h3>
+<p><strong>Objective</strong>: Deploy to teledermatology platform, conduct prospective clinical trial</p>
+<p><strong>Key Activities</strong>:</p>
+<ol>
+<li><strong>Teledermatology API</strong></li>
+<li>RESTful API: OpenAPI 3.0 specification</li>
+<li>SDK: Python, JavaScript clients</li>
+<li>EHR integration: HL7 FHIR messaging</li>
+<li>
+<p><strong>Deployment</strong>: Cloud (AWS/Azure/GCP), auto-scaling (100+ concurrent users)</p>
+</li>
+<li>
+<p><strong>Prospective Clinical Trial</strong></p>
+</li>
+<li>Design: Multi-site (2-3 hospitals), 500+ patients, all FST types</li>
+<li>Comparator: Dermatologist diagnosis (gold standard: biopsy)</li>
+<li>Primary outcome: Sensitivity and specificity per FST (non-inferiority: 5% margin)</li>
+<li>Secondary: Calibration (ECE), time-to-diagnosis, patient satisfaction</li>
+<li>
+<p>Duration: 4-6 months</p>
+</li>
+<li>
+<p><strong>Continual Learning Pipeline</strong></p>
+</li>
+<li>Weekly model updates: Incremental learning on new labeled data</li>
+<li>Bayesian generative approach: Store statistics, not raw images (privacy)</li>
+<li>
+<p>Drift monitoring: Trigger retraining when EOD or ECE exceed thresholds</p>
+</li>
+<li>
+<p><strong>Regulatory Documentation</strong></p>
+</li>
+<li>FDA: De Novo submission (breakthrough device pathway)</li>
+<li>EU: CE marking (MDR Class IIa/IIb or Class III)</li>
+<li>Clinical data: Prospective trial results</li>
+<li>Risk analysis: FMEA (Failure Mode and Effects Analysis)</li>
+</ol>
+<p><strong>Success Criteria</strong>:
+- API deployed: 99.9% uptime, &lt;200ms response time
+- Clinical trial completed: 500+ patients, all FST represented
+- Non-inferiority demonstrated: Sensitivity &gt;95%, Specificity &gt;80% for ALL FST groups
+- Regulatory submission prepared: FDA De Novo or EU CE application</p>
+<p><strong>Deliverables</strong>:
+- <code>src/api/</code>: RESTful API implementation (FastAPI/Flask)
+- <code>src/continual_learning/</code>: Incremental learning pipeline
+- <code>docs/clinical_trial_protocol.md</code>: Trial design, statistical analysis plan
+- <code>docs/regulatory/</code>: FDA submission documentation</p>
+<hr />
+<h2 id="target-performance-benchmarks">Target Performance Benchmarks<a class="headerlink" href="#target-performance-benchmarks" title="Permanent link">&para;</a></h2>
+<p><strong>Literature-Derived Targets</strong> (from 100+ papers surveyed):</p>
+<table>
+<thead>
+<tr>
+<th><strong>Metric</strong></th>
+<th><strong>FST I-III</strong></th>
+<th><strong>FST IV-VI</strong></th>
+<th><strong>Gap</strong></th>
+<th><strong>Benchmark Source</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AUROC</strong></td>
+<td>91-93%</td>
+<td>89-92%</td>
+<td>&lt;4%</td>
+<td>NHS DERM (deployed), BiaslessNAS</td>
+</tr>
+<tr>
+<td><strong>Sensitivity (Melanoma)</strong></td>
+<td>&gt;95%</td>
+<td>&gt;95%</td>
+<td>0%</td>
+<td>NHS DERM (97% across all FST)</td>
+</tr>
+<tr>
+<td><strong>Specificity</strong></td>
+<td>&gt;80%</td>
+<td>&gt;80%</td>
+<td>0%</td>
+<td>Clinical acceptability threshold</td>
+</tr>
+<tr>
+<td><strong>EOD</strong></td>
+<td>---</td>
+<td>---</td>
+<td>&lt;0.05</td>
+<td>Fairness standard (5% max disparity)</td>
+</tr>
+<tr>
+<td><strong>ECE</strong></td>
+<td>&lt;0.08</td>
+<td>&lt;0.08</td>
+<td>0%</td>
+<td>Calibration quality (clinical trust)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Baseline (No Fairness)</strong>:
+- ResNet50 on ISIC 2020: 91.3% (FST I-III), 75.4% (FST V-VI) = <strong>-15.9% gap</strong>
+- InceptionV3 on HAM10000: 90.1% (FST I-III), 78.3% (FST V-VI) = <strong>-11.8% gap</strong></p>
+<p><strong>Phase 2 Target (Fairness MVP)</strong>:
+- AUROC gap: &lt;8% (50% reduction from baseline)
+- EOD: &lt;0.08</p>
+<p><strong>Phase 3 Target (Hybrid Architecture)</strong>:
+- AUROC gap: &lt;4% (match BiaslessNAS, NHS DERM)
+- EOD: &lt;0.05, ECE: &lt;0.08 (all FST groups)</p>
+<p><strong>Phase 5 Target (Clinical Deployment)</strong>:
+- Non-inferiority to dermatologist: Within 5% sensitivity, 5% specificity
+- Patient satisfaction: &gt;80% (NHS DERM achieved 85%)</p>
+<hr />
+<h2 id="key-datasets">Key Datasets<a class="headerlink" href="#key-datasets" title="Permanent link">&para;</a></h2>
+<p><strong>Primary Training Datasets</strong> (FST Diversity):</p>
+<ol>
+<li><strong>Fitzpatrick17k</strong>: 16,577 images, ~8% FST V-VI, dual annotation (FST + ITA)</li>
+<li><strong>DDI (Stanford)</strong>: 656 images, 34% FST V-VI, clinician-rated (gold standard)</li>
+<li><strong>MIDAS</strong>: Biopsy-confirmed, ~28% FST V-VI, multi-modal (clinical + dermoscopic)</li>
+<li><strong>SCIN (Google)</strong>: 10,000+ images, ~33% FST V-VI, triple annotation (eFST, eMST, CST)</li>
+<li><strong>SkinCon (MIT)</strong>: Built on Fitzpatrick17k + DDI, ~30% FST V-VI, meta-concept tags</li>
+</ol>
+<p><strong>Baseline Datasets</strong> (For Comparison):
+- HAM10000: 10,015 images, &lt;5% FST V-VI (high quality, tone-imbalanced)
+- ISIC 2020: 33,126 images, &lt;3% FST V-VI (no tone labels, benchmark)</p>
+<p><strong>Synthetic Augmentation</strong>:
+- FairSkin/DermDiff: Generate 60,000 synthetic images with balanced FST distribution</p>
+<hr />
+<h2 id="fairness-techniques-summary">Fairness Techniques Summary<a class="headerlink" href="#fairness-techniques-summary" title="Permanent link">&para;</a></h2>
+<p><strong>Three-Tier Fairness Methodology</strong>:</p>
+<table>
+<thead>
+<tr>
+<th><strong>Stage</strong></th>
+<th><strong>Technique</strong></th>
+<th><strong>Expected Impact</strong></th>
+<th><strong>Complexity</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Data-Level</strong></td>
+<td>FairSkin Diffusion Augmentation</td>
+<td>+18-21% FST VI AUROC</td>
+<td>High (48-72 hrs GPU)</td>
+</tr>
+<tr>
+<td><strong>Algorithm-Level</strong></td>
+<td>FairDisCo Adversarial Debiasing</td>
+<td>65% EOD reduction</td>
+<td>Moderate</td>
+</tr>
+<tr>
+<td><strong>Algorithm-Level</strong></td>
+<td>CIRCLe Color-Invariant Loss</td>
+<td>3-5% ECE reduction</td>
+<td>Moderate</td>
+</tr>
+<tr>
+<td><strong>Post-Processing</strong></td>
+<td>FairPrune Selective Pruning</td>
+<td>3-6% AUROC gap reduction</td>
+<td>Low</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Trade-offs</strong>:
+- Accuracy cost: 1-3% (mitigated by contrastive loss in FairDisCo)
+- Computational cost: Diffusion training (48-72 hrs), NAS (7-14 days if used)
+- Calibration: May degrade 5-10% ECE with synthetic data (mitigate: temperature scaling)</p>
+<hr />
+<h2 id="technology-stack">Technology Stack<a class="headerlink" href="#technology-stack" title="Permanent link">&para;</a></h2>
+<p><strong>Deep Learning</strong>:
+- PyTorch 2.0+ (primary framework)
+- timm (ConvNeXt, Swin Transformer pre-trained models)
+- Diffusers (Hugging Face, for FairSkin diffusion)</p>
+<p><strong>Data Science</strong>:
+- NumPy, pandas, scikit-learn
+- OpenCV, Albumentations (image preprocessing, augmentation)</p>
+<p><strong>Fairness</strong>:
+- Fairlearn (fairness metrics)
+- Custom implementations: FairDisCo, CIRCLe, FairPrune</p>
+<p><strong>Evaluation &amp; Visualization</strong>:
+- Matplotlib, Seaborn (plots, calibration curves)
+- TensorBoard (training monitoring)
+- Grad-CAM (explainability)</p>
+<p><strong>Deployment</strong>:
+- FastAPI (RESTful API)
+- TensorFlow Lite / ONNX Runtime (edge deployment)
+- Docker (containerization)
+- AWS/Azure/GCP (cloud hosting)</p>
+<hr />
+<h2 id="regulatory-pathway">Regulatory Pathway<a class="headerlink" href="#regulatory-pathway" title="Permanent link">&para;</a></h2>
+<p><strong>FDA (United States)</strong>:
+- <strong>Pathway</strong>: De Novo (Class II) or 510(k) if predicate exists
+- <strong>Precedent</strong>: DermaSensor (FDA cleared Jan 2024, breakthrough device)
+- <strong>Requirements</strong>: Prospective multi-site trial (500+ patients), subgroup metrics, software documentation (IEC 62304)</p>
+<p><strong>EU (Europe)</strong>:
+- <strong>Pathway</strong>: CE marking (MDR 2017/745)
+- <strong>Classification</strong>: Class IIa/IIb (decision support) or Class III (autonomous diagnosis)
+- <strong>Precedent</strong>: DERM (CE Class III approved 2024, 99.8% accuracy)</p>
+<p><strong>Timeline</strong>:
+- FDA De Novo: 18-24 months (with breakthrough designation: 12-18 months)
+- EU CE: 6-18 months (depends on class)</p>
+<hr />
+<h2 id="ethical-considerations">Ethical Considerations<a class="headerlink" href="#ethical-considerations" title="Permanent link">&para;</a></h2>
+<p><strong>Patient Consent</strong>:
+- Transparent disclosure: Model uses skin tone for fairness-aware training
+- Opt-out mechanism: Tone-blind inference available (with performance caveat)</p>
+<p><strong>Co-Design</strong>:
+- Patient advisory board: Diverse FST representation
+- Iterative feedback: Incorporate patient concerns (privacy, bias, transparency)</p>
+<p><strong>Model Card Transparency</strong>:
+- Dataset composition: FST distribution, annotation methods
+- Subgroup metrics: AUROC, Sensitivity, Specificity per FST
+- Limitations: Intermediate tone subjectivity, OOD performance, synthetic data artifacts</p>
+<p><strong>Post-Market Surveillance</strong>:
+- Quarterly fairness audits: EOD, ECE per FST
+- Incident reporting: Misdiagnosis cases, tone-related failures
+- Continual learning: Model updates based on real-world feedback</p>
+<hr />
+<h2 id="success-metrics">Success Metrics<a class="headerlink" href="#success-metrics" title="Permanent link">&para;</a></h2>
+<p><strong>Technical</strong>:
+- AUROC gap &lt;4% (FST I-III vs FST V-VI)
+- EOD &lt;0.05 (Equal Opportunity Difference)
+- ECE &lt;0.08 per FST (Expected Calibration Error)
+- Sensitivity &gt;95% for melanoma (ALL FST groups)
+- Inference time &lt;100ms (edge deployment)</p>
+<p><strong>Clinical</strong>:
+- Non-inferiority to dermatologist (within 5% sensitivity, 5% specificity)
+- Patient satisfaction &gt;80%
+- Time-to-diagnosis reduction (vs standard referral pathway)
+- Cost-effectiveness (QALY analysis)</p>
+<p><strong>Regulatory</strong>:
+- FDA clearance or EU CE marking
+- Model card with subgroup metrics (public disclosure)
+- Post-market surveillance plan approved</p>
+<hr />
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<p><strong>Foundational Survey</strong>:
+- Flores, J., &amp; Alzahrani, N. (2025). AI Skin Cancer Detection Across Skin Tones: A Survey of Experimental Advances, Fairness Techniques, and Dataset Limitations. <em>Computers</em> (MDPI). [Submitted]</p>
+<p><strong>Key Techniques</strong>:
+- <strong>FairSkin</strong>: Ju et al. (2024). Diffusion-based synthetic augmentation for skin tone fairness.
+- <strong>FairDisCo</strong>: Daneshjou et al. (2022). Adversarial debiasing with contrastive learning. <em>Science Advances</em>, 8(25), eabq6147.
+- <strong>CIRCLe</strong>: Pakzad et al. (2022). Color-invariant representation learning. <em>ECCV 2022</em>.
+- <strong>BiaslessNAS</strong>: Pacal et al. (2025). Neural architecture search for fairness. <em>Biomedical Signal Processing and Control</em>, 104, 107627.</p>
+<p><strong>Deployed Systems</strong>:
+- <strong>NHS DERM</strong>: Skin Analytics (2022-2023). 9,649 patients, 97% melanoma sensitivity, 85% patient satisfaction.
+- <strong>DermaSensor</strong>: FDA cleared Jan 2024. 96% malignancy sensitivity in primary care.</p>
+<p><strong>Datasets</strong>:
+- <strong>Fitzpatrick17k</strong>: Groh et al. (2021). 16,577 images with FST labels.
+- <strong>DDI</strong>: Daneshjou et al. (2022). 656 diverse dermatology images.
+- <strong>MIDAS</strong>: Stanford AIMI. Multimodal biopsy-confirmed dataset.</p>
+<hr />
+<h2 id="acknowledgments">Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permanent link">&para;</a></h2>
+<p>This project builds upon the comprehensive survey by <strong>Jasmin Flores</strong> and <strong>Dr. Nabeel Alzahrani</strong> from California State University, San Bernardino. Their systematic analysis of 100+ experimental studies (2022-2025) on fairness-aware skin cancer detection provided the foundational research that informs every phase of this implementation roadmap.</p>
+<p>Special recognition to:
+- <strong>The research community</strong>: Authors of FairSkin, FairDisCo, CIRCLe, BiaslessNAS, and other fairness techniques
+- <strong>Dataset creators</strong>: Fitzpatrick17k, DDI, MIDAS, SCIN, SkinCon teams for enabling diverse-tone research
+- <strong>Clinical pioneers</strong>: NHS DERM, DermaSensor teams for demonstrating real-world viability</p>
+<p><strong>Project Status</strong>: Foundation Phase
+<strong>Last Updated</strong>: 2025-10-13
+<strong>Framework</strong>: MENDICANT_BIAS Multi-Agent System
+<strong>License</strong>: Apache 2.0</p>
+<hr />
+<p><strong>Strategic Research</strong>: the_didact
+<strong>Core Development</strong>: hollowed_eyes
+<strong>QA &amp; Security</strong>: loveless
+<strong>DevOps &amp; Deployment</strong>: zhadyz
+<strong>Supreme Orchestrator</strong>: mendicant_bias</p>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/zhadyz/fairness-skin-cancer-detection" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:abdul.bari8019@coyote.csusb.edu" target="_blank" rel="noopener" title="" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l208 156a48 48 0 0 0 57.6 0l208-156c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48zM0 196v188c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V196L313.6 344.8c-34.1 25.6-81.1 25.6-115.2 0z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="../javascripts/custom.js"></script>
+      
+    
+  </body>
+</html>
