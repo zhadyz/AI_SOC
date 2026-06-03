@@ -58,24 +58,40 @@ fi
 AI_COMPOSE="$COMPOSE_DIR/ai-services.yml"
 MONITORING_COMPOSE="$COMPOSE_DIR/monitoring-stack.yml"
 
-# Separate project names so --remove-orphans in one stack does not delete other stacks
+# Compose project names (overridden from .env by load_deploy_config)
 SIEM_PROJECT="ai-soc-siem"
 AI_PROJECT="ai-soc-ai"
 MON_PROJECT="ai-soc-monitoring"
+SIEM_BACKEND_NETWORK="ai-soc-siem-backend"
+
+ENV_REQUIRED_KEYS=(
+    COMPOSE_PROJECT_SIEM
+    COMPOSE_PROJECT_AI
+    COMPOSE_PROJECT_MONITORING
+    SIEM_BACKEND_NETWORK
+    SIEM_FRONTEND_NETWORK
+)
 
 # ---------------------------------------------------------------------------
 # Argument parsing
 # ---------------------------------------------------------------------------
 ACTION="deploy"
+RESET_SIEM_DATA=false
 for arg in "$@"; do
     case "$arg" in
         --stop)    ACTION="stop" ;;
         --status)  ACTION="status" ;;
+        --reset-siem-data) RESET_SIEM_DATA=true ;;
         --help|-h)
-            echo "Usage: $0 [--stop|--status|--help]"
-            echo "  (no args)  Deploy full AI-SOC stack"
-            echo "  --stop     Tear down all services"
-            echo "  --status   Show running containers"
+            echo "Usage: $0 [--stop] [--status] [--reset-siem-data] [--help]"
+            echo "  (no args)           Deploy full AI-SOC stack"
+            echo "  --stop              Tear down all services"
+            echo "  --reset-siem-data   With --stop: remove Wazuh volumes; alone: reset then deploy"
+            echo "  --status            Show running containers"
+            echo ""
+            echo "Local lab logins (from .env):"
+    echo "  Wazuh Dashboard:  admin / AisocIndexer1.dev"
+    echo "  Grafana:          admin / AisocGrafana1-dev"
             exit 0
             ;;
         *)
@@ -88,15 +104,87 @@ done
 # ---------------------------------------------------------------------------
 # Tear down
 # ---------------------------------------------------------------------------
+compose_down() {
+    local project="$1"
+    local compose_file="$2"
+    local label="$3"
+    local remove_volumes="${4:-false}"
+    [[ -f "$compose_file" ]] || return 0
+    log "$label"
+    if [[ "$remove_volumes" == "true" ]]; then
+        docker compose -p "$project" -f "$compose_file" down -v 2>/dev/null || true
+    else
+        docker compose -p "$project" -f "$compose_file" down 2>/dev/null || true
+    fi
+}
+
+reset_siem_data() {
+    local legacy_project="docker-compose"
+    banner "Reset SIEM Data (Wazuh volumes)"
+    warn "Deleting Wazuh indexer/manager volumes so passwords in .env take effect."
+    compose_down "$SIEM_PROJECT" "$SIEM_COMPOSE" "Removing SIEM stack and volumes (project: $SIEM_PROJECT)..." true
+    compose_down "$legacy_project" "$SIEM_COMPOSE" "Removing SIEM stack and volumes (project: $legacy_project)..." true
+    remove_stale_siem_networks
+    ok "SIEM data reset complete."
+}
+
+remove_stale_siem_networks() {
+    local frontend="${SIEM_FRONTEND_NETWORK:-ai-soc-siem-frontend}"
+    local -a known=(
+        "ai-soc-siem_siem-backend"
+        "ai-soc-siem_siem-frontend"
+        "docker-compose_siem-backend"
+        "docker-compose_siem-frontend"
+        "${SIEM_BACKEND_NETWORK:-ai-soc-siem-backend}"
+        "$frontend"
+    )
+
+    log "Removing leftover SIEM Docker networks..."
+    local name
+    for name in "${known[@]}"; do
+        if docker network rm "$name" 2>/dev/null; then
+            ok "Removed network: $name"
+        fi
+    done
+
+    while IFS= read -r name; do
+        [[ -z "$name" ]] && continue
+        local skip=0 k
+        for k in "${known[@]}"; do
+            [[ "$name" == "$k" ]] && skip=1 && break
+        done
+        [[ $skip -eq 1 ]] && continue
+        if docker network rm "$name" 2>/dev/null; then
+            ok "Removed network: $name"
+        fi
+    done < <(docker network ls --format '{{.Name}}' 2>/dev/null | grep -i siem || true)
+}
+
 teardown() {
+    local legacy_project="docker-compose"
+
     banner "Stopping AI-SOC"
-    log "Stopping monitoring stack..."
-    docker compose -p "$MON_PROJECT" -f "$MONITORING_COMPOSE" down 2>/dev/null || true
-    log "Stopping AI services..."
-    docker compose -p "$AI_PROJECT" -f "$AI_COMPOSE" down 2>/dev/null || true
-    log "Stopping SIEM core..."
-    docker compose -p "$SIEM_PROJECT" -f "$SIEM_COMPOSE" down 2>/dev/null || true
-    ok "All services stopped."
+
+    compose_down "$MON_PROJECT" "$MONITORING_COMPOSE" "Stopping monitoring stack (project: $MON_PROJECT)..."
+    compose_down "$legacy_project" "$MONITORING_COMPOSE" "Stopping monitoring stack (project: $legacy_project)..."
+
+    compose_down "$AI_PROJECT" "$AI_COMPOSE" "Stopping AI services (project: $AI_PROJECT)..."
+    compose_down "$legacy_project" "$AI_COMPOSE" "Stopping AI services (project: $legacy_project)..."
+
+    if [[ "$RESET_SIEM_DATA" == "true" ]]; then
+        compose_down "$SIEM_PROJECT" "$SIEM_COMPOSE" "Stopping SIEM core and removing volumes (project: $SIEM_PROJECT)..." true
+        compose_down "$legacy_project" "$SIEM_COMPOSE" "Stopping SIEM core and removing volumes (project: $legacy_project)..." true
+    else
+        compose_down "$SIEM_PROJECT" "$SIEM_COMPOSE" "Stopping SIEM core (project: $SIEM_PROJECT)..."
+        compose_down "$legacy_project" "$SIEM_COMPOSE" "Stopping SIEM core (project: $legacy_project)..."
+    fi
+
+    remove_stale_siem_networks
+    if [[ "$RESET_SIEM_DATA" == "true" ]]; then
+        ok "All services stopped; SIEM volumes removed."
+    else
+        ok "All services stopped."
+    fi
 }
 
 # ---------------------------------------------------------------------------
@@ -186,36 +274,226 @@ ensure_certs() {
 # ---------------------------------------------------------------------------
 # .env file
 # ---------------------------------------------------------------------------
+merge_env_defaults() {
+    local env_file="$1"
+    local example_file="$2"
+    [[ -f "$example_file" ]] || return 0
+
+    for key in "${ENV_REQUIRED_KEYS[@]}"; do
+        if grep -qE "^[[:space:]]*${key}=" "$env_file" 2>/dev/null; then
+            continue
+        fi
+        local line
+        line=$(grep -E "^[[:space:]]*${key}=" "$example_file" 2>/dev/null | head -1)
+        if [[ -n "$line" ]]; then
+            echo "$line" >> "$env_file"
+            log "Added missing $key to .env"
+        fi
+    done
+}
+
+load_deploy_config() {
+    if [[ -f "$SCRIPT_DIR/.env" ]]; then
+        set -a
+        # shellcheck disable=SC1091
+        source "$SCRIPT_DIR/.env"
+        set +a
+    fi
+
+    SIEM_PROJECT="${COMPOSE_PROJECT_SIEM:-ai-soc-siem}"
+    AI_PROJECT="${COMPOSE_PROJECT_AI:-ai-soc-ai}"
+    MON_PROJECT="${COMPOSE_PROJECT_MONITORING:-ai-soc-monitoring}"
+    SIEM_BACKEND_NETWORK="${SIEM_BACKEND_NETWORK:-ai-soc-siem-backend}"
+
+    ok "Deploy config: SIEM project=$SIEM_PROJECT, AI project=$AI_PROJECT, SIEM network=$SIEM_BACKEND_NETWORK"
+}
+
+sync_compose_env() {
+    local env_file="$SCRIPT_DIR/.env"
+    local compose_env="$COMPOSE_DIR/.env"
+    local compose_example="$COMPOSE_DIR/.env.example"
+
+    if [[ -f "$env_file" ]]; then
+        cp "$env_file" "$compose_env"
+        ok "Synced .env to docker-compose/.env"
+        return 0
+    fi
+
+    if [[ -f "$compose_example" ]]; then
+        cp "$compose_example" "$compose_env"
+        warn "Root .env missing; created docker-compose/.env from docker-compose/.env.example"
+    fi
+}
+
 ensure_env() {
     banner "Environment Configuration"
 
     local env_file="$SCRIPT_DIR/.env"
     local example_file="$SCRIPT_DIR/.env.example"
+    local compose_example="$COMPOSE_DIR/.env.example"
 
     if [[ -f "$env_file" ]]; then
         ok ".env file exists."
+        merge_env_defaults "$env_file" "$example_file"
     elif [[ -f "$example_file" ]]; then
         log "Creating .env from .env.example..."
         cp "$example_file" "$env_file"
         ok ".env created. Review and update credentials if needed."
+    elif [[ -f "$compose_example" ]]; then
+        log "Creating .env from docker-compose/.env.example..."
+        cp "$compose_example" "$env_file"
+        ok ".env created from docker-compose/.env.example"
     else
         warn ".env.example not found. Creating minimal .env..."
         cat > "$env_file" <<'ENVEOF'
 # Auto-generated by deploy-ai-soc.sh
-# Update passwords before production use
+COMPOSE_PROJECT_SIEM=ai-soc-siem
+COMPOSE_PROJECT_AI=ai-soc-ai
+COMPOSE_PROJECT_MONITORING=ai-soc-monitoring
+SIEM_BACKEND_NETWORK=ai-soc-siem-backend
+SIEM_FRONTEND_NETWORK=ai-soc-siem-frontend
 INDEXER_USERNAME=admin
-INDEXER_PASSWORD=SecurePassword1!
-API_PASSWORD=SecurePassword1!
-WAZUH_API_PASSWORD=SecurePassword1!
-KIBANA_PASSWORD=SecurePassword1!
+INDEXER_PASSWORD=AisocIndexer1.dev
+API_USERNAME=wazuh-wui
+API_PASSWORD=AisocApiUser1-dev
+WAZUH_API_PASSWORD=AisocApiUser1-dev
+POSTGRES_PASSWORD=aisoc-postgres-dev
+GRAFANA_ADMIN_USER=admin
+GRAFANA_ADMIN_PASSWORD=AisocGrafana1-dev
 ENVEOF
         ok "Minimal .env created."
     fi
 
-    # Compose resolves .env from the compose file directory, not repo root.
-    local compose_env="$COMPOSE_DIR/.env"
-    cp "$env_file" "$compose_env"
-    ok "Synced .env to docker-compose/.env"
+    sync_compose_env
+    load_deploy_config
+}
+
+compose_run() {
+    local project="$1"
+    local compose_file="$2"
+    shift 2
+    local output
+    if ! output=$(docker compose -p "$project" -f "$compose_file" "$@" 2>&1); then
+        echo "$output"
+        error "docker compose failed: docker compose -p $project -f $compose_file $*"
+        if echo "$output" | grep -q 'Pool overlaps'; then
+            warn "Subnet conflict: remove stale SIEM networks or change BACKEND_SUBNET/FRONTEND_SUBNET in .env"
+            warn "  docker network ls | grep siem"
+            warn "  docker network rm <stale-name>   # only when no containers are attached"
+        fi
+        exit 1
+    fi
+    echo "$output"
+}
+
+compose_run_live() {
+    local project="$1"
+    local compose_file="$2"
+    shift 2
+    log "Running (live output): docker compose -p $project -f $compose_file $*"
+    if ! docker compose -p "$project" -f "$compose_file" "$@" 2>&1; then
+        error "docker compose failed: docker compose -p $project -f $compose_file $*"
+        exit 1
+    fi
+}
+
+show_container_status_table() {
+    local phase_label="$1"
+    shift
+    local names=("$@")
+    echo ""
+    echo "--- ${phase_label} ---"
+    local name status health
+    for name in "${names[@]}"; do
+        if ! docker inspect "$name" &>/dev/null; then
+            echo "  ${name}: not created yet"
+            continue
+        fi
+        status=$(docker inspect --format '{{.State.Status}}' "$name" 2>/dev/null)
+        health=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$name" 2>/dev/null)
+        if [[ "$health" != "none" ]]; then
+            echo "  ${name}: ${status} (health: ${health})"
+        else
+            echo "  ${name}: ${status}"
+        fi
+    done
+    echo ""
+}
+
+watch_stack_startup() {
+    local phase_label="$1"
+    local max_wait="$2"
+    local interval="$3"
+    shift 3
+    local -a required=()
+    local -a all_names=()
+    local parsing_required=true
+
+    for arg in "$@"; do
+        if [[ "$arg" == "--" ]]; then
+            parsing_required=false
+            continue
+        fi
+        if $parsing_required; then
+            required+=("$arg")
+        else
+            all_names+=("$arg")
+        fi
+    done
+
+    log "Watching ${phase_label} startup (poll every ${interval}s, max ${max_wait}s)..."
+    local elapsed=0
+    while [[ $elapsed -lt $max_wait ]]; do
+        show_container_status_table "${phase_label} @ ${elapsed}s" "${all_names[@]}"
+
+        local all_ok=true
+        local req
+        for req in "${required[@]}"; do
+            if ! docker inspect "$req" &>/dev/null; then
+                all_ok=false
+                break
+            fi
+            local h
+            h=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}running{{end}}' "$req" 2>/dev/null)
+            if [[ "$h" != "healthy" && "$h" != "running" ]]; then
+                all_ok=false
+            fi
+        done
+
+        if $all_ok && [[ ${#required[@]} -gt 0 ]]; then
+            ok "${phase_label} required containers are healthy/running."
+            return 0
+        fi
+
+        for req in "${required[@]}"; do
+            if docker inspect "$req" &>/dev/null; then
+                local st
+                st=$(docker inspect --format '{{.State.Status}}' "$req" 2>/dev/null)
+                local hl
+                hl=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$req" 2>/dev/null)
+                if [[ "$st" == "exited" || "$hl" == "unhealthy" ]]; then
+                    warn "${req} is ${st} / ${hl}. Recent logs:"
+                    docker logs --tail 15 "$req" 2>&1 | sed 's/^/    /'
+                    return 1
+                fi
+            fi
+        done
+
+        sleep "$interval"
+        elapsed=$(( elapsed + interval ))
+    done
+
+    warn "${phase_label} did not reach ready state within ${max_wait}s."
+    return 1
+}
+
+ensure_siem_backend_network() {
+    local network_name="${SIEM_BACKEND_NETWORK:-ai-soc-siem-backend}"
+    if ! docker network inspect "$network_name" &>/dev/null; then
+        error "SIEM backend network '$network_name' not found. Complete Phase 1 (SIEM) before AI services."
+        exit 1
+    fi
+    ok "SIEM backend network '$network_name' is available."
 }
 
 # ---------------------------------------------------------------------------
@@ -225,7 +503,7 @@ wait_for_healthy() {
     local service_name="$1"
     local compose_file="$2"
     local max_wait="${3:-120}"
-    local interval=10
+    local interval="${4:-5}"
     local elapsed=0
 
     log "Waiting for $service_name to become healthy (max ${max_wait}s)..."
@@ -275,12 +553,20 @@ deploy_siem() {
         return 0
     fi
 
-    log "Starting SIEM core services..."
-    docker compose -p "$SIEM_PROJECT" -f "$SIEM_COMPOSE" up -d --remove-orphans
+    local -a siem_containers=(wazuh-indexer wazuh-manager wazuh-dashboard)
+    log "SIEM stack: ${siem_containers[*]}"
+    log "Compose project: $SIEM_PROJECT"
 
-    # Wait for wazuh-indexer (most critical dependency)
-    wait_for_healthy "wazuh-indexer" "$SIEM_COMPOSE" 180
+    log "Creating/starting SIEM containers (live compose output)..."
+    compose_run_live "$SIEM_PROJECT" "$SIEM_COMPOSE" up -d --remove-orphans
 
+    watch_stack_startup "SIEM" 300 5 wazuh-indexer wazuh-manager wazuh-dashboard -- "${siem_containers[@]}" || \
+        warn "SIEM startup incomplete. Inspect: docker logs wazuh-manager --tail 50"
+
+    wait_for_healthy "wazuh-indexer" "$SIEM_COMPOSE" 60
+
+    ensure_siem_backend_network
+    show_container_status_table "SIEM final" "${siem_containers[@]}"
     ok "SIEM core started."
 }
 
@@ -295,23 +581,39 @@ deploy_ai_services() {
         exit 1
     fi
 
-    log "Building AI service images..."
-    docker compose -p "$AI_PROJECT" -f "$AI_COMPOSE" build --parallel
+    ensure_siem_backend_network
 
-    log "Starting AI services..."
-    docker compose -p "$AI_PROJECT" -f "$AI_COMPOSE" up -d --remove-orphans
+    local -a ai_containers=(
+        ollama chromadb ml-inference alert-triage rag-service wazuh-integration
+        ai-soc-postgres feedback-service correlation-engine rule-generator response-orchestrator
+    )
+    log "AI stack containers: ${ai_containers[*]}"
+    log "Compose project: $AI_PROJECT"
 
-    # Wait for Ollama - it needs time to initialise
-    wait_for_healthy "ollama" "$AI_COMPOSE" 120
+    log "Building AI service images (live build output)..."
+    compose_run_live "$AI_PROJECT" "$AI_COMPOSE" build --parallel
 
-    # Pull LLM model if Ollama is running
+    log "Starting core AI infrastructure (ollama, chromadb, postgres, ml-inference)..."
+    compose_run_live "$AI_PROJECT" "$AI_COMPOSE" up -d ollama chromadb postgres ml-inference
+
+    log "Waiting for Ollama to become healthy (up to 3 min on first start)..."
+    watch_stack_startup "Ollama" 180 5 ollama -- ollama || \
+        warn "Ollama not healthy yet. Run: docker logs ollama --tail 40"
+
+    log "Starting remaining AI services (live compose output)..."
+    compose_run_live "$AI_PROJECT" "$AI_COMPOSE" up -d --remove-orphans
+
+    watch_stack_startup "AI Services" 240 5 ollama chromadb ml-inference -- "${ai_containers[@]}" || \
+        warn "Some AI containers still starting; continuing with per-service health checks."
+
+    wait_for_healthy "ollama" "$AI_COMPOSE" 120 5
     pull_ollama_model
 
-    # Wait for critical AI services
-    for svc in chromadb ml-inference alert-triage rag-service; do
-        wait_for_healthy "$svc" "$AI_COMPOSE" 120
+    for svc in chromadb ml-inference alert-triage rag-service wazuh-integration; do
+        wait_for_healthy "$svc" "$AI_COMPOSE" 120 5
     done
 
+    show_container_status_table "AI Services final" "${ai_containers[@]}"
     ok "AI services started."
 }
 
@@ -321,6 +623,11 @@ deploy_ai_services() {
 pull_ollama_model() {
     local model="llama3.2:3b"
     log "Pulling Ollama model: $model ..."
+
+    if ! docker ps --filter "name=^ollama$" --filter "status=running" -q | grep -q .; then
+        warn "Ollama container is not running. Skipping model pull."
+        return 0
+    fi
 
     # Check if model already exists
     if docker exec ollama ollama list 2>/dev/null | grep -q "llama3.2"; then
@@ -347,8 +654,8 @@ deploy_monitoring() {
         return 0
     fi
 
-    log "Starting monitoring stack..."
-    docker compose -p "$MON_PROJECT" -f "$MONITORING_COMPOSE" up -d --remove-orphans
+    log "Starting monitoring stack (project: $MON_PROJECT)..."
+    compose_run "$MON_PROJECT" "$MONITORING_COMPOSE" up -d --remove-orphans
 
     wait_for_healthy "monitoring-prometheus" "$MONITORING_COMPOSE" 60
 
@@ -440,12 +747,12 @@ print_access_urls() {
     echo -e "  Wazuh Integration:   ${CYAN}http://localhost:8002/docs${RESET}"
     echo ""
     echo -e "${BOLD}Monitoring:${RESET}"
-    echo -e "  Grafana:             ${CYAN}http://localhost:3000${RESET} (admin/admin)"
+    echo -e "  Grafana:             ${CYAN}http://localhost:3000${RESET} (admin/${GRAFANA_ADMIN_PASSWORD:-AisocGrafana1-dev})"
     echo -e "  Prometheus:          ${CYAN}http://localhost:9090${RESET}"
     echo -e "  Alertmanager:        ${CYAN}http://localhost:9093${RESET}"
     echo ""
     echo -e "${BOLD}SIEM:${RESET}"
-    echo -e "  Wazuh Dashboard:     ${CYAN}https://localhost:443${RESET} (admin/SecurePassword1!)"
+    echo -e "  Wazuh Dashboard:     ${CYAN}https://localhost:443${RESET} (admin/${INDEXER_PASSWORD:-AisocIndexer1.dev})"
     echo -e "  Wazuh Indexer API:   ${CYAN}https://localhost:9200${RESET}"
     echo ""
     echo -e "${BOLD}Infrastructure:${RESET}"
@@ -467,6 +774,7 @@ main() {
 
     case "$ACTION" in
         stop)
+            [[ -f "$SCRIPT_DIR/.env" ]] && load_deploy_config
             teardown
             ;;
         status)
@@ -476,6 +784,9 @@ main() {
             check_prerequisites
             ensure_certs
             ensure_env
+            if [[ "$RESET_SIEM_DATA" == "true" ]]; then
+                reset_siem_data
+            fi
             deploy_siem
             deploy_ai_services
             deploy_monitoring

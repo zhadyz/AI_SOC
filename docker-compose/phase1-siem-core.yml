@@ -330,6 +330,7 @@ services:
 networks:
   # Backend network: Internal service communication
   siem-backend:
+    name: ${SIEM_BACKEND_NETWORK:-ai-soc-siem-backend}
     driver: bridge
     ipam:
       config:
@@ -337,6 +338,7 @@ networks:
 
   # Frontend network: User-facing services
   siem-frontend:
+    name: ${SIEM_FRONTEND_NETWORK:-ai-soc-siem-frontend}
     driver: bridge
     ipam:
       config:

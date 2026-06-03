@@ -7,24 +7,27 @@ services:
     restart: unless-stopped
     ports:
       - "11434:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
     volumes:
       - ollama-data:/root/.ollama
     networks:
       - ai-network
+    # Official image has no wget/curl — use the ollama CLI for health checks
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:11434/api/tags || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 30s
+      retries: 8
+      start_period: 120s
     deploy:
       resources:
         limits:
-          memory: 8G
-          cpus: '4.0'
-        reservations:
-          memory: 4G
+          memory: ${OLLAMA_MEMORY_LIMIT:-6G}
           cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
 
   # ML Inference API
   ml-inference:
@@ -97,18 +100,22 @@ services:
     restart: unless-stopped
     ports:
       - "8300:8000"
+    # Single worker: faster startup and less RAM (embedding model loads once)
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
     environment:
       - RAG_CHROMADB_HOST=chromadb
       - RAG_CHROMADB_PORT=8000
     networks:
       - ai-network
     depends_on:
-      - chromadb
+      chromadb:
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
+      interval: 15s
       timeout: 10s
-      retries: 3
+      retries: 10
+      start_period: 180s
 
   # Wazuh Integration Service
   wazuh-integration:
@@ -346,11 +353,13 @@ services:
       - chromadb-data:/chroma/chroma
     networks:
       - ai-network
+    # Official image may lack wget/curl — TCP port check only
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8000/api/v2/heartbeat || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8000'"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 networks:
   ai-network:
@@ -360,7 +369,7 @@ networks:
         - subnet: 172.35.0.0/24
   siem-backend:
     external: true
-    name: docker-compose_siem-backend
+    name: ${SIEM_BACKEND_NETWORK:-ai-soc-siem-backend}
 
 volumes:
   ollama-data:

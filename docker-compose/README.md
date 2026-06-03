@@ -444,10 +444,26 @@ docker compose -f phase1-siem-core.yml logs wazuh-manager
 
 ### Environment Variables
 
-All configuration is managed via `.env` file. See `.env.example` for complete reference.
+Compose loads `.env` from **this directory** (`docker-compose/.env`). The deploy scripts create/sync it from the repo root:
+
+```bash
+cp ../.env.example ../.env    # edit credentials
+./deploy-ai-soc.sh            # copies ../.env → docker-compose/.env
+```
+
+See `docker-compose/.env.example` for compose-local defaults and `../.env.example` for the full template.
 
 **Critical Variables:**
 ```bash
+# Compose projects (must match deploy scripts)
+COMPOSE_PROJECT_SIEM=ai-soc-siem
+COMPOSE_PROJECT_AI=ai-soc-ai
+COMPOSE_PROJECT_MONITORING=ai-soc-monitoring
+
+# Shared SIEM networks (SIEM + ai-services stacks)
+SIEM_BACKEND_NETWORK=ai-soc-siem-backend
+SIEM_FRONTEND_NETWORK=ai-soc-siem-frontend
+
 # Wazuh
 INDEXER_PASSWORD=<secure-password>
 API_PASSWORD=<secure-password>

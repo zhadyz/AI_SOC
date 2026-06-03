@@ -313,7 +313,7 @@ networks:
 
   siem-frontend:
     external: true
-    name: siem-frontend
+    name: ${SIEM_FRONTEND_NETWORK:-ai-soc-siem-frontend}
     # Connects to Wazuh stack
 
   soar-frontend:

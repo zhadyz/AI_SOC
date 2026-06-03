@@ -173,12 +173,14 @@ services:
 # ==============================================================================
 networks:
   siem-backend:
+    name: ${SIEM_BACKEND_NETWORK:-ai-soc-siem-backend}
     driver: bridge
     ipam:
       config:
         - subnet: ${BACKEND_SUBNET:-172.50.0.0/24}
 
   siem-frontend:
+    name: ${SIEM_FRONTEND_NETWORK:-ai-soc-siem-frontend}
     driver: bridge
     ipam:
       config:
