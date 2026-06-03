@@ -41,17 +41,27 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE_DIR="$SCRIPT_DIR/docker-compose"
 SCRIPTS_DIR="$SCRIPT_DIR/scripts"
 
-# Detect OS for correct SIEM compose file
+# Pick SIEM compose: full Linux stack needs native Docker + host networking.
+# Docker Desktop (incl. WSL) cannot run Suricata/Zeek bind mounts reliably.
 OS="$(uname -s)"
-if [[ "$OS" == "Linux" ]]; then
+IS_DOCKER_DESKTOP=false
+if docker info 2>/dev/null | grep -q 'Operating System: Docker Desktop'; then
+    IS_DOCKER_DESKTOP=true
+fi
+
+if [[ "$OS" == "Linux" && "$IS_DOCKER_DESKTOP" == "false" ]]; then
     SIEM_COMPOSE="$COMPOSE_DIR/phase1-siem-core.yml"
 else
-    # macOS or other - use Windows-compatible variant (no network_mode: host)
     SIEM_COMPOSE="$COMPOSE_DIR/phase1-siem-core-windows.yml"
 fi
 
 AI_COMPOSE="$COMPOSE_DIR/ai-services.yml"
 MONITORING_COMPOSE="$COMPOSE_DIR/monitoring-stack.yml"
+
+# Separate project names so --remove-orphans in one stack does not delete other stacks
+SIEM_PROJECT="ai-soc-siem"
+AI_PROJECT="ai-soc-ai"
+MON_PROJECT="ai-soc-monitoring"
 
 # ---------------------------------------------------------------------------
 # Argument parsing
@@ -81,11 +91,11 @@ done
 teardown() {
     banner "Stopping AI-SOC"
     log "Stopping monitoring stack..."
-    docker compose -f "$MONITORING_COMPOSE" down 2>/dev/null || true
+    docker compose -p "$MON_PROJECT" -f "$MONITORING_COMPOSE" down 2>/dev/null || true
     log "Stopping AI services..."
-    docker compose -f "$AI_COMPOSE" down 2>/dev/null || true
+    docker compose -p "$AI_PROJECT" -f "$AI_COMPOSE" down 2>/dev/null || true
     log "Stopping SIEM core..."
-    docker compose -f "$SIEM_COMPOSE" down 2>/dev/null || true
+    docker compose -p "$SIEM_PROJECT" -f "$SIEM_COMPOSE" down 2>/dev/null || true
     ok "All services stopped."
 }
 
@@ -201,6 +211,11 @@ KIBANA_PASSWORD=SecurePassword1!
 ENVEOF
         ok "Minimal .env created."
     fi
+
+    # Compose resolves .env from the compose file directory, not repo root.
+    local compose_env="$COMPOSE_DIR/.env"
+    cp "$env_file" "$compose_env"
+    ok "Synced .env to docker-compose/.env"
 }
 
 # ---------------------------------------------------------------------------
@@ -250,6 +265,9 @@ wait_for_healthy() {
 deploy_siem() {
     banner "Phase 1: SIEM Core"
     log "Using compose file: $SIEM_COMPOSE"
+    if [[ "$IS_DOCKER_DESKTOP" == "true" ]]; then
+        warn "Docker Desktop detected: using Wazuh-only SIEM (no Suricata/Zeek)."
+    fi
 
     if [[ ! -f "$SIEM_COMPOSE" ]]; then
         warn "SIEM compose file not found: $SIEM_COMPOSE"
@@ -258,7 +276,7 @@ deploy_siem() {
     fi
 
     log "Starting SIEM core services..."
-    docker compose -f "$SIEM_COMPOSE" up -d --remove-orphans
+    docker compose -p "$SIEM_PROJECT" -f "$SIEM_COMPOSE" up -d --remove-orphans
 
     # Wait for wazuh-indexer (most critical dependency)
     wait_for_healthy "wazuh-indexer" "$SIEM_COMPOSE" 180
@@ -278,10 +296,10 @@ deploy_ai_services() {
     fi
 
     log "Building AI service images..."
-    docker compose -f "$AI_COMPOSE" build --parallel
+    docker compose -p "$AI_PROJECT" -f "$AI_COMPOSE" build --parallel
 
     log "Starting AI services..."
-    docker compose -f "$AI_COMPOSE" up -d --remove-orphans
+    docker compose -p "$AI_PROJECT" -f "$AI_COMPOSE" up -d --remove-orphans
 
     # Wait for Ollama - it needs time to initialise
     wait_for_healthy "ollama" "$AI_COMPOSE" 120
@@ -330,7 +348,7 @@ deploy_monitoring() {
     fi
 
     log "Starting monitoring stack..."
-    docker compose -f "$MONITORING_COMPOSE" up -d --remove-orphans
+    docker compose -p "$MON_PROJECT" -f "$MONITORING_COMPOSE" up -d --remove-orphans
 
     wait_for_healthy "monitoring-prometheus" "$MONITORING_COMPOSE" 60
 
@@ -388,7 +406,7 @@ health_check() {
         ["RAG Service"]="http://localhost:8300/health"
         ["Wazuh Integration"]="http://localhost:8002/health"
         ["Prometheus"]="http://localhost:9090/-/healthy"
-        ["Grafana"]="http://localhost:3001/api/health"
+        ["Grafana"]="http://localhost:3000/api/health"
     )
 
     local all_ok=true
@@ -422,7 +440,7 @@ print_access_urls() {
     echo -e "  Wazuh Integration:   ${CYAN}http://localhost:8002/docs${RESET}"
     echo ""
     echo -e "${BOLD}Monitoring:${RESET}"
-    echo -e "  Grafana:             ${CYAN}http://localhost:3001${RESET} (admin/admin)"
+    echo -e "  Grafana:             ${CYAN}http://localhost:3000${RESET} (admin/admin)"
     echo -e "  Prometheus:          ${CYAN}http://localhost:9090${RESET}"
     echo -e "  Alertmanager:        ${CYAN}http://localhost:9093${RESET}"
     echo ""

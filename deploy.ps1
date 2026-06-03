@@ -149,12 +149,16 @@ function Test-Prerequisites {
         $MissingDeps += "Docker Compose"
     }
 
-    # Check Docker daemon
-    try {
-        docker info | Out-Null
-        Write-Log -Level "SUCCESS" -Message "Docker daemon is running"
-    } catch {
+    # Check Docker daemon — ignore benign stderr warnings; only exit code matters
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = 'SilentlyContinue'
+    $null = docker info 2>&1
+    $daemonRunning = ($LASTEXITCODE -eq 0)
+    $ErrorActionPreference = $prevEap
+    if (-not $daemonRunning) {
         Write-Log -Level "FATAL" -Message "Docker daemon is not running. Please start Docker Desktop and try again."
+    } else {
+        Write-Log -Level "SUCCESS" -Message "Docker daemon is running"
     }
 
     # Check Python

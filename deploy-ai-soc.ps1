@@ -33,6 +33,11 @@ $SiemCompose   = Join-Path $ComposeDir "phase1-siem-core-windows.yml"
 $AiCompose     = Join-Path $ComposeDir "ai-services.yml"
 $MonCompose    = Join-Path $ComposeDir "monitoring-stack.yml"
 
+# Separate project names so --remove-orphans in one stack does not delete other stacks
+$SiemProject   = "ai-soc-siem"
+$AiProject     = "ai-soc-ai"
+$MonProject    = "ai-soc-monitoring"
+
 # ---------------------------------------------------------------------------
 # Colour helpers
 # ---------------------------------------------------------------------------
@@ -56,14 +61,44 @@ if ($Help) {
 # ---------------------------------------------------------------------------
 # Tear down
 # ---------------------------------------------------------------------------
+function Invoke-ComposeDown {
+    param(
+        [string]$Project,
+        [string]$ComposeFile,
+        [string]$Label
+    )
+
+    if (-not (Test-Path $ComposeFile)) { return }
+
+    Write-Log $Label
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        # Docker Compose logs warnings to stderr; ignore them during teardown.
+        & docker compose -p $Project -f $ComposeFile down 2>&1 | Out-Null
+    } finally {
+        $ErrorActionPreference = $prevEap
+    }
+}
+
 function Invoke-Teardown {
     Write-Banner "Stopping AI-SOC"
-    Write-Log "Stopping monitoring stack..."
-    docker compose -f $MonCompose down 2>$null
-    Write-Log "Stopping AI services..."
-    docker compose -f $AiCompose down 2>$null
-    Write-Log "Stopping SIEM core..."
-    docker compose -f $SiemCompose down 2>$null
+
+    $legacyProject = 'docker-compose'
+
+    foreach ($project in @($MonProject, $legacyProject)) {
+        Invoke-ComposeDown -Project $project -ComposeFile $MonCompose `
+            -Label "Stopping monitoring stack (project: $project)..."
+    }
+    foreach ($project in @($AiProject, $legacyProject)) {
+        Invoke-ComposeDown -Project $project -ComposeFile $AiCompose `
+            -Label "Stopping AI services (project: $project)..."
+    }
+    foreach ($project in @($SiemProject, $legacyProject)) {
+        Invoke-ComposeDown -Project $project -ComposeFile $SiemCompose `
+            -Label "Stopping SIEM core (project: $project)..."
+    }
+
     Write-Ok "All services stopped."
 }
 
@@ -99,14 +134,17 @@ function Test-Prerequisites {
         exit 1
     }
 
-    # Docker daemon
-    try {
-        docker info 2>$null | Out-Null
-        Write-Ok "Docker daemon: running"
-    } catch {
+    # Docker daemon — docker info writes benign warnings to stderr; only exit code matters
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = 'SilentlyContinue'
+    $null = docker info 2>&1
+    $daemonRunning = ($LASTEXITCODE -eq 0)
+    $ErrorActionPreference = $prevEap
+    if (-not $daemonRunning) {
         Write-Err "Docker daemon is not running. Start Docker Desktop and retry."
         exit 1
     }
+    Write-Ok "Docker daemon: running"
 
     # Disk space (warn if <20 GB)
     $drive = (Get-PSDrive -Name ($ScriptDir.Substring(0,1)))[0]
@@ -236,7 +274,7 @@ function Deploy-Siem {
     }
 
     Write-Log "Starting SIEM core services..."
-    docker compose -f $SiemCompose up -d --remove-orphans
+    docker compose -p $SiemProject -f $SiemCompose up -d --remove-orphans
 
     Wait-ForHealthy -ContainerName "wazuh-indexer" -MaxWaitSecs 180
     Write-Ok "SIEM core started."
@@ -254,10 +292,10 @@ function Deploy-AIServices {
     }
 
     Write-Log "Building AI service images..."
-    docker compose -f $AiCompose build --parallel
+    docker compose -p $AiProject -f $AiCompose build --parallel
 
     Write-Log "Starting AI services..."
-    docker compose -f $AiCompose up -d --remove-orphans
+    docker compose -p $AiProject -f $AiCompose up -d --remove-orphans
 
     Wait-ForHealthy -ContainerName "ollama" -MaxWaitSecs 120
     Pull-OllamaModel
@@ -303,7 +341,7 @@ function Deploy-Monitoring {
     }
 
     Write-Log "Starting monitoring stack..."
-    docker compose -f $MonCompose up -d --remove-orphans
+    docker compose -p $MonProject -f $MonCompose up -d --remove-orphans
 
     Wait-ForHealthy -ContainerName "monitoring-prometheus" -MaxWaitSecs 60
     Write-Ok "Monitoring stack started."
@@ -365,7 +403,7 @@ function Invoke-HealthCheck {
         "RAG Service"      = "http://localhost:8300/health"
         "Wazuh Integration"= "http://localhost:8002/health"
         "Prometheus"       = "http://localhost:9090/-/healthy"
-        "Grafana"          = "http://localhost:3001/api/health"
+        "Grafana"          = "http://localhost:3000/api/health"
     }
 
     $allOk = $true
@@ -405,7 +443,7 @@ function Print-AccessUrls {
     Write-Host "  Wazuh Integration:   http://localhost:8002/docs" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Monitoring:" -ForegroundColor White
-    Write-Host "  Grafana:             http://localhost:3001  (admin/admin)" -ForegroundColor Cyan
+    Write-Host "  Grafana:             http://localhost:3000  (admin/admin)" -ForegroundColor Cyan
     Write-Host "  Prometheus:          http://localhost:9090" -ForegroundColor Cyan
     Write-Host "  Alertmanager:        http://localhost:9093" -ForegroundColor Cyan
     Write-Host ""

@@ -136,12 +136,16 @@ echo "  • AI Services (ML Inference, RAG)"
 echo "  • Wazuh SIEM (Core only)"
 echo ""
 
-# Detect OS
-if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "win32" ]]; then
+# Detect OS / Docker runtime (Docker Desktop cannot run Suricata/Zeek stack)
+IS_DOCKER_DESKTOP=false
+if docker info 2>/dev/null | grep -q 'Operating System: Docker Desktop'; then
+    IS_DOCKER_DESKTOP=true
+fi
+
+if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "win32" ]] || [[ "$IS_DOCKER_DESKTOP" == "true" ]]; then
     SIEM_COMPOSE="phase1-siem-core-windows.yml"
 else
     SIEM_COMPOSE="phase1-siem-core.yml"
-    # Check if Linux compose file exists, fallback to Windows version
     if [ ! -f "$COMPOSE_DIR/$SIEM_COMPOSE" ]; then
         SIEM_COMPOSE="phase1-siem-core-windows.yml"
     fi

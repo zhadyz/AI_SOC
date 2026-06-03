@@ -1,0 +1,7 @@
+# Shell scripts must use LF for WSL/Linux (avoid bash\r errors)
+*.sh text eol=lf
+
+# Config files mounted into Linux containers
+config/**/*.conf text eol=lf
+config/**/*.yml text eol=lf
+config/**/*.yaml text eol=lf
