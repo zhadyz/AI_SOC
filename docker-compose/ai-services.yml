@@ -74,6 +74,8 @@ services:
     environment:
       - TRIAGE_OLLAMA_HOST=http://ollama:11434
       - TRIAGE_PRIMARY_MODEL=llama3.2:3b
+      - TRIAGE_FALLBACK_MODEL=llama3.2:3b
+      - TRIAGE_LLM_TIMEOUT=300
       - TRIAGE_ML_API_URL=http://ml-inference:8000
       - TRIAGE_RAG_SERVICE_URL=http://rag-service:8000
     networks:

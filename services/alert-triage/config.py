@@ -24,8 +24,8 @@ class Settings(BaseSettings):
 
     # Ollama LLM Configuration
     ollama_host: str = "http://ollama:11434"
-    primary_model: str = "foundation-sec-8b"
-    fallback_model: str = "llama3.1:8b"
+    primary_model: str = "llama3.2:3b"
+    fallback_model: str = "llama3.2:3b"
 
     # LLM Parameters
     llm_temperature: float = 0.1  # Low temperature for consistency
