@@ -1,0 +1,18 @@
+[
+  {
+    "alert_id": "batch-001",
+    "rule_description": "Suspicious outbound connection to rare destination port",
+    "rule_level": 8,
+    "source_ip": "10.0.0.15",
+    "dest_ip": "198.51.100.10",
+    "dest_port": 4444
+  },
+  {
+    "alert_id": "batch-002",
+    "rule_description": "Multiple failed SSH login attempts detected",
+    "rule_level": 10,
+    "source_ip": "203.0.113.42",
+    "dest_port": 22,
+    "raw_log": "Failed password for invalid user admin from 203.0.113.42 port 22 ssh2"
+  }
+]

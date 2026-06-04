@@ -1,0 +1,14 @@
+{
+  "alert_id": "test-alert-001",
+  "timestamp": "2025-10-22T10:30:00Z",
+  "rule_id": "100002",
+  "rule_level": 10,
+  "rule_description": "Multiple failed SSH login attempts detected",
+  "source_ip": "192.168.1.100",
+  "dest_ip": "10.0.0.50",
+  "dest_port": 22,
+  "user": "root",
+  "process": "sshd",
+  "raw_log": "Oct 22 10:30:00 server sshd[1234]: Failed password for root from 192.168.1.100 port 22 ssh2",
+  "mitre_technique": ["T1110.001"]
+}

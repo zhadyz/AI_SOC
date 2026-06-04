@@ -15,6 +15,7 @@ from config import get_settings
 from models import WazuhAlert, EnrichedAlert
 from wazuh_client import WazuhClient
 from ai_client import AIClient
+from persist import save_enriched_alert
 
 # Configure structured logging
 structlog.configure(
@@ -188,6 +189,16 @@ async def receive_wazuh_alert(alert: WazuhAlert):
             is_true_positive=enriched_alert.ai_is_true_positive,
             rag_enriched=rag_enrichment_applied
         )
+
+        settings = app.state.settings
+        if settings.enriched_alerts_enabled:
+            saved = save_enriched_alert(
+                settings.enriched_alerts_dir,
+                enriched_alert.model_dump(mode="json"),
+                alert.id,
+            )
+            if saved:
+                logger.info("enriched_alert_persisted", path=saved)
 
         return enriched_alert
 

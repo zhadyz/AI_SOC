@@ -1,0 +1,5 @@
+{
+  "model": "llama3.2:3b",
+  "prompt": "Say hello in one sentence.",
+  "stream": false
+}

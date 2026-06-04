@@ -100,6 +100,7 @@ services:
       # Custom rules and decoders
       - ../config/wazuh-manager/rules:/var/ossec/etc/rules:rw
       - ../config/wazuh-manager/decoders:/var/ossec/etc/decoders:rw
+      - ../config/wazuh-manager/integrations/ai-soc-webhook:/var/ossec/integrations/ai-soc-webhook:ro
       # Dataset replay logs
       - ../datasets/logs:/var/log/external:ro
 

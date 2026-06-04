@@ -63,6 +63,10 @@ class Settings(BaseSettings):
     critical_asset_always_requires_approval: bool = True
     dry_run_mode: bool = False  # When true, no actions are actually executed
 
+    # Disk persistence (E2E / audit; host path via docker volume)
+    defense_plans_enabled: bool = True
+    defense_plans_dir: str = "/data/defense-plans"
+
     # Logging / Server
     log_level: str = "INFO"
     host: str = "0.0.0.0"

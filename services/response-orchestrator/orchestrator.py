@@ -36,6 +36,7 @@ from adapters.firewall import FirewallAdapter
 from adapters.edr import EDRAdapter
 from adapters.identity import IdentityAdapter
 from config import Settings
+from persist import save_defense_plan
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +85,14 @@ class ResponseOrchestrator:
             "edr": EDRAdapter(),
             "identity": IdentityAdapter(),
         }
+
+    def _persist_plan(self, plan: DefensePlan) -> None:
+        if not self.settings.defense_plans_enabled:
+            return
+        save_defense_plan(
+            self.settings.defense_plans_dir,
+            plan.model_dump(mode="json"),
+        )
 
     # ----- Main Loop -----
 
@@ -164,6 +173,7 @@ class ResponseOrchestrator:
             plan.status = PlanStatus.EXECUTING
 
         plan.updated_at = datetime.utcnow()
+        self._persist_plan(plan)
         return plan
 
     # ----- Incident Fetch -----
@@ -342,6 +352,7 @@ class ResponseOrchestrator:
             asyncio.create_task(self._verify_and_complete(plan))
 
         plan.updated_at = datetime.utcnow()
+        self._persist_plan(plan)
         return action
 
     # ----- Verification & Completion -----
@@ -386,6 +397,7 @@ class ResponseOrchestrator:
             plan.completed_at = datetime.utcnow()
 
         plan.updated_at = datetime.utcnow()
+        self._persist_plan(plan)
 
     async def _rollback_plan(self, plan: DefensePlan) -> None:
         """Rollback all completed actions in reverse order."""

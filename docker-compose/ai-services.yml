@@ -138,6 +138,10 @@ services:
       - ALERT_TRIAGE_URL=http://alert-triage:8000
       - RAG_SERVICE_URL=http://rag-service:8000
       - API_PASSWORD=${API_PASSWORD}
+      - ENRICHED_ALERTS_ENABLED=true
+      - ENRICHED_ALERTS_DIR=/data/enriched-alerts
+    volumes:
+      - ../data/enriched-alerts:/data/enriched-alerts:rw
     networks:
       - ai-network
       - siem-backend
@@ -318,6 +322,10 @@ services:
       - ORCHESTRATOR_WAZUH_API_USERNAME=wazuh-wui
       - ORCHESTRATOR_WAZUH_API_PASSWORD=${API_PASSWORD}
       - ORCHESTRATOR_DRY_RUN_MODE=${ORCHESTRATOR_DRY_RUN:-false}
+      - ORCHESTRATOR_DEFENSE_PLANS_ENABLED=true
+      - ORCHESTRATOR_DEFENSE_PLANS_DIR=/data/defense-plans
+    volumes:
+      - ../data/defense-plans:/data/defense-plans:rw
     networks:
       - ai-network
       - siem-backend

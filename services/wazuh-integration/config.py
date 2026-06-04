@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     wazuh_api_timeout: int = 30
     ai_service_timeout: int = 60
 
+    # E2E: save EnrichedAlert JSON from integration service (mirror of manager script output)
+    enriched_alerts_enabled: bool = True
+    enriched_alerts_dir: str = "/data/enriched-alerts"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

@@ -30,6 +30,8 @@ It does that through several cooperating services:
 
 This is not a drop-in production SOC. It is a substantial research implementation with runnable local services, trained artifacts, documented experiments, and some deliberately stubbed production integrations.
 
+See **[PIPELINE_FLOW.md](PIPELINE_FLOW.md)** for the end-to-end alert journey (Wazuh → LLM triage → RAG → correlation → response).
+
 ## Current Status
 
 | Area | Status | Notes |

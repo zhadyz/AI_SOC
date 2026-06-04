@@ -1,0 +1,28 @@
+#!/bin/bash
+# POST alert to wazuh-integration (EnrichedAlert saved by integration service).
+# Usage: ai-soc-webhook <path-to-alert.json>
+
+set -euo pipefail
+
+ALERT_FILE="${1:?alert file path required}"
+WEBHOOK_URL="${AI_SOC_WEBHOOK_URL:-http://wazuh-integration:8002/webhook}"
+MAX_TIME="${AI_SOC_WEBHOOK_TIMEOUT:-600}"
+
+RULE_LEVEL="$(python3 -c "import json,sys; print(int(json.load(open(sys.argv[1]))['rule']['level']))" "$ALERT_FILE" 2>/dev/null || echo 0)"
+if [ "$RULE_LEVEL" -lt 7 ]; then
+  exit 0
+fi
+
+HTTP_CODE="$(curl -sS -w "%{http_code}" -o /dev/null \
+  -X POST "$WEBHOOK_URL" \
+  -H "Content-Type: application/json" \
+  --data-binary @"$ALERT_FILE" \
+  --max-time "$MAX_TIME" || echo "000")"
+
+if [ "$HTTP_CODE" = "200" ]; then
+  echo "$(date -u -Iseconds) ai-soc-webhook OK HTTP=${HTTP_CODE}" >> /var/ossec/logs/integrations.log
+  exit 0
+fi
+
+echo "$(date -u -Iseconds) ai-soc-webhook FAIL HTTP=${HTTP_CODE}" >> /var/ossec/logs/integrations.log
+exit 1

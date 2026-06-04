@@ -92,6 +92,7 @@ services:
       - ../config/wazuh-manager/certs:/etc/ssl:ro
       # Mount ossec.conf to the Wazuh config-mount path (merged on container start)
       - ../config/wazuh-manager/ossec.conf:/wazuh-config-mount/etc/ossec.conf:ro
+      - ../config/wazuh-manager/integrations/ai-soc-webhook:/var/ossec/integrations/ai-soc-webhook:ro
       - ../datasets/logs:/var/log/external:ro
 
     networks:

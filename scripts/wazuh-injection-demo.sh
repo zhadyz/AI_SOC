@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bashw
 # End-to-end demo: Wazuh ingests poisoned SSH log → integrator → LLM triage
 set -euo pipefail
 
@@ -22,8 +22,7 @@ if ! grep -q 'injection-test.log' \"\$CONF\"; then
   </localfile>\\
 \\
   <integration>\\
-    <name>custom-webhook</name>\\
-    <hook_url>${WEBHOOK}</hook_url>\\
+    <name>ai-soc-webhook</name>\\
     <level>7</level>\\
     <alert_format>json</alert_format>\\
   </integration>' \"\$CONF\"
@@ -75,3 +74,9 @@ fi
 echo
 echo "=== [5/5] wazuh-integration logs (LLM result) ==="
 docker logs "$INTEGRATION" --since 2m 2>&1 | tail -40
+
+echo
+echo "=== Enriched JSON (host: data/enriched-alerts/) ==="
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ls -la "${SCRIPT_DIR}/../data/enriched-alerts/"*.json 2>/dev/null | tail -5 \
+  || echo "None yet — wait for LLM (check: docker logs wazuh-integration --since 5m)"
