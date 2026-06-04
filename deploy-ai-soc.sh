@@ -77,14 +77,26 @@ ENV_REQUIRED_KEYS=(
 # ---------------------------------------------------------------------------
 ACTION="deploy"
 RESET_SIEM_DATA=false
+OLLAMA_REMOTE=false
+OLLAMA_LOCAL=false
+USE_ENV_OLLAMA=false
+USE_LOCAL_OLLAMA=false
+OLLAMA_BASE_URL="http://ollama:11434"
+OLLAMA_MODEL="llama3.2:3b"
 for arg in "$@"; do
     case "$arg" in
         --stop)    ACTION="stop" ;;
         --status)  ACTION="status" ;;
         --reset-siem-data) RESET_SIEM_DATA=true ;;
+        --ollama-remote) OLLAMA_REMOTE=true ;;
+        --ollama-local) OLLAMA_LOCAL=true ;;
+        --use-env-ollama) USE_ENV_OLLAMA=true ;;
         --help|-h)
             echo "Usage: $0 [--stop] [--status] [--reset-siem-data] [--help]"
-            echo "  (no args)           Deploy full AI-SOC stack"
+            echo "  (no args)           Deploy full AI-SOC stack (prompts for Ollama backend)"
+            echo "  --ollama-remote     Use OLLAMA_BASE_URL from .env (RunPod HTTP proxy)"
+            echo "  --ollama-local      Start local ollama container (--profile local-ollama)"
+            echo "  --use-env-ollama    Use OLLAMA_MODE from .env without prompting"
             echo "  --stop              Tear down all services"
             echo "  --reset-siem-data   With --stop: remove Wazuh volumes; alone: reset then deploy"
             echo "  --status            Show running containers"
@@ -306,6 +318,102 @@ load_deploy_config() {
     SIEM_BACKEND_NETWORK="${SIEM_BACKEND_NETWORK:-ai-soc-siem-backend}"
 
     ok "Deploy config: SIEM project=$SIEM_PROJECT, AI project=$AI_PROJECT, SIEM network=$SIEM_BACKEND_NETWORK"
+}
+
+set_env_file_value() {
+    local env_file="$1" key="$2" value="$3"
+    [[ -f "$env_file" ]] || return 0
+    if grep -qE "^[[:space:]]*${key}=" "$env_file" 2>/dev/null; then
+        if [[ "$OS" == "Darwin" ]]; then
+            sed -i '' "s|^[[:space:]]*${key}=.*|${key}=${value}|" "$env_file"
+        else
+            sed -i "s|^[[:space:]]*${key}=.*|${key}=${value}|" "$env_file"
+        fi
+    else
+        echo "${key}=${value}" >> "$env_file"
+    fi
+}
+
+test_runpod_ollama() {
+    local base_url="$1" model="$2"
+    local tags_url="${base_url%/}/api/tags"
+    log "Checking remote Ollama: $tags_url"
+    local resp
+    if ! resp=$(curl -sf --max-time 45 "$tags_url"); then
+        error "Cannot reach remote Ollama at $base_url"
+        warn "  - Confirm RunPod pod is running and HTTP proxy is enabled on port 11434"
+        warn "  - Set OLLAMA_BASE_URL in .env to the proxy URL"
+        warn "  - See docs/deployment/runpod-ollama.md"
+        exit 1
+    fi
+    local model_base="${model%%:*}"
+    if ! echo "$resp" | grep -qE "\"name\"[[:space:]]*:[[:space:]]*\"${model}\"" \
+        && ! echo "$resp" | grep -qE "\"name\"[[:space:]]*:[[:space:]]*\"${model_base}"; then
+        error "Model '$model' not found on remote Ollama."
+        warn "  On RunPod: ollama pull $model"
+        exit 1
+    fi
+    ok "Remote Ollama reachable; model '$model' is available."
+}
+
+resolve_ollama_backend() {
+    banner "Ollama Backend"
+
+    OLLAMA_MODEL="${OLLAMA_MODEL:-llama3.2:3b}"
+
+    local mode=""
+    if [[ "$OLLAMA_LOCAL" == "true" ]]; then
+        mode="local"
+    elif [[ "$OLLAMA_REMOTE" == "true" ]]; then
+        mode="remote"
+    elif [[ "$USE_ENV_OLLAMA" == "true" && -n "${OLLAMA_MODE:-}" ]]; then
+        mode="$(echo "$OLLAMA_MODE" | tr '[:upper:]' '[:lower:]')"
+    elif [[ -n "${OLLAMA_MODE:-}" ]]; then
+        mode="$(echo "$OLLAMA_MODE" | tr '[:upper:]' '[:lower:]')"
+    else
+        echo ""
+        echo "Select Ollama backend:"
+        echo "  [1] RunPod / remote Ollama (OLLAMA_BASE_URL in .env)"
+        echo "  [2] Local Ollama container (Docker, uses RAM)"
+        read -r -p "Enter choice (1 or 2, default 1): " choice
+        if [[ "$choice" == "2" ]]; then mode="local"; else mode="remote"; fi
+    fi
+
+    if [[ "$mode" == "local" ]]; then
+        USE_LOCAL_OLLAMA=true
+        export OLLAMA_MODE="local"
+        export OLLAMA_BASE_URL="http://ollama:11434"
+        ok "Using local Ollama container (compose profile: local-ollama)"
+    else
+        USE_LOCAL_OLLAMA=false
+        export OLLAMA_MODE="remote"
+        if [[ -z "${OLLAMA_BASE_URL:-}" || "$OLLAMA_BASE_URL" == "http://ollama:11434" ]]; then
+            [[ "$OLLAMA_BASE_URL" == "http://ollama:11434" ]] && \
+                warn "OLLAMA_BASE_URL still points at local container hostname."
+            error "Remote Ollama selected but OLLAMA_BASE_URL is not set to your RunPod proxy URL."
+            warn "Add to .env: OLLAMA_BASE_URL=https://<your-id>.proxy.runpod.net"
+            warn "See: docs/deployment/runpod-ollama.md"
+            exit 1
+        fi
+        test_runpod_ollama "$OLLAMA_BASE_URL" "$OLLAMA_MODEL"
+    fi
+
+    export OLLAMA_MODEL
+    set_env_file_value "$SCRIPT_DIR/.env" "OLLAMA_MODE" "$OLLAMA_MODE"
+    set_env_file_value "$SCRIPT_DIR/.env" "OLLAMA_BASE_URL" "$OLLAMA_BASE_URL"
+    set_env_file_value "$SCRIPT_DIR/.env" "OLLAMA_MODEL" "$OLLAMA_MODEL"
+    set_env_file_value "$COMPOSE_DIR/.env" "OLLAMA_MODE" "$OLLAMA_MODE"
+    set_env_file_value "$COMPOSE_DIR/.env" "OLLAMA_BASE_URL" "$OLLAMA_BASE_URL"
+    set_env_file_value "$COMPOSE_DIR/.env" "OLLAMA_MODEL" "$OLLAMA_MODEL"
+    sync_compose_env
+}
+
+ai_compose_run_live() {
+    if [[ "$USE_LOCAL_OLLAMA" == "true" ]]; then
+        compose_run_live "$AI_PROJECT" "$AI_COMPOSE" --profile local-ollama "$@"
+    else
+        compose_run_live "$AI_PROJECT" "$AI_COMPOSE" "$@"
+    fi
 }
 
 sync_compose_env() {
@@ -584,30 +692,47 @@ deploy_ai_services() {
     ensure_siem_backend_network
 
     local -a ai_containers=(
-        ollama chromadb ml-inference alert-triage rag-service wazuh-integration
+        chromadb ml-inference alert-triage rag-service wazuh-integration
         ai-soc-postgres feedback-service correlation-engine rule-generator response-orchestrator
     )
+    if [[ "$USE_LOCAL_OLLAMA" == "true" ]]; then
+        ai_containers=(ollama "${ai_containers[@]}")
+    fi
     log "AI stack containers: ${ai_containers[*]}"
     log "Compose project: $AI_PROJECT"
+    if [[ "$USE_LOCAL_OLLAMA" == "true" ]]; then
+        log "Ollama: local container"
+    else
+        log "Ollama: remote at $OLLAMA_BASE_URL"
+    fi
 
     log "Building AI service images (live build output)..."
-    compose_run_live "$AI_PROJECT" "$AI_COMPOSE" build --parallel
+    ai_compose_run_live build --parallel
 
-    log "Starting core AI infrastructure (ollama, chromadb, postgres, ml-inference)..."
-    compose_run_live "$AI_PROJECT" "$AI_COMPOSE" up -d ollama chromadb postgres ml-inference
+    if [[ "$USE_LOCAL_OLLAMA" == "true" ]]; then
+        log "Starting core AI infrastructure (ollama, chromadb, postgres, ml-inference)..."
+        ai_compose_run_live up -d ollama chromadb postgres ml-inference
 
-    log "Waiting for Ollama to become healthy (up to 3 min on first start)..."
-    watch_stack_startup "Ollama" 180 5 ollama -- ollama || \
-        warn "Ollama not healthy yet. Run: docker logs ollama --tail 40"
+        log "Waiting for Ollama to become healthy (up to 3 min on first start)..."
+        watch_stack_startup "Ollama" 180 5 ollama -- ollama || \
+            warn "Ollama not healthy yet. Run: docker logs ollama --tail 40"
+    else
+        log "Starting core AI infrastructure (chromadb, postgres, ml-inference) — skipping local ollama..."
+        compose_run_live "$AI_PROJECT" "$AI_COMPOSE" up -d chromadb postgres ml-inference
+    fi
 
     log "Starting remaining AI services (live compose output)..."
-    compose_run_live "$AI_PROJECT" "$AI_COMPOSE" up -d --remove-orphans
+    ai_compose_run_live up -d --remove-orphans
 
-    watch_stack_startup "AI Services" 240 5 ollama chromadb ml-inference -- "${ai_containers[@]}" || \
-        warn "Some AI containers still starting; continuing with per-service health checks."
-
-    wait_for_healthy "ollama" "$AI_COMPOSE" 120 5
-    pull_ollama_model
+    if [[ "$USE_LOCAL_OLLAMA" == "true" ]]; then
+        watch_stack_startup "AI Services" 240 5 ollama chromadb ml-inference -- "${ai_containers[@]}" || \
+            warn "Some AI containers still starting; continuing with per-service health checks."
+        wait_for_healthy "ollama" "$AI_COMPOSE" 120 5
+        pull_ollama_model
+    else
+        watch_stack_startup "AI Services" 240 5 chromadb ml-inference -- "${ai_containers[@]}" || \
+            warn "Some AI containers still starting; continuing with per-service health checks."
+    fi
 
     for svc in chromadb ml-inference alert-triage rag-service wazuh-integration; do
         wait_for_healthy "$svc" "$AI_COMPOSE" 120 5
@@ -621,7 +746,12 @@ deploy_ai_services() {
 # Pull Ollama model
 # ---------------------------------------------------------------------------
 pull_ollama_model() {
-    local model="llama3.2:3b"
+    if [[ "$USE_LOCAL_OLLAMA" != "true" ]]; then
+        log "Remote Ollama configured — skipping local model pull."
+        return 0
+    fi
+
+    local model="${OLLAMA_MODEL:-llama3.2:3b}"
     log "Pulling Ollama model: $model ..."
 
     if ! docker ps --filter "name=^ollama$" --filter "status=running" -q | grep -q .; then
@@ -630,7 +760,8 @@ pull_ollama_model() {
     fi
 
     # Check if model already exists
-    if docker exec ollama ollama list 2>/dev/null | grep -q "llama3.2"; then
+    local model_base="${model%%:*}"
+    if docker exec ollama ollama list 2>/dev/null | grep -q "$model_base"; then
         ok "Ollama model $model already present."
         return 0
     fi
@@ -669,7 +800,7 @@ ingest_knowledge_base() {
     banner "Knowledge Base Ingestion"
 
     local rag_url="http://localhost:8300"
-    local max_wait=60
+    local max_wait=120
     local elapsed=0
 
     log "Waiting for RAG service to be ready..."
@@ -683,14 +814,14 @@ ingest_knowledge_base() {
 
     if curl -sf "$rag_url/health" &>/dev/null; then
         log "Triggering MITRE ATT&CK ingestion..."
-        if curl -sf -X POST "$rag_url/ingest/mitre" &>/dev/null; then
+        if curl -sf --max-time 600 -X POST "$rag_url/ingest/mitre" &>/dev/null; then
             ok "MITRE ATT&CK ingestion started (runs in background)."
         else
             warn "MITRE ATT&CK ingestion trigger failed. Retry manually: POST $rag_url/ingest/mitre"
         fi
 
         log "Triggering security runbook ingestion..."
-        if curl -sf -X POST "$rag_url/ingest/runbooks" &>/dev/null; then
+        if curl -sf --max-time 600 -X POST "$rag_url/ingest/runbooks" &>/dev/null; then
             ok "Security runbook ingestion started."
         else
             warn "Runbook ingestion trigger failed. Retry manually: POST $rag_url/ingest/runbooks"
@@ -756,7 +887,11 @@ print_access_urls() {
     echo -e "  Wazuh Indexer API:   ${CYAN}https://localhost:9200${RESET}"
     echo ""
     echo -e "${BOLD}Infrastructure:${RESET}"
-    echo -e "  Ollama LLM:          ${CYAN}http://localhost:11434${RESET}"
+    if [[ "$USE_LOCAL_OLLAMA" == "true" ]]; then
+        echo -e "  Ollama LLM (local):  ${CYAN}http://localhost:11434${RESET}"
+    else
+        echo -e "  Ollama LLM (remote): ${CYAN}${OLLAMA_BASE_URL}${RESET}"
+    fi
     echo -e "  ChromaDB:            ${CYAN}http://localhost:8200${RESET}"
     echo ""
     echo -e "${GREEN}${BOLD}AI-SOC deployment complete.${RESET}"
@@ -784,6 +919,7 @@ main() {
             check_prerequisites
             ensure_certs
             ensure_env
+            resolve_ollama_backend
             if [[ "$RESET_SIEM_DATA" == "true" ]]; then
                 reset_siem_data
             fi

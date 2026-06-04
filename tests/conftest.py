@@ -10,17 +10,13 @@ Date: 2025-10-22
 import os
 import sys
 import pytest
-import asyncio
+import pytest_asyncio
 from pathlib import Path
-from typing import AsyncGenerator, Generator
 
 # Add project root to Python path
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(PROJECT_ROOT / "services" / "common"))
-sys.path.insert(0, str(PROJECT_ROOT / "services" / "alert-triage"))
-sys.path.insert(0, str(PROJECT_ROOT / "services" / "rag-service"))
-sys.path.insert(0, str(PROJECT_ROOT / "services" / "log-summarization"))
 sys.path.insert(0, str(PROJECT_ROOT / "ml_training"))
 
 
@@ -39,14 +35,6 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "slow: Tests that take >5 seconds")
     config.addinivalue_line("markers", "requires_ollama: Tests requiring Ollama")
     config.addinivalue_line("markers", "requires_docker: Tests requiring Docker")
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create event loop for async tests"""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
 
 
 # ============================================================================
@@ -94,14 +82,13 @@ def sample_security_alert() -> dict:
         "alert_id": "test-alert-001",
         "timestamp": "2025-10-22T10:30:00Z",
         "source_ip": "192.168.1.100",
-        "destination_ip": "10.0.0.50",
+        "dest_ip": "10.0.0.50",
+        "dest_port": 22,
         "rule_id": "100002",
         "rule_level": 10,
         "rule_description": "Multiple failed SSH login attempts detected",
-        "full_log": "Oct 22 10:30:00 server sshd[1234]: Failed password for root from 192.168.1.100",
-        "agent_name": "web-server-01",
-        "mitre_tactic": "Credential Access",
-        "mitre_technique": "T1110.001"
+        "raw_log": "Oct 22 10:30:00 server sshd[1234]: Failed password for root from 192.168.1.100",
+        "mitre_technique": ["T1110.001"],
     }
 
 
@@ -109,7 +96,7 @@ def sample_security_alert() -> dict:
 def sample_network_flow() -> dict:
     """Sample network flow for ML inference testing"""
     return {
-        "features": [0.0] * 78,  # 78 features as expected by ML models
+        "features": [0.0] * 77,
         "model_name": "random_forest"
     }
 
@@ -172,7 +159,7 @@ def mock_ml_prediction() -> dict:
 # HTTP Client Fixtures
 # ============================================================================
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def http_client():
     """Async HTTP client for API testing"""
     import httpx

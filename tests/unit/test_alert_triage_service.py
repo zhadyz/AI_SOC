@@ -11,11 +11,41 @@ import pytest
 import sys
 from pathlib import Path
 from unittest.mock import Mock, patch, AsyncMock
+from pydantic import ValidationError
 
 # Add services to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "services" / "alert-triage"))
 
-from models import SecurityAlert, TriageResponse
+from models import SecurityAlert, TriageResponse, SeverityLevel, AlertCategory, TriageRecommendation
+
+
+def _sample_triage_response(**overrides) -> TriageResponse:
+    """Build a valid TriageResponse for unit tests."""
+    data = {
+        "alert_id": "test-001",
+        "severity": SeverityLevel.HIGH,
+        "category": AlertCategory.INTRUSION,
+        "confidence": 0.95,
+        "summary": "Brute force attack detected",
+        "detailed_analysis": "Multiple failed SSH login attempts observed.",
+        "potential_impact": "Potential account compromise.",
+        "is_true_positive": True,
+        "iocs": [],
+        "mitre_tactics": ["Credential Access"],
+        "mitre_techniques": ["T1110.001"],
+        "recommendations": [
+            TriageRecommendation(
+                action="Block source IP",
+                priority=1,
+                rationale="Prevent further brute-force attempts",
+            )
+        ],
+        "investigation_priority": 2,
+        "model_used": "llama3.2:3b",
+        "processing_time_ms": 150,
+    }
+    data.update(overrides)
+    return TriageResponse(**data)
 
 
 # ============================================================================
@@ -53,38 +83,21 @@ class TestTriageResponseModel:
 
     def test_valid_triage_response(self):
         """Test creating valid TriageResponse"""
-        response = TriageResponse(
-            alert_id="test-001",
-            severity="high",
-            confidence=0.95,
-            summary="Brute force attack detected",
-            mitre_tactics=["Credential Access"],
-            mitre_techniques=["T1110.001"],
-            iocs=["192.168.1.100"],
-            recommendations=["Block source IP"],
-            model_used="llama3.1:8b",
-            processing_time_ms=150
-        )
-        assert response.severity == "high"
+        response = _sample_triage_response()
+        assert response.severity == SeverityLevel.HIGH
         assert response.confidence == 0.95
-        assert len(response.iocs) == 1
 
     def test_severity_levels(self):
         """Test all valid severity levels"""
-        severity_levels = ["critical", "high", "medium", "low", "info"]
+        severity_levels = [
+            SeverityLevel.CRITICAL,
+            SeverityLevel.HIGH,
+            SeverityLevel.MEDIUM,
+            SeverityLevel.LOW,
+            SeverityLevel.INFO,
+        ]
         for severity in severity_levels:
-            response = TriageResponse(
-                alert_id="test-001",
-                severity=severity,
-                confidence=0.8,
-                summary="Test",
-                mitre_tactics=[],
-                mitre_techniques=[],
-                iocs=[],
-                recommendations=[],
-                model_used="test",
-                processing_time_ms=100
-            )
+            response = _sample_triage_response(severity=severity)
             assert response.severity == severity
 
 
@@ -124,17 +137,42 @@ class TestOllamaClient:
         assert is_healthy is False
 
     @patch('httpx.AsyncClient')
-    async def test_analyze_alert_success(self, mock_client, sample_security_alert, mock_ollama_response):
+    async def test_analyze_alert_success(self, mock_client, sample_security_alert):
         """Test successful alert analysis"""
+        import json
         from llm_client import OllamaClient
+
+        llm_payload = {
+            "severity": "high",
+            "category": "intrusion_attempt",
+            "confidence": 0.92,
+            "summary": "Brute force attack detected",
+            "detailed_analysis": "Multiple failed SSH attempts.",
+            "potential_impact": "Account compromise risk.",
+            "is_true_positive": True,
+            "iocs": [],
+            "mitre_techniques": ["T1110.001"],
+            "mitre_tactics": ["Credential Access"],
+            "recommendations": [
+                {"action": "Block source IP", "priority": 1, "rationale": "Stop brute force"}
+            ],
+            "investigation_priority": 2,
+        }
 
         mock_response = Mock()
         mock_response.status_code = 200
-        mock_response.json.return_value = mock_ollama_response
+        mock_response.json.return_value = {
+            "model": "llama3.2:3b",
+            "response": json.dumps(llm_payload),
+            "done": True,
+        }
 
         mock_client.return_value.__aenter__.return_value.post = AsyncMock(return_value=mock_response)
 
         client = OllamaClient()
+        client.ml_client.predict_with_fallback = AsyncMock(return_value=None)
+        client.context_manager.build_context = AsyncMock(return_value="")
+
         alert = SecurityAlert(**sample_security_alert)
         result = await client.analyze_alert(alert)
 
@@ -160,7 +198,7 @@ class TestAlertTriageEndpoints:
                 data = response.json()
                 assert "status" in data
                 assert "service" in data
-                assert data["service"] == "Alert Triage Service"
+                assert data["service"] == "alert-triage"
         except Exception as e:
             pytest.skip(f"Service not running: {e}")
 
@@ -199,16 +237,16 @@ class TestConfiguration:
         from config import Settings
 
         settings = Settings()
-        assert settings.service_name == "Alert Triage Service"
+        assert settings.service_name == "alert-triage"
         assert settings.service_version == "1.0.0"
-        assert settings.primary_model == "foundation-sec-8b:latest"
+        assert settings.primary_model == "llama3.2:3b"
 
     def test_environment_override(self, monkeypatch):
         """Test environment variable overrides"""
         from config import Settings
 
-        monkeypatch.setenv("OLLAMA_HOST", "http://custom-ollama:11434")
-        monkeypatch.setenv("PRIMARY_MODEL", "custom-model:latest")
+        monkeypatch.setenv("TRIAGE_OLLAMA_HOST", "http://custom-ollama:11434")
+        monkeypatch.setenv("TRIAGE_PRIMARY_MODEL", "custom-model:latest")
 
         settings = Settings()
         assert settings.ollama_host == "http://custom-ollama:11434"
@@ -246,52 +284,36 @@ class TestErrorHandling:
 
     def test_empty_alert_id(self):
         """Test handling of empty alert ID"""
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             SecurityAlert(
                 alert_id="",
                 timestamp="2025-10-22T10:30:00Z",
                 source_ip="192.168.1.1",
-                destination_ip="10.0.0.1",
+                dest_ip="10.0.0.1",
                 rule_id="100",
                 rule_level=5,
                 rule_description="Test",
-                full_log="test log",
-                agent_name="test-agent"
+                raw_log="test log",
             )
 
     def test_negative_rule_level(self):
         """Test handling of negative rule level"""
-        # Current model doesn't validate this, but it should
-        alert = SecurityAlert(
-            alert_id="test-001",
-            timestamp="2025-10-22T10:30:00Z",
-            source_ip="192.168.1.1",
-            destination_ip="10.0.0.1",
-            rule_id="100",
-            rule_level=-1,  # Invalid
-            rule_description="Test",
-            full_log="test log",
-            agent_name="test-agent"
-        )
-        # TODO: Add validation to reject negative rule levels
-        assert alert.rule_level == -1
+        with pytest.raises(ValidationError):
+            SecurityAlert(
+                alert_id="test-001",
+                timestamp="2025-10-22T10:30:00Z",
+                source_ip="192.168.1.1",
+                dest_ip="10.0.0.1",
+                rule_id="100",
+                rule_level=-1,
+                rule_description="Test",
+                raw_log="test log",
+            )
 
     def test_confidence_out_of_range(self):
         """Test confidence score validation"""
-        # Should be 0.0-1.0
-        with pytest.raises(Exception):
-            TriageResponse(
-                alert_id="test-001",
-                severity="high",
-                confidence=1.5,  # Invalid
-                summary="Test",
-                mitre_tactics=[],
-                mitre_techniques=[],
-                iocs=[],
-                recommendations=[],
-                model_used="test",
-                processing_time_ms=100
-            )
+        with pytest.raises(ValidationError):
+            _sample_triage_response(confidence=1.5)
 
 
 # ============================================================================

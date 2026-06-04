@@ -35,13 +35,13 @@ class TestModelLoading:
     def test_load_scaler(self, mock_pickle):
         """Test StandardScaler loading"""
         mock_scaler = MagicMock()
-        mock_scaler.transform = MagicMock(return_value=np.array([[0.0] * 78]))
+        mock_scaler.transform = MagicMock(return_value=np.array([[0.0] * 77]))
         mock_pickle.return_value = mock_scaler
 
         # Test scaler transformation
-        X = np.array([[1.0] * 78])
+        X = np.array([[1.0] * 77])
         X_scaled = mock_scaler.transform(X)
-        assert X_scaled.shape == (1, 78)
+        assert X_scaled.shape == (1, 77)
 
     @patch('pickle.load')
     def test_load_label_encoder(self, mock_pickle):
@@ -65,8 +65,8 @@ class TestFeatureValidation:
     """Test network flow feature validation"""
 
     def test_valid_feature_count(self, sample_network_flow):
-        """Test correct number of features (78)"""
-        assert len(sample_network_flow["features"]) == 78
+        """Test correct number of features (77)"""
+        assert len(sample_network_flow["features"]) == 77
 
     def test_invalid_feature_count(self):
         """Test rejection of incorrect feature count"""
@@ -75,7 +75,7 @@ class TestFeatureValidation:
             "model_name": "random_forest"
         }
         # API should reject this
-        assert len(invalid_flow["features"]) != 78
+        assert len(invalid_flow["features"]) != 77
 
     def test_feature_types(self, sample_network_flow):
         """Test all features are numeric"""
@@ -85,7 +85,7 @@ class TestFeatureValidation:
     def test_nan_handling(self):
         """Test handling of NaN values in features"""
         flow_with_nan = {
-            "features": [float('nan')] * 78,
+            "features": [float('nan')] * 77,
             "model_name": "random_forest"
         }
         # Should handle or reject NaN values
@@ -104,21 +104,21 @@ class TestPredictions:
     def test_benign_prediction(self):
         """Test benign traffic classification"""
         # Mock benign traffic features (low values)
-        benign_features = [0.0] * 78
+        benign_features = [0.0] * 77
         benign_features[0] = 100.0  # flow_duration
         benign_features[1] = 10.0   # total_fwd_packet
 
         # Would test actual prediction here
-        assert len(benign_features) == 78
+        assert len(benign_features) == 77
 
     def test_attack_prediction(self):
         """Test attack traffic classification"""
         # Mock attack traffic features (anomalous values)
-        attack_features = [0.0] * 78
+        attack_features = [0.0] * 77
         attack_features[0] = 1000000.0  # Very long flow_duration
         attack_features[1] = 5000.0     # Many packets
 
-        assert len(attack_features) == 78
+        assert len(attack_features) == 77
 
     def test_confidence_score_range(self, mock_ml_prediction):
         """Test confidence scores are between 0 and 1"""
@@ -245,7 +245,7 @@ class TestInferencePerformance:
         """Test batch processing efficiency"""
         # Create batch of predictions
         batch_size = 100
-        predictions = [{"features": [0.0] * 78} for _ in range(batch_size)]
+        predictions = [{"features": [0.0] * 77} for _ in range(batch_size)]
 
         # Batch should be more efficient than individual predictions
         assert len(predictions) == batch_size
@@ -290,7 +290,7 @@ class TestEdgeCases:
     def test_all_zeros_input(self):
         """Test handling of all-zero feature vector"""
         zero_flow = {
-            "features": [0.0] * 78,
+            "features": [0.0] * 77,
             "model_name": "random_forest"
         }
         assert all(f == 0.0 for f in zero_flow["features"])
@@ -298,7 +298,7 @@ class TestEdgeCases:
     def test_extreme_values(self):
         """Test handling of extreme feature values"""
         extreme_flow = {
-            "features": [1e10] * 78,  # Very large values
+            "features": [1e10] * 77,  # Very large values
             "model_name": "random_forest"
         }
         # Scaler should normalize these
@@ -307,7 +307,7 @@ class TestEdgeCases:
     def test_negative_values(self):
         """Test handling of negative feature values"""
         negative_flow = {
-            "features": [-1.0] * 78,
+            "features": [-1.0] * 77,
             "model_name": "random_forest"
         }
         # Some features can be negative after scaling
@@ -326,7 +326,7 @@ class TestSecurityValidation:
     def test_input_sanitization(self):
         """Test input sanitization and validation"""
         malicious_input = {
-            "features": [0.0] * 78,
+            "features": [0.0] * 77,
             "model_name": "'; DROP TABLE models; --"  # SQL injection attempt
         }
         # Should be rejected or sanitized

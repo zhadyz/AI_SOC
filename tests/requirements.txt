@@ -31,15 +31,16 @@ isort==5.13.2
 
 # Security Testing
 bandit==1.7.6
-safety==2.3.5
+safety==2.3.4
 
 # Performance Testing
 pytest-benchmark==4.0.0
 
 # API Testing
-pydantic==2.5.3
-fastapi==0.108.0
-uvicorn==0.25.0
+pydantic==2.6.1
+pydantic-settings==2.1.0
+fastapi==0.109.2
+uvicorn==0.27.1
 
 # Utilities
 python-dotenv==1.0.0

@@ -19,7 +19,10 @@ param(
     [switch]$Stop,
     [switch]$Status,
     [switch]$ResetSiemData,
-    [switch]$Help
+    [switch]$Help,
+    [switch]$OllamaRemote,
+    [switch]$OllamaLocal,
+    [switch]$UseEnvOllama
 )
 
 $ErrorActionPreference = "Stop"
@@ -39,6 +42,9 @@ $Script:SiemProject   = "ai-soc-siem"
 $Script:AiProject     = "ai-soc-ai"
 $Script:MonProject    = "ai-soc-monitoring"
 $Script:SiemBackendNetwork = "ai-soc-siem-backend"
+$Script:UseLocalOllama = $false
+$Script:OllamaBaseUrl = "http://ollama:11434"
+$Script:OllamaModel = "llama3.2:3b"
 
 $Script:EnvRequiredKeys = @(
     'COMPOSE_PROJECT_SIEM',
@@ -62,7 +68,10 @@ function Write-Banner { param($Msg) Write-Host "`n=== $Msg ===`n" -ForegroundCol
 # ---------------------------------------------------------------------------
 if ($Help) {
     Write-Host "Usage: .\deploy-ai-soc.ps1 [-Stop] [-Status] [-ResetSiemData] [-Help]"
-    Write-Host "  (no flags)        Deploy full AI-SOC stack"
+    Write-Host "  (no flags)        Deploy full AI-SOC stack (prompts for Ollama backend)"
+    Write-Host "  -OllamaRemote     Use OLLAMA_BASE_URL from .env (RunPod HTTP proxy)"
+    Write-Host "  -OllamaLocal      Start local ollama container (--profile local-ollama)"
+    Write-Host "  -UseEnvOllama     Use OLLAMA_MODE from .env without prompting"
     Write-Host "  -Stop             Tear down all services"
     Write-Host "  -ResetSiemData    With -Stop: remove Wazuh volumes; alone: reset then deploy"
     Write-Host "  -Status           Show running containers"
@@ -208,7 +217,7 @@ function Test-Prerequisites {
         exit 1
     }
 
-    # Docker daemon — docker info writes benign warnings to stderr; only exit code matters
+    # Docker daemon - docker info writes benign warnings to stderr; only exit code matters
     $prevEap = $ErrorActionPreference
     $ErrorActionPreference = 'SilentlyContinue'
     $null = docker info 2>&1
@@ -311,6 +320,129 @@ function Import-DeployEnv {
     Write-Ok "Deploy config: SIEM project=$($Script:SiemProject), AI project=$($Script:AiProject), SIEM network=$($Script:SiemBackendNetwork)"
 }
 
+function Set-EnvFileValue {
+    param(
+        [string]$FilePath,
+        [string]$Key,
+        [string]$Value
+    )
+    if (-not (Test-Path $FilePath)) { return }
+
+    $escapedKey = [regex]::Escape($Key)
+    $pattern = "^\s*$escapedKey\s*="
+    $newLine = "$Key=$Value"
+    $lines = Get-Content $FilePath
+    $found = $false
+    $out = foreach ($line in $lines) {
+        if ($line -match $pattern) {
+            $found = $true
+            $newLine
+        } else {
+            $line
+        }
+    }
+    if (-not $found) { $out += $newLine }
+    $out | Set-Content $FilePath -Encoding utf8
+}
+
+function Test-RunPodOllama {
+    param(
+        [string]$BaseUrl,
+        [string]$Model
+    )
+
+    $tagsUrl = "$($BaseUrl.TrimEnd('/'))/api/tags"
+    Write-Log "Checking remote Ollama: $tagsUrl"
+
+    try {
+        $resp = Invoke-RestMethod -Uri $tagsUrl -TimeoutSec 45 -UseBasicParsing
+    } catch {
+        Write-Err "Cannot reach remote Ollama at $BaseUrl"
+        Write-Host "  - Confirm RunPod pod is running and HTTP proxy is enabled on port 11434" -ForegroundColor Yellow
+        Write-Host "  - Set OLLAMA_BASE_URL in .env to the proxy URL (no trailing path)" -ForegroundColor Yellow
+        Write-Host "  - See docs/deployment/runpod-ollama.md" -ForegroundColor Yellow
+        exit 1
+    }
+
+    $names = @()
+    if ($resp.models) {
+        foreach ($m in $resp.models) {
+            if ($m.name) { $names += $m.name }
+        }
+    }
+    $modelBase = ($Model -split ':')[0]
+    $found = $names | Where-Object { $_ -eq $Model -or $_ -like "$modelBase*" }
+    if (-not $found) {
+        Write-Err "Model '$Model' not found on remote Ollama. Available: $($names -join ', ')"
+        Write-Host "  On RunPod: ollama pull $Model" -ForegroundColor Yellow
+        exit 1
+    }
+    Write-Ok "Remote Ollama reachable; model '$Model' is available."
+}
+
+function Resolve-OllamaBackend {
+    Write-Banner "Ollama Backend"
+
+    $model = if ($env:OLLAMA_MODEL) { $env:OLLAMA_MODEL } else { 'llama3.2:3b' }
+    $Script:OllamaModel = $model
+
+    $mode = $null
+    if ($OllamaLocal) {
+        $mode = 'local'
+    } elseif ($OllamaRemote) {
+        $mode = 'remote'
+    } elseif ($UseEnvOllama -and $env:OLLAMA_MODE) {
+        $mode = $env:OLLAMA_MODE.Trim().ToLower()
+    } elseif ($env:OLLAMA_MODE) {
+        $mode = $env:OLLAMA_MODE.Trim().ToLower()
+    } else {
+        Write-Host ""
+        Write-Host "Select Ollama backend:" -ForegroundColor White
+        Write-Host "  [1] RunPod / remote Ollama (OLLAMA_BASE_URL in .env)" -ForegroundColor Cyan
+        Write-Host "  [2] Local Ollama container (Docker, uses RAM)" -ForegroundColor Cyan
+        $choice = Read-Host "Enter choice (1 or 2, default 1)"
+        if ($choice -eq '2') { $mode = 'local' } else { $mode = 'remote' }
+    }
+
+    if ($mode -eq 'local') {
+        $Script:UseLocalOllama = $true
+        $env:OLLAMA_MODE = 'local'
+        $env:OLLAMA_BASE_URL = 'http://ollama:11434'
+        Write-Ok "Using local Ollama container (compose profile: local-ollama)"
+    } else {
+        $Script:UseLocalOllama = $false
+        $env:OLLAMA_MODE = 'remote'
+        $baseUrl = $env:OLLAMA_BASE_URL
+        if (-not $baseUrl -or $baseUrl -eq 'http://ollama:11434') {
+            if ($baseUrl -eq 'http://ollama:11434') {
+                Write-Warn "OLLAMA_BASE_URL still points at local container hostname."
+            }
+            Write-Err "Remote Ollama selected but OLLAMA_BASE_URL is not set to your RunPod proxy URL."
+            Write-Host "Add to .env: OLLAMA_BASE_URL=https://<your-id>.proxy.runpod.net" -ForegroundColor Yellow
+            Write-Host "See: docs/deployment/runpod-ollama.md" -ForegroundColor Yellow
+            exit 1
+        }
+        Test-RunPodOllama -BaseUrl $baseUrl -Model $model
+    }
+
+    $env:OLLAMA_MODEL = $model
+    $Script:OllamaBaseUrl = $env:OLLAMA_BASE_URL
+
+    foreach ($f in @((Join-Path $ScriptDir '.env'), (Join-Path $ComposeDir '.env'))) {
+        Set-EnvFileValue -FilePath $f -Key 'OLLAMA_MODE' -Value $env:OLLAMA_MODE
+        Set-EnvFileValue -FilePath $f -Key 'OLLAMA_BASE_URL' -Value $env:OLLAMA_BASE_URL
+        Set-EnvFileValue -FilePath $f -Key 'OLLAMA_MODEL' -Value $env:OLLAMA_MODEL
+    }
+    Sync-ComposeEnv
+}
+
+function Get-AiComposePrefix {
+    if ($Script:UseLocalOllama) {
+        return @('--profile', 'local-ollama')
+    }
+    return @()
+}
+
 function Sync-ComposeEnv {
     $envFile = Join-Path $ScriptDir ".env"
     $composeEnv = Join-Path $ComposeDir ".env"
@@ -386,7 +518,7 @@ function Invoke-Compose {
     $outputLines = [System.Collections.Generic.List[string]]::new()
 
     if ($Stream) {
-        Write-Log "Running (live output): $cmdLabel"
+        Write-Log "Running with live output: $cmdLabel"
         & docker compose -p $Project -f $ComposeFile @ComposeArgs 2>&1 | ForEach-Object {
             $line = "$_"
             $outputLines.Add($line)
@@ -595,7 +727,7 @@ function Deploy-Siem {
     Write-Log "SIEM stack: $($siemContainers -join ', ')"
     Write-Log "Compose project: $($Script:SiemProject)"
 
-    Write-Log "Creating/starting SIEM containers (live compose output)..."
+    Write-Log "Creating/starting SIEM containers with live compose output..."
     Invoke-Compose -Project $Script:SiemProject -ComposeFile $SiemCompose -ComposeArgs @('up', '-d', '--remove-orphans') -Stream
 
     $siemReady = Watch-StackStartup -PhaseLabel 'SIEM' -ContainerNames $siemContainers `
@@ -625,41 +757,67 @@ function Deploy-AIServices {
     Test-SiemBackendNetwork
 
     $aiContainers = @(
-        'ollama', 'chromadb', 'ml-inference', 'alert-triage', 'rag-service',
+        'chromadb', 'ml-inference', 'alert-triage', 'rag-service',
         'wazuh-integration', 'ai-soc-postgres', 'feedback-service',
         'correlation-engine', 'rule-generator', 'response-orchestrator'
     )
+    if ($Script:UseLocalOllama) {
+        $aiContainers = @('ollama') + $aiContainers
+    }
     Write-Log "AI stack containers: $($aiContainers -join ', ')"
     Write-Log "Compose project: $($Script:AiProject)"
-
-    Write-Log "Building AI service images (live build output)..."
-    Invoke-Compose -Project $Script:AiProject -ComposeFile $AiCompose -ComposeArgs @('build', '--parallel') -Stream
-
-    Write-Log "Starting core AI infrastructure (ollama, chromadb, postgres, ml-inference)..."
-    Invoke-Compose -Project $Script:AiProject -ComposeFile $AiCompose -ComposeArgs @(
-        'up', '-d', 'ollama', 'chromadb', 'postgres', 'ml-inference'
-    ) -Stream
-
-    Write-Log "Waiting for Ollama to become healthy (up to 3 min on first start)..."
-    $ollamaOk = Watch-StackStartup -PhaseLabel 'Ollama' -ContainerNames @('ollama') `
-        -RequiredHealthy @('ollama') -MaxWaitSecs 180 -IntervalSecs 5
-    if (-not $ollamaOk) {
-        Write-Warn "Ollama not healthy yet. Logs:"
-        docker logs ollama --tail 40 2>&1 | ForEach-Object { Write-Host "  $_" -ForegroundColor DarkYellow }
+    if ($Script:UseLocalOllama) {
+        Write-Log "Ollama: local container"
+    } else {
+        Write-Log "Ollama: remote at $($Script:OllamaBaseUrl)"
     }
 
-    Write-Log "Starting remaining AI services (live compose output)..."
-    Invoke-Compose -Project $Script:AiProject -ComposeFile $AiCompose -ComposeArgs @('up', '-d', '--remove-orphans') -Stream
+    $composePrefix = Get-AiComposePrefix
 
+    Write-Log "Building AI service images with live build output..."
+    Invoke-Compose -Project $Script:AiProject -ComposeFile $AiCompose `
+        -ComposeArgs ($composePrefix + @('build', '--parallel')) -Stream
+
+    if ($Script:UseLocalOllama) {
+        Write-Log "Starting core AI infrastructure (ollama, chromadb, postgres, ml-inference)..."
+        Invoke-Compose -Project $Script:AiProject -ComposeFile $AiCompose -ComposeArgs ($composePrefix + @(
+            'up', '-d', 'ollama', 'chromadb', 'postgres', 'ml-inference'
+        )) -Stream
+
+        Write-Log "Waiting for Ollama to become healthy (up to 3 min on first start)..."
+        $ollamaOk = Watch-StackStartup -PhaseLabel 'Ollama' -ContainerNames @('ollama') `
+            -RequiredHealthy @('ollama') -MaxWaitSecs 180 -IntervalSecs 5
+        if (-not $ollamaOk) {
+            Write-Warn "Ollama not healthy yet. Logs:"
+            docker logs ollama --tail 40 2>&1 | ForEach-Object { Write-Host "  $_" -ForegroundColor DarkYellow }
+        }
+    } else {
+        Write-Log "Starting core AI infrastructure (chromadb, postgres, ml-inference) - skipping local ollama..."
+        Invoke-Compose -Project $Script:AiProject -ComposeFile $AiCompose -ComposeArgs @(
+            'up', '-d', 'chromadb', 'postgres', 'ml-inference'
+        ) -Stream
+    }
+
+    Write-Log "Starting remaining AI services with live compose output..."
+    Invoke-Compose -Project $Script:AiProject -ComposeFile $AiCompose `
+        -ComposeArgs ($composePrefix + @('up', '-d', '--remove-orphans')) -Stream
+
+    $requiredHealthy = if ($Script:UseLocalOllama) {
+        @('ollama', 'chromadb', 'ml-inference')
+    } else {
+        @('chromadb', 'ml-inference')
+    }
     $aiReady = Watch-StackStartup -PhaseLabel 'AI Services' -ContainerNames $aiContainers `
-        -RequiredHealthy @('ollama', 'chromadb', 'ml-inference') -MaxWaitSecs 240 -IntervalSecs 5
+        -RequiredHealthy $requiredHealthy -MaxWaitSecs 240 -IntervalSecs 5
 
     if (-not $aiReady) {
         Write-Warn "Some AI containers still starting; continuing with per-service health checks."
     }
 
-    Wait-ForHealthy -ContainerName "ollama" -MaxWaitSecs 120 -IntervalSecs 5
-    Pull-OllamaModel
+    if ($Script:UseLocalOllama) {
+        Wait-ForHealthy -ContainerName "ollama" -MaxWaitSecs 120 -IntervalSecs 5
+        Pull-OllamaModel
+    }
 
     foreach ($svc in @("chromadb", "ml-inference", "alert-triage", "rag-service", "wazuh-integration")) {
         Wait-ForHealthy -ContainerName $svc -MaxWaitSecs 120 -IntervalSecs 5
@@ -673,7 +831,12 @@ function Deploy-AIServices {
 # Pull Ollama model
 # ---------------------------------------------------------------------------
 function Pull-OllamaModel {
-    $model = "llama3.2:3b"
+    if (-not $Script:UseLocalOllama) {
+        Write-Log "Remote Ollama configured - skipping local model pull."
+        return
+    }
+
+    $model = $Script:OllamaModel
     Write-Log "Pulling Ollama model: $model ..."
 
     $prevEap = $ErrorActionPreference
@@ -685,8 +848,9 @@ function Pull-OllamaModel {
         return
     }
 
+    $modelBase = ($model -split ':')[0]
     $existingModels = docker exec ollama ollama list 2>&1
-    if ($existingModels -match "llama3.2") {
+    if ($existingModels -match $modelBase) {
         Write-Ok "Ollama model $model already present."
         $ErrorActionPreference = $prevEap
         return
@@ -728,7 +892,7 @@ function Invoke-KBIngestion {
     Write-Banner "Knowledge Base Ingestion"
 
     $ragUrl  = "http://localhost:8300"
-    $maxWait = 60
+    $maxWait = 120
     $elapsed = 0
 
     Write-Log "Waiting for RAG service to be ready..."
@@ -746,7 +910,7 @@ function Invoke-KBIngestion {
 
         Write-Log "Triggering MITRE ATT&CK ingestion..."
         try {
-            Invoke-RestMethod -Method Post -Uri "$ragUrl/ingest/mitre" -TimeoutSec 10 -UseBasicParsing | Out-Null
+            Invoke-RestMethod -Method Post -Uri "$ragUrl/ingest/mitre" -TimeoutSec 600 -UseBasicParsing | Out-Null
             Write-Ok "MITRE ATT&CK ingestion started (runs in background)."
         } catch {
             Write-Warn "MITRE ingestion trigger failed. Retry: Invoke-RestMethod -Method Post -Uri '$ragUrl/ingest/mitre'"
@@ -754,7 +918,7 @@ function Invoke-KBIngestion {
 
         Write-Log "Triggering security runbook ingestion..."
         try {
-            Invoke-RestMethod -Method Post -Uri "$ragUrl/ingest/runbooks" -TimeoutSec 10 -UseBasicParsing | Out-Null
+            Invoke-RestMethod -Method Post -Uri "$ragUrl/ingest/runbooks" -TimeoutSec 600 -UseBasicParsing | Out-Null
             Write-Ok "Security runbook ingestion started."
         } catch {
             Write-Warn "Runbook ingestion trigger failed."
@@ -827,7 +991,11 @@ function Print-AccessUrls {
     Write-Host "  Wazuh Dashboard:     https://localhost:443  (admin/$indexerPass)" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Infrastructure:" -ForegroundColor White
-    Write-Host "  Ollama LLM:          http://localhost:11434" -ForegroundColor Cyan
+    if ($Script:UseLocalOllama) {
+        Write-Host "  Ollama LLM (local):  http://localhost:11434" -ForegroundColor Cyan
+    } else {
+        Write-Host "  Ollama LLM (remote): $($Script:OllamaBaseUrl)" -ForegroundColor Cyan
+    }
     Write-Host "  ChromaDB:            http://localhost:8200" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "AI-SOC deployment complete." -ForegroundColor Green
@@ -851,6 +1019,7 @@ if ($Stop) {
     Test-Prerequisites
     Ensure-Certs
     Ensure-Env
+    Resolve-OllamaBackend
     Reset-SiemData
     Deploy-Siem
     Deploy-AIServices
@@ -864,6 +1033,7 @@ if ($Stop) {
     Test-Prerequisites
     Ensure-Certs
     Ensure-Env
+    Resolve-OllamaBackend
     Deploy-Siem
     Deploy-AIServices
     Deploy-Monitoring

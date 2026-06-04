@@ -453,6 +453,8 @@ cp ../.env.example ../.env    # edit credentials
 
 See `docker-compose/.env.example` for compose-local defaults and `../.env.example` for the full template.
 
+**Remote Ollama (RunPod GPU):** set `OLLAMA_MODE=remote` and `OLLAMA_BASE_URL` to your RunPod HTTP proxy URL. See [docs/deployment/runpod-ollama.md](../docs/deployment/runpod-ollama.md). Local Ollama uses compose profile `local-ollama` (activated by `.\deploy-ai-soc.ps1 -OllamaLocal`).
+
 **Critical Variables:**
 ```bash
 # Compose projects (must match deploy scripts)

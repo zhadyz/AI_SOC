@@ -37,21 +37,19 @@ def generate_security_alert():
         "alert_id": alert_id,
         "timestamp": "2025-10-22T10:30:00Z",
         "source_ip": f"192.168.1.{random.randint(1, 254)}",
-        "destination_ip": f"10.0.0.{random.randint(1, 254)}",
+        "dest_ip": f"10.0.0.{random.randint(1, 254)}",
         "rule_id": str(random.randint(10000, 99999)),
         "rule_level": alert_type[3],
         "rule_description": alert_type[0],
-        "full_log": f"Oct 22 10:30:00 server: {alert_type[0]}",
-        "agent_name": f"server-{random.randint(1, 10):02d}",
-        "mitre_tactic": alert_type[2],
-        "mitre_technique": alert_type[1]
+        "raw_log": f"Oct 22 10:30:00 server: {alert_type[0]}",
+        "mitre_technique": [alert_type[1]],
     }
 
 
 def generate_network_flow():
     """Generate random network flow for ML inference"""
-    # Generate 78 random features
-    features = [random.uniform(0, 1000) for _ in range(78)]
+    # Generate 77 random features
+    features = [random.uniform(0, 1000) for _ in range(77)]
 
     return {
         "features": features,

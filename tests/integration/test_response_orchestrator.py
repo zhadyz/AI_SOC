@@ -16,16 +16,25 @@ import sys
 import os
 import pytest
 from datetime import datetime
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
-# Add service to path
-sys.path.insert(
-    0,
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..", "..", "services", "response-orchestrator",
-    ),
-)
+ORCHESTRATOR_DIR = Path(__file__).resolve().parents[2] / "services" / "response-orchestrator"
+
+
+@pytest.fixture(scope="module", autouse=True)
+def orchestrator_service_path():
+    """Expose response-orchestrator imports without polluting other test modules."""
+    conflicting = ("config", "models", "d3fend", "orchestrator", "planner", "safety")
+    for module_name in conflicting:
+        sys.modules.pop(module_name, None)
+
+    path = str(ORCHESTRATOR_DIR)
+    sys.path.insert(0, path)
+    yield
+    sys.path.remove(path)
+    for module_name in conflicting:
+        sys.modules.pop(module_name, None)
 
 
 # ============================================================================

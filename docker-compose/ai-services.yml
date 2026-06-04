@@ -1,6 +1,8 @@
 services:
-  # Ollama LLM Server
+  # Ollama LLM Server (local only — activate with: docker compose --profile local-ollama)
   ollama:
+    profiles:
+      - local-ollama
     image: ollama/ollama:latest
     container_name: ollama
     hostname: ollama
@@ -72,17 +74,15 @@ services:
     ports:
       - "8100:8000"
     environment:
-      - TRIAGE_OLLAMA_HOST=http://ollama:11434
-      - TRIAGE_PRIMARY_MODEL=llama3.2:3b
-      - TRIAGE_FALLBACK_MODEL=llama3.2:3b
+      - TRIAGE_OLLAMA_HOST=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - TRIAGE_PRIMARY_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
+      - TRIAGE_FALLBACK_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
       - TRIAGE_LLM_TIMEOUT=300
       - TRIAGE_ML_API_URL=http://ml-inference:8000
       - TRIAGE_RAG_SERVICE_URL=http://rag-service:8000
     networks:
       - ai-network
     depends_on:
-      ollama:
-        condition: service_healthy
       ml-inference:
         condition: service_healthy
     healthcheck:
@@ -236,8 +236,8 @@ services:
       - "8600:8000"
     environment:
       - CORRELATION_DATABASE_URL=postgresql+asyncpg://ai_soc:${POSTGRES_PASSWORD:-ai_soc_password}@postgres:5432/ai_soc
-      - CORRELATION_SIMULATOR_OLLAMA_HOST=http://ollama:11434
-      - CORRELATION_SIMULATOR_OLLAMA_MODEL=llama3.2:3b
+      - CORRELATION_SIMULATOR_OLLAMA_HOST=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - CORRELATION_SIMULATOR_OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
       - CORRELATION_SIMULATOR_ENVIRONMENT_CONFIG=/app/config/default-environment.json
       - CORRELATION_WAZUH_API_URL=https://wazuh-manager:55000
       - CORRELATION_WAZUH_API_USERNAME=wazuh-wui
@@ -278,11 +278,11 @@ services:
     restart: unless-stopped
     ports:
       - "8700:8000"
+    environment:
+      - RULE_GENERATOR_OLLAMA_HOST=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - RULE_GENERATOR_OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
     networks:
       - ai-network
-    depends_on:
-      ollama:
-        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -312,8 +312,8 @@ services:
       - ORCHESTRATOR_RAG_SERVICE_URL=http://rag-service:8000
       - ORCHESTRATOR_FEEDBACK_SERVICE_URL=http://feedback-service:8000
       - ORCHESTRATOR_RULE_GENERATOR_URL=http://rule-generator:8000
-      - ORCHESTRATOR_OLLAMA_HOST=http://ollama:11434
-      - ORCHESTRATOR_OLLAMA_MODEL=llama3.2:3b
+      - ORCHESTRATOR_OLLAMA_HOST=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - ORCHESTRATOR_OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
       - ORCHESTRATOR_WAZUH_API_URL=https://wazuh-manager:55000
       - ORCHESTRATOR_WAZUH_API_USERNAME=wazuh-wui
       - ORCHESTRATOR_WAZUH_API_PASSWORD=${API_PASSWORD}
@@ -325,8 +325,6 @@ services:
       postgres:
         condition: service_healthy
       correlation-engine:
-        condition: service_healthy
-      ollama:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]

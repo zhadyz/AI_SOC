@@ -10,6 +10,7 @@ calculates false positive rates, and queues rules for analyst approval.
 """
 
 import logging
+import os
 import time
 import uuid
 from contextlib import asynccontextmanager
@@ -28,9 +29,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Config
-OLLAMA_HOST = "http://ollama:11434"
-OLLAMA_MODEL = "llama3.2:3b"
+# Config (compose sets RULE_GENERATOR_*; OLLAMA_* used when synced from .env)
+OLLAMA_HOST = os.getenv(
+    "RULE_GENERATOR_OLLAMA_HOST",
+    os.getenv("OLLAMA_BASE_URL", "http://ollama:11434"),
+)
+OLLAMA_MODEL = os.getenv(
+    "RULE_GENERATOR_OLLAMA_MODEL",
+    os.getenv("OLLAMA_MODEL", "llama3.2:3b"),
+)
 FEEDBACK_SERVICE_URL = "http://feedback-service:8000"
 
 # In-memory rule store (would be PostgreSQL in production)

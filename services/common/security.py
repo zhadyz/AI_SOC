@@ -72,6 +72,10 @@ def validate_input(
             logger.warning(f"Potential command injection detected: {pattern}")
             return False, "Invalid input pattern detected"
 
+    # Detect path traversal
+    if detect_path_traversal(text):
+        return False, "Invalid path pattern detected"
+
     return True, None
 
 
@@ -171,6 +175,12 @@ def detect_prompt_injection(text: str) -> tuple[bool, Optional[str]]:
         # Output manipulation
         (r'output\s+your\s+(prompt|instructions)', 'output_manipulation'),
         (r'what\s+(is|are)\s+your\s+(system|original)\s+(prompt|instructions)', 'output_manipulation'),
+
+        # Obfuscated / indirect injection
+        (r'ignore\s+your\s+training', 'system_override'),
+        (r'ignore\s+the\s+\w+\s+translation', 'instruction_injection'),
+        (r'\[ignore\b', 'instruction_injection'),
+        (r'act\s+as\s+an?\s+attacker', 'role_switch'),
     ]
 
     for pattern, attack_type in injection_patterns:

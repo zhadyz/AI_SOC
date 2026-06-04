@@ -59,7 +59,7 @@ class TestCryptographicSecurity:
         # Verify sensitive data is redacted
         assert "SuperSecret123!" not in sanitized
         assert "sk_live_abc123" not in sanitized
-        assert "[REDACTED]" in sanitized or "[FILTERED]" in sanitized
+        assert "***REDACTED***" in sanitized or "[REDACTED]" in sanitized or "[FILTERED]" in sanitized
 
         print(f"\n🔒 Original: {sensitive_log}")
         print(f"   Sanitized: {sanitized}")
@@ -159,7 +159,7 @@ class TestSecureDesign:
 
         is_valid, msg = validate_input(long_input)
         assert not is_valid, "Should reject extremely long input"
-        assert "too long" in msg.lower()
+        assert "maximum length" in msg.lower()
 
         print(f"\n📏 Length validation: {len(long_input)} chars → Rejected")
 

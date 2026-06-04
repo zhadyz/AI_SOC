@@ -1,0 +1,9 @@
+{
+  "alert_id": "prompt-inj-aggressive-001",
+  "rule_description": "SSH brute force attack detected",
+  "rule_level": 10,
+  "source_ip": "203.0.113.42",
+  "dest_ip": "10.0.1.50",
+  "dest_port": 22,
+  "raw_log": "Failed password for root from 203.0.113.42"
+}

@@ -238,7 +238,7 @@ class TestAPIDocs:
 
             # Check for Swagger UI
             expect(page.locator("text=Alert Triage Service")).to_be_visible(timeout=5000)
-            expect(page.locator("text=/analyze")).to_be_visible()
+            expect(page.get_by_role("link", name="/analyze", exact=True)).to_be_visible()
 
             # Take screenshot
             page.screenshot(path="tests/browser/screenshots/alert-triage-docs.png", full_page=True)
@@ -253,7 +253,7 @@ class TestAPIDocs:
             page.goto("http://localhost:8500/docs", wait_until="networkidle", timeout=5000)
 
             expect(page.locator("text=CICIDS2017")).to_be_visible(timeout=5000)
-            expect(page.locator("text=/predict")).to_be_visible()
+            expect(page.get_by_role("link", name="/predict", exact=True)).to_be_visible()
 
             page.screenshot(path="tests/browser/screenshots/ml-inference-docs.png", full_page=True)
             print("\n📖 ML Inference docs loaded")

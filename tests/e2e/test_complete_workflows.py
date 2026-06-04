@@ -168,14 +168,12 @@ class TestIncidentResponseWorkflow:
             "alert_id": "critical-001",
             "timestamp": "2025-10-22T10:30:00Z",
             "source_ip": "192.168.1.100",
-            "destination_ip": "10.0.0.50",
+            "dest_ip": "10.0.0.50",
             "rule_id": "100045",
-            "rule_level": 15,  # Critical level
+            "rule_level": 15,
             "rule_description": "Active ransomware encryption detected",
-            "full_log": "Oct 22 10:30:00 server ransomware.exe: Encrypting files...",
-            "agent_name": "file-server-01",
-            "mitre_tactic": "Impact",
-            "mitre_technique": "T1486"
+            "raw_log": "Oct 22 10:30:00 server ransomware.exe: Encrypting files...",
+            "mitre_technique": ["T1486"],
         }
 
         try:

@@ -21,7 +21,7 @@ httpx==0.25.2
 
 # Security Scanning
 bandit==1.7.5
-safety==2.3.5
+safety==2.3.4
 
 # Additional Security
 python-dotenv==1.0.0

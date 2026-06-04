@@ -48,7 +48,7 @@ class SecurityAlert(BaseModel):
 
     This structure aligns with Wazuh alert format.
     """
-    alert_id: str = Field(..., description="Unique alert identifier")
+    alert_id: str = Field(..., min_length=1, description="Unique alert identifier")
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
     # Alert Details
