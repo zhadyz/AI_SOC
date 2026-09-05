@@ -5,10 +5,10 @@ Ollama triage, retrieved security knowledge, incident correlation, analyst revie
 Sigma rule export, and durable response plans. The dashboard includes persistent
 accounts with viewer, analyst, reviewer and administrator roles.
 
-The native application has passed live acceptance on macOS. All nine application
-images build. **Full Compose startup and the disposable Wazuh enforcement lab are
-not yet accepted:** Docker container startup stalled on this host. See the current
-[evidence and remaining gates](docs/development/status.md) and reconstructed
+The local research platform has passed native and full-container workflow checks,
+real browser acceptance, and a disposable Wazuh/Linux response lab with observed
+effects and rollback. Ten application/maintenance images build. See the current
+[evidence and deployment limits](docs/development/status.md) and reconstructed
 [completion plan](docs/development/completion-plan.md). Historical phase documents
 are research material, not the current completion record.
 
@@ -54,15 +54,18 @@ The root `compose.yaml` is authoritative. All published application ports bind t
 loopback. Do not run it alongside the native application because the ports match.
 
 ```bash
-python3 scripts/configure_local.py
-docker compose up -d --build --wait --wait-timeout 900
-docker compose ps
+python3 scripts/container_stack.py up
+python3 scripts/container_stack.py status
 ```
 
 `./deploy-ai-soc.sh` and `./deploy-ai-soc.ps1` use this configuration. The legacy
 `docker-compose/ai-services.yml` and `docker-compose/integrated-stack.yml` include
 it. `docker compose down` preserves named data volumes; `down -v` deletes them.
-Image builds passed locally; full container runtime acceptance remains pending.
+The launcher creates containers, seeds empty named volumes, and waits for each
+service. Host filesystem sharing is not required. Existing volume contents are
+preserved. For a one-time import from stopped native services, add
+`--import-native-state --state-dir work/runtime`. Native and container SQLite/model
+state are separate after this import; PostgreSQL remains shared.
 
 ## Analyst workflow
 
@@ -83,7 +86,7 @@ Image builds passed locally; full container runtime acceptance remains pending.
 | Port | Service | Main endpoints |
 |---|---|---|
 | 5050 | Dashboard | Login, incidents, reviews, account administration |
-| 8002 | Wazuh receiver | `POST /webhook` |
+| 8002 | Wazuh receiver | `POST /webhook`, `/webhook/async` |
 | 8100 | Triage | `/analyze`, `/analyze/batch`, `/analyze/async`, `/jobs/{id}` |
 | 8300 | RAG | `/retrieve`, `/ingest/mitre`, `/ingest/runbooks` |
 | 8400 | Feedback | Alerts, labels, independent reviews |
@@ -108,11 +111,21 @@ schema. Named inputs normalize known CICFlowMeter aliases and reject conflicts.
 Missing protocol or flow measurements are never fabricated from alert metadata.
 Alerts without complete flows receive LLM analysis without an ML prediction.
 
+`POST :8002/webhook/async` translates Wazuh events into durable triage jobs and
+returns their job IDs. Poll `:8100/jobs/{id}` for completion. It avoids holding
+Wazuh sender connections open during CPU inference. Synchronous `/webhook` remains
+available with a bounded 420-second downstream timeout.
+
 Async jobs persist in SQLite before HTTP 202 acknowledgment. A bounded priority
 queue rejects overload with HTTP 429. Unfinished jobs resume after restart; alert
 IDs make persistence and correlation idempotent. Results remain queryable after
 restart. Callback URLs are disabled. Use one triage process per job database and
 one response-orchestrator process per deployment.
+
+Container feedback retraining uses `python3 scripts/retrain_container.py` with
+`--evaluate-only`, or `--holdout /path/to/independent.csv --promote`. The maintenance
+container writes the same model volume read by inference. Reload checks the exact
+verified artifact fingerprint; an HTTP success for a different bundle is rejected.
 
 ## Models and research
 
@@ -167,7 +180,7 @@ uv pip install --python .venv/bin/python -r requirements-security.txt
 
 Live acceptance creates clearly marked test alerts, feedback, plans and rules; it
 never executes defenses. CI enforces tests, lint, dependency policy, Compose
-validation and all nine image builds. Four Chroma advisories have narrowly scoped,
+validation and all ten application/maintenance image builds. Four Chroma advisories have narrowly scoped,
 versioned, expiring mitigations because the affected HTTP/configurable-embedding
 features are absent from this deployment. New or expired advisories fail the audit.
 See [the exception rationale](docs/security/dependency-exceptions.json).

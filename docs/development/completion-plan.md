@@ -66,17 +66,24 @@ cannot be declared complete through code changes or synthetic test results.
 - [x] Enforcing dependency audit with explicit expiring mitigations.
 - [x] Build all nine application images and the Linux/Wazuh lab target image.
 - [x] Implement narrowly scoped lab actions, observation, rollback and acceptance tooling.
-- [ ] Accept full Compose runtime and execute the real lab traffic/SSH/Wazuh checks.
-- [ ] Visually accept the new review/access pages after the Mac is unlocked.
+- [x] Accept full Compose runtime and execute the real lab traffic/SSH/Wazuh checks.
+- [x] Visually accept the command center/review/access pages in a real browser.
+- [x] Exercise real lab plan approval, interrupted-result recovery, reconciliation and rollback.
 - [ ] Validate production vendors, shared deployment and empirical research claims.
 
 ## Remaining acceptance
 
-Docker new-container startup stalled on this host. The desktop tool reports that
-manual Mac unlock is required. Pending launch attempts were stopped; native
-services remain operational. The lab has code and a built target image, but its
-real effects/rollback have not passed acceptance. No successful lab report is
-implied by unit tests or simulated webhooks.
+The local research-platform implementation and live acceptance gates are complete.
+The container stack passed the full 12-check workflow. The isolated lab passed real
+HTTP and SSH denial/restoration plus Wazuh agent → manager → durable triage/storage.
+A separate response drill passed approval and interrupted-effect restart recovery
+through the real adapters. Five browser workflows passed in headless Chromium;
+manual desktop unlock is not required for this test path.
+
+Docker Desktop needed host recovery, bounded same-container start retries, and
+copy-based volume provisioning. The operating guide records the preserved recovery
+copies and the VMM configuration change. The lab restores its agent identity after
+target recreation and verifies enrollment before reporting readiness.
 
 The real multiclass benchmark is complete as a within-dataset experiment. Separate
 captures are still required for generalization/robustness claims. Genuine reviewed

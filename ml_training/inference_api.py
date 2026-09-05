@@ -13,7 +13,7 @@ import numpy as np
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, FiniteFloat
-from services.common.model_integrity import verified_bytes
+from services.common.model_integrity import verified_bytes, bundle_fingerprint
 
 logger = logging.getLogger(__name__)
 MODEL_PATH = Path(os.getenv("MODEL_PATH", str(Path(__file__).resolve().parent.parent / "models")))
@@ -23,6 +23,7 @@ models = {}
 scaler = None
 label_encoder = None
 feature_names = None
+loaded_fingerprint = None
 
 
 class NetworkFlow(BaseModel):
@@ -50,7 +51,7 @@ def load_models():
     Pickle files must come from a trusted local training pipeline. Never accept
     serialized model uploads from API callers.
     """
-    global models, scaler, label_encoder, feature_names
+    global models, scaler, label_encoder, feature_names, loaded_fingerprint
     # A promoted bundle is selected atomically by a small pointer file.
     bundle_dir = MODEL_PATH
     pointer = MODEL_PATH / "active.json"
@@ -88,6 +89,7 @@ def load_models():
     # This function has no await points; requests cannot see a partial update.
     models = {name: objects[name] for name in MODEL_NAMES}
     scaler, label_encoder, feature_names = new_scaler, encoder, names
+    loaded_fingerprint = bundle_fingerprint(artifacts)
     logger.info("Loaded validated model bundle: %s", bundle_dir)
     return True
 
@@ -121,6 +123,7 @@ async def health_check():
 @app.get("/models")
 async def list_models():
     return {"total_models": len(models),
+            "bundle_fingerprint": loaded_fingerprint,
             "models": {name: {"name": name, "type": type(model).__name__, "loaded": True}
                        for name, model in models.items()},
             "feature_count": len(feature_names or []), "feature_names": feature_names or [],
@@ -134,7 +137,7 @@ async def reload_models():
     except Exception:
         logger.exception("Rejected invalid model bundle; keeping current models")
         raise HTTPException(503, "Invalid model bundle; previous models remain active")
-    return {"status": "success", "models_loaded": list(models)}
+    return {"status": "success", "models_loaded": list(models), "bundle_fingerprint": loaded_fingerprint}
 
 
 @app.post("/predict", response_model=PredictionResponse)

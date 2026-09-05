@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "verified_at": "2026-09-05T03:52:26.911142+00:00",
+  "checks": [
+    "Probe HTTP traffic and pinned-host-key SSH sign-in work before enforcement",
+    "block_ip changes independently observed target behavior",
+    "block_ip rollback restores the prior behavior",
+    "isolate_host changes independently observed target behavior",
+    "isolate_host rollback restores the prior behavior",
+    "disable_account changes independently observed target behavior",
+    "disable_account rollback restores the prior behavior",
+    "Real Wazuh agent event reaches the manager and is forwarded through SOC triage into storage"
+  ],
+  "wazuh_alert_id": "1788580247.1902",
+  "scope": "Disposable ai-soc-lab containers only; no production vendor validation"
+}

@@ -13,6 +13,48 @@ live under the state directory. PostgreSQL uses the `ai-soc-postgres-1` containe
 and its named volume. `docker compose stop postgres` stops only this database.
 Other applications' containers are not part of this deployment.
 
+## Container operation
+
+Use `python3 scripts/container_stack.py up` (or the shell/PowerShell deploy wrapper).
+The launcher builds the images, creates containers, seeds only empty named volumes,
+then waits for health or successful model initialization. `--skip-build` reuses
+images. `up` can resume this project's existing containers; it rejects ports owned
+by a native deployment. `status` lists containers; `down` stops this Compose project.
+No volume deletion is part of the launcher.
+
+To import this installation's stopped native state once, use
+`--import-native-state --state-dir ../../work/runtime`. Identity, model artifacts,
+queues, rules, Chroma, simulation history and Ollama cache are copied into named
+volumes. Native and container files subsequently evolve independently; this is not
+bidirectional synchronization. PostgreSQL's named volume is shared by both modes.
+Stop containers before returning to the native launcher. Retain both sets of state.
+The native backup command below covers native files, not Docker's other named volumes.
+For container backups, stop the application and separately archive all named volumes
+listed by `docker compose config --volumes`, plus the private configuration. Restore
+into isolated volumes and repeat acceptance before any cutover.
+
+Container startup on this host exposed timed-out initial Engine start requests.
+The launcher observes the same container and retries transport failures; it does
+not recreate a container or replay a completed one-shot command on a lost response.
+Daemon rejections are surfaced. Volume provisioning uses Docker copy operations,
+without host bind mounts or exposing the Docker socket to an application container.
+
+During host recovery Docker Desktop's Apple Virtualization backend failed with an
+invalid storage-attachment error. The existing Docker disk and settings were
+preserved, then Desktop was switched to its installed Docker VMM backend. The
+previously running unrelated containers were restored and checked healthy. Private
+recovery copies are in `../../work/docker-settings-before-recovery.json` and
+`../../work/Docker-before-recovery.raw` (an APFS clone). No factory reset was used.
+Do not replace a live Docker disk with this recovery copy.
+
+This Desktop build also retained host port listeners after the application
+containers were stopped and removed. A Desktop restart cleared those stale
+listeners; the six previously running lab/unrelated containers were restored and
+checked. If switching from containers to native mode fails on an occupied port,
+inspect the owning listener and running containers first. A stale Desktop forward
+requires Desktop recovery; the native launcher intentionally does not kill a
+process that owns a conflicting port.
+
 ## Identity and API access
 
 | Role | Access |
@@ -113,13 +155,14 @@ a simulated posture or missing indexer cannot establish prevention. The monitori
 window defaults to 30 minutes. Generic production firewall/EDR/identity adapters
 remain unavailable until actual vendors are chosen and tested.
 
-## Disposable Linux/Wazuh lab — runtime acceptance pending
+## Disposable Linux/Wazuh lab
 
 Install `lab/requirements.txt` alongside native dependencies, then:
 
 ```bash
 .venv/bin/python scripts/lab_stack.py up --state-dir work/lab
 .venv/bin/python scripts/lab_smoke.py --state-dir work/lab --output work/lab-verification.json
+.venv/bin/python scripts/lab_plan_smoke.py --state-dir work/lab --output work/lab-plan-verification.json
 .venv/bin/python scripts/lab_stack.py down --state-dir work/lab
 ```
 
@@ -127,16 +170,28 @@ The lab owns only project `ai-soc-lab`: Wazuh manager, a Linux agent/HTTP/SSH ta
 and a probe on `172.30.77.0/24`. Check this subnet does not conflict with local
 routing. Bindings are loopback: manager API 15500, target HTTP 18910, SSH 18922,
 controller 8900. Generated passwords and a local trusted certificate stay in the
-private lab state directory. The target gets NET_ADMIN for its own network
-namespace; no host firewall or arbitrary container target is accepted.
+private lab state directory. The target needs no added kernel capabilities. IP blocking is an ingress ACL for
+its HTTP and SSH gateways; it closes existing connections as well as denying new
+ones. Its backends listen on loopback. This is a lab gateway effect, not a kernel
+firewall or production firewall implementation. Network isolation detaches the
+target from its Docker network, and account disabling locks its real Linux account.
 
 The controller scopes IP blocking to the probe, isolation to the lab target and
 account disabling to `lab-user`. It journals intent/prior state before effects,
 checks operation IDs and container identity, and restores prior state on rollback.
 The acceptance script verifies real HTTP and SSH behavior, restoration, and a real
 Wazuh agent event forwarded into SOC storage. A simulated webhook does not meet
-that acceptance criterion. On this Mac container startup stalled; no successful
-live lab report has been produced.
+that acceptance criterion. Agent identity is restored from the isolated manager when the target image is
+recreated. Startup waits for an active agent connection. Configuration, certificates
+and private keys are copied through Docker and kept out of image layers. The Wazuh
+integration submits events through the durable `/webhook/async` endpoint.
+
+`lab_plan_smoke.py` uses the real response engine and lab adapter with explicitly
+authored test plans and an isolated SQLite plan store. It verifies approval, a
+real effect interrupted before result persistence, restart reconciliation, and
+rollback with independent traffic checks. It does not change the main deployment
+to real execution or manufacture prevention evidence. Run the two lab acceptance
+scripts sequentially because they operate on the same target.
 
 The optional `ORCHESTRATOR_LAB_URL` selects these adapters. A separately configured
 lab orchestrator must explicitly set `ORCHESTRATOR_DRY_RUN_MODE=false` for real plan
@@ -175,7 +230,11 @@ Rare-class support and per-class scores must accompany overall accuracy claims.
 
 Feedback retraining requires independently approved, unambiguous BENIGN/ATTACK
 labels with all 77 finite flow values. Genuine eligible feedback remains absent in
-this installation. Use `scripts/retrain_local.py --evaluate-only` to inspect it.
+this installation. Use `scripts/retrain_local.py --evaluate-only` to inspect it on a native deployment.
+For containers use `scripts/retrain_container.py` with the same evaluation/holdout/
+promotion flags. Its temporary maintenance container uses the serving model volume
+and an unprivileged user. It never copies host candidates into an unrelated model
+store or treats an unchanged serving bundle as successful promotion.
 `--holdout /path/to/independent.csv` trains/evaluates; adding `--promote` requires
 acceptance checks and activates a complete signed bundle. Feature overlap with the
 holdout is rejected. `--force` relaxes only the normal sample threshold, not review,
@@ -183,7 +242,8 @@ feature or holdout checks.
 
 `models/active.json` is the bundle pointer. Failed promotion restores the preceding
 pointer and tries to reload the prior model; a failed API reload keeps the working
-in-memory model. Keep accepted old bundles and metadata for rollback. No bundle
+in-memory model. Reload responses include the fingerprint of the exact verified
+artifact bytes; retraining checks it before accepting activation. Keep accepted old bundles and metadata for rollback. No bundle
 was promoted during this assessment.
 
 ## Backup and restore drill
@@ -219,7 +279,13 @@ before changing RAG deployment shape.
 
 Live workflow, identity, bounded inference load and restore evidence are in
 [status.md](status.md). CI definitions build every application image, but no GitHub
-run, push, registry publish or production deployment was performed. Native HTTP
-page rendering was verified; the newly added review/access pages still need visual
-inspection after the Mac is unlocked. Simulation accuracy, multi-user operational
+run, push, registry publish or production deployment was performed. Browser interaction and screenshots are verified through isolated headless Chromium.
+To repeat, install the dev dependency in `tests/browser` with `npm ci`, run
+`npx --prefix tests/browser playwright install chromium`, then
+`npm test --prefix tests/browser` against a running stack with at least one rule.
+The test reads the private administrator credential, creates an explicitly synthetic
+label fixture, reviews it, downloads YAML, creates/disables a test viewer, and signs
+out. It does not depend on desktop unlock. `AI_SOC_BROWSER_EXECUTABLE` can select an
+existing Chromium executable. Synthetic labels lack complete flows and cannot enter
+training. Screenshots and a JSON report are saved under `docs/development`. Simulation accuracy, multi-user operational
 load, production enforcement and longitudinal learning are open research gates.

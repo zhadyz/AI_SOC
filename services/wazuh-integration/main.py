@@ -6,6 +6,7 @@ FastAPI webhook receiver for Wazuh alerts with AI-powered triage and enrichment.
 """
 
 import structlog
+import httpx
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
@@ -62,6 +63,26 @@ app = FastAPI(
 
 from services.common.api_security import protect_app
 protect_app(app)
+
+
+@app.post("/webhook/async", status_code=202)
+async def queue_wazuh_alert(alert: WazuhAlert):
+    """Receive a Wazuh event with durable admission before HTTP 202.
+
+    Poll the returned job_id through the triage service. This path includes
+    triage's RAG enrichment, storage and correlation without holding a sender
+    connection open for local model inference.
+    """
+    if alert.rule.level < app.state.settings.min_severity:
+        raise HTTPException(400, "Alert severity below minimum threshold")
+    try:
+        return await app.state.ai_client.queue_alert(alert)
+    except httpx.HTTPStatusError as exc:
+        code = exc.response.status_code
+        raise HTTPException(code if code in {422, 429} else 503, "Triage did not accept the alert") from exc
+    except (httpx.HTTPError, ValueError) as exc:
+        raise HTTPException(503, "Durable admission was not confirmed; retry with the same alert ID") from exc
+
 
 @app.post(
     "/webhook",

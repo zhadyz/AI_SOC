@@ -123,3 +123,6 @@ work/
 *.sqlite-*
 models/bundles/
 models/active.json
+
+# Optional browser acceptance dependencies
+node_modules/

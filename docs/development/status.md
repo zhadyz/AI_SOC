@@ -6,17 +6,16 @@ was committed as `be32d29`; this continuation adds the functionality below.
 
 ## Outcome
 
-The native research application is operational at http://localhost:5050 with
-persistent sign-in, eight authenticated APIs, local Ollama, embedded vector
-retrieval, PostgreSQL, and a durable asynchronous queue. All nine application
-images and the disposable lab target image build successfully.
+The reconstructed local research platform is implemented and accepted end to end.
+Native and full-container deployments have passed the strict live workflow. Browser
+review/export/account workflows pass. The disposable Wazuh/Linux lab demonstrates
+actual HTTP and SSH denial/restoration, real agent forwarding, and response-plan
+approval/restart reconciliation/rollback through the real engine and adapters.
 
-The wider master-plan vision is **not fully accepted yet**. Full Compose startup,
-the real Linux/Wazuh enforcement lab, and visual review of the new access/review
-pages remain blocked on this Mac. Docker new-container startup stalled; the desktop
-automation tool explicitly reported a locked Mac and requested manual unlock.
-The stalled launch/diagnostic CLI processes were stopped. Other applications and
-Docker Desktop itself were not restarted or reconfigured.
+The downloaded installation uses the native application at http://localhost:5050
+for its faster local Ollama runtime. Container volumes and all built images are
+retained. Production vendor rollout and research generalization remain separate
+external validation work; they are not claimed by these local results.
 
 ## Implemented in this continuation
 
@@ -30,20 +29,22 @@ Docker Desktop itself were not restarted or reconfigured.
 | Flow schema | Known CICFlowMeter aliases normalize into the exact 77-feature contract; conflicting aliases, missing Protocol and fabricated partial measurements are rejected |
 | Multiclass research | Three real classifiers trained and evaluated across 15 CICIDS2017 classes; a separate signed research bundle serves through the real inference API |
 | Response recovery | Durable operation IDs; observe uncertain effects without replay; reviewer attestation and tested settled-action rollback state transitions |
-| Disposable enforcement lab | Scoped Linux firewall/network/account controller, durable intent/prior-state journal, Wazuh manager/agent configuration, pinned local certificates and strict behavior/rollback/forwarding acceptance script |
+| Disposable enforcement lab | Scoped Linux gateway/network/account controller, durable intent/prior-state journal, Wazuh manager/agent configuration, pinned local certificates and strict behavior/rollback/forwarding acceptance script |
 | Dependency posture | Embedded Chroma with fixed ONNX embeddings; removed unused PyTorch/Transformers stack; enforcing audit with four narrow, expiring mitigations |
 | Recovery | Private cold backup and an actual restore drill into a separate PostgreSQL database, with row-count/hash/SQLite-integrity validation |
 | Delivery | Aligned cached Docker builds, current operating instructions and evidence reports; no remote publication |
 
-The lab row records implemented code, not successful live enforcement. Its
-acceptance is explicitly pending below.
+The lab changes real behavior in disposable containers. IP blocking applies to
+the target HTTP/SSH ingress gateways; it is not a production firewall implementation.
 
 ## Verification evidence
 
-- **180 offline tests passed; one explicitly opt-in live case skipped.** No
+- **193 offline tests passed; one explicitly opt-in live case skipped.** No
   placeholder security skips remain. Tests cover actual model inference, auth,
   CSRF, role boundaries, independent review, rate limiting, tampered artifacts,
-  failed promotion, interrupted durable jobs, lab intent/rollback/idempotency, response recovery and rule matching.
+  failed promotion, interrupted durable jobs, lab intent/rollback/idempotency, response recovery, rule matching,
+  TCP gateway revocation, Docker transport uncertainty, preserved volumes, durable
+  Wazuh admission, and exact serving-artifact fingerprints.
   The live case calls the same full workflow that was exercised separately.
 - **12 live workflow checks passed** against the native APIs, real local Ollama,
   PostgreSQL and ONNX/Chroma retrieval. They cover health/auth, all three serving
@@ -63,10 +64,10 @@ acceptance is explicitly pending below.
   additionally tested by cancellation and reconstruction of the worker pool.
   [Queue evidence](async-verification.json).
 - **31 backup files verified**. A fresh PostgreSQL restore matched every table
-  count, including 14 alerts and 44 response audit events. Identity, rules, job
+  count, including 25 alerts and 60 response audit events. Identity, rules, job
   journal and Chroma SQLite checks all returned `ok`. The temporary restore DB was
-  removed and the working DB was not overwritten. Later smoke records are not
-  part of that earlier snapshot. [Restore evidence](restore-verification.json).
+  removed and the working DB was not overwritten. The final snapshot is
+  `../../work/backups/completed-20260904`. [Restore evidence](restore-verification.json).
 - The three 15-class models loaded through the real inference API from an isolated
   signed bundle and returned valid 15-class probabilities.
   [Serving-contract evidence](multiclass-serving-verification.json).
@@ -78,11 +79,35 @@ acceptance is explicitly pending below.
   validation, rendered dashboard JavaScript syntax, and `git diff --check` passed.
   The new identity values were moved outside Jinja's raw script block after the
   rendered-script check caught invalid JavaScript; a regression test covers it.
-- All nine final application images and the final Linux lab target image built.
-  Full container startup is not verified. GitHub Actions was not run remotely.
-- All four dashboard pages (`/`, `/reviews`, `/account`, `/login`) render and their
-  inline JavaScript parses after restart. New-page visual interaction remains
-  unverified because desktop access requires the Mac to be unlocked.
+- **Ten application/maintenance images and the Linux lab target image built.**
+  The full container deployment passed all **12 live workflow checks**. Repeating
+  startup preserved existing volumes and returned every service to health; four
+  core checks passed after the final image replacement. Container feedback
+  retraining connected to the database and correctly found zero eligible flows.
+  [Container runtime and image evidence](container-runtime-verification.json),
+  [full workflow](container-live-verification.json),
+  [resume checks](container-resume-verification.json).
+- **Five real browser checks passed**, with screenshots reviewed: sign-in and
+  command center, independent label review with source inspection, YAML download,
+  viewer-account creation/disable, and sign-out access revocation. No page script
+  errors occurred. The test uses fresh headless Chromium, without desktop unlock.
+  [Browser evidence](browser-verification.json),
+  [container browser evidence](container-browser-verification.json).
+- **Eight live lab checks passed**: baseline probe HTTP and pinned-host-key SSH;
+  IP gateway denial, network detachment and Linux account locking; restoration
+  after each action; a real agent event reaching the Wazuh manager and entering
+  SOC triage/storage through the durable queued webhook.
+  [Lab evidence](lab-verification.json).
+- **Four live response drill checks passed** using authored fixture plans and
+  separate durable storage: reviewer approval changes real traffic; rollback
+  restores it; an effect interrupted before result persistence survives restart
+  and is reconciled without replay; rollback then restores traffic and records
+  the audit. Missing prevention evidence stays unavailable, not successful.
+  [Response recovery evidence and audit](lab-plan-verification.json).
+- Docker Desktop required a preserved-disk recovery and a switch from its failing
+  Apple Virtualization backend to the installed Docker VMM backend. Previously
+  running unrelated containers were restored. The operating guide records the
+  recovery copies, bounded startup retries, and deployment data boundaries.
 
 ## Multiclass results
 
@@ -112,13 +137,10 @@ excluded from Git. The original binary serving bundle is unchanged.
 Genuine independently reviewed complete feedback flows remain absent. No
 feedback-driven improvement or candidate promotion has been claimed or performed.
 
-## Remaining gates
+## External deployment and research validation
 
 | Gate | Current blocker / needed input | Required acceptance |
 |---|---|---|
-| Full Compose runtime | New container startup stalled on this host | Start isolated stack and pass the strict live workflow against container services |
-| Disposable lab runtime | Same Docker startup issue; desktop is locked | Real HTTP/SSH denial and restoration; Wazuh agent event forwarded through triage; audited plan execution/recovery |
-| New dashboard visual QA | Manual Mac unlock | Sign in, navigate reviews/accounts, submit a review and inspect an export in the browser |
 | Production integrations | Selected vendors, credentials, assets and deployment target | Actual vendor contract/enforcement/telemetry/rollback checks |
 | Shared operations | Identity provider, TLS endpoint, retention and recovery requirements | Deployment-specific auth, TLS, load, backup cutover and operational review |
 | ML robustness | Independent deployment captures and defined acceptance thresholds | Out-of-distribution/time-separated evaluation with adequate class support |

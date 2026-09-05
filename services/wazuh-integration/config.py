@@ -43,7 +43,7 @@ class Settings(BaseSettings):
 
     # Timeouts
     wazuh_api_timeout: int = 30
-    ai_service_timeout: int = 60
+    ai_service_timeout: int = 420  # Two bounded triage attempts plus enrichment on CPU
 
     class Config:
         hide_input_in_errors = True

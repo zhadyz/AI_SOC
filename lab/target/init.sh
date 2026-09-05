@@ -8,18 +8,15 @@ password = Path('/run/secrets/lab_password').read_text().strip()
 subprocess.run(['chpasswd'], input='lab-user:' + password + '\n', text=True, check=True)
 PY
 cat > /etc/ssh/sshd_config.d/ai-soc-lab.conf <<'EOF'
-Port 2222
+Port 12222
+ListenAddress 127.0.0.1
 PasswordAuthentication yes
 PermitRootLogin no
 AllowUsers lab-user
 UsePAM no
 EOF
-nft list table inet ai_soc_lab >/dev/null 2>&1 || nft -f - <<'EOF'
-table inet ai_soc_lab {
-  set blocked_ips { type ipv4_addr; }
-  chain input {
-    type filter hook input priority -10; policy accept;
-    ip saddr @blocked_ips drop
-  }
-}
-EOF
+mkdir -p /run/ai-soc
+if [ ! -f /run/ai-soc/blocked-ips.json ]; then
+  echo '[]' > /run/ai-soc/blocked-ips.json
+fi
+chmod 600 /run/ai-soc/blocked-ips.json

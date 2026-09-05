@@ -1,16 +1,16 @@
 {
   "status": "passed",
   "postgres_restored_row_counts": {
-    "alerts": 14,
+    "alerts": 25,
     "defense_outcomes": 0,
     "defense_plans": 0,
-    "feedback": 13,
-    "feedback_reviews": 10,
-    "incident_alerts": 14,
-    "incidents": 2,
+    "feedback": 21,
+    "feedback_reviews": 19,
+    "incident_alerts": 22,
+    "incidents": 3,
     "planned_actions": 0,
-    "response_plan_events": 44,
-    "response_plan_state": 8,
+    "response_plan_events": 60,
+    "response_plan_state": 12,
     "verification_results": 0
   },
   "sqlite_integrity": {

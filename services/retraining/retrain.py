@@ -10,7 +10,7 @@ import json
 import logging
 import os
 import pickle
-from services.common.model_integrity import write_manifest, verified_bytes
+from services.common.model_integrity import write_manifest, verified_bytes, bundle_fingerprint
 import uuid
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -308,6 +308,8 @@ def trigger_reload():
         headers={"Authorization": f"Bearer {key}"} if key else {},
     )
     response.raise_for_status()
+    if response.json().get("bundle_fingerprint") != bundle_fingerprint(load_artifacts()):
+        raise RuntimeError("Serving bundle differs from the requested artifacts; use the retraining launcher for the running deployment")
 
 
 def load_holdout(path, training_features):

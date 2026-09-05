@@ -1,10 +1,10 @@
 {
-  "updated_at": "2026-09-05T02:49:43.527596+00:00",
+  "updated_at": "2026-09-05T04:12:13.320312+00:00",
   "upstream_baseline": "60902fa",
   "branch": "codex/complete-research-platform",
   "native_runtime": "operational",
   "offline_tests": {
-    "passed": 180,
+    "passed": 193,
     "skipped": 1,
     "failures": 0,
     "skip_reason": "Explicit live opt-in case; equivalent full workflow exercised separately"
@@ -32,26 +32,31 @@
   "fatal_lint": "passed",
   "compose_validation": "root, both compatibility includes and lab passed",
   "rendered_javascript": "all four authenticated/login pages passed node --check",
-  "new_pages_visual_review": "pending manual Mac unlock",
+  "new_pages_visual_review": "passed: five headless Chromium UI workflows, screenshots inspected",
   "image_build": {
     "application_images": 9,
+    "maintenance_images": 1,
     "lab_target_images": 1,
     "status": "passed",
     "image_ids": {
-      "alert-triage": "sha256:f4d6b4a7320b9fb4fb17300025533e1e3f88c85ca46e8627111b2886d088a9b0",
-      "correlation-engine": "sha256:4e03be43a4d5a45631d3d63807983b1a321945a29b5d223c9c1fb4456b0a09a0",
-      "dashboard": "sha256:b76bccc8c3be97cc2c99cd3c0c135244f1bb76c8ada4e742a8bbc427f05fa0c8",
-      "feedback-service": "sha256:17555c243b50e6767d85ced6bc9680284c05ccb6effc6c9e928b3950ae600536",
-      "ml-inference": "sha256:f0e0955eb33e1335586c8df6d6867152b9dfad4e6db3f62141f579fadf4cb12c",
-      "rag-service": "sha256:ce39c90d2d080f817ab11cc1b619ac10314da544a06ba48b302ab4e1ffd1ee9f",
-      "response-orchestrator": "sha256:f5a1cfd8f86b8f44487f5bded99c5e10b6a4b679d9cda5c60b15ac9b7c14c028",
-      "rule-generator": "sha256:c4953fb5fa4c94f950c5e173106958a97b3b55e69a7e6732966894dec0bb0a97",
-      "wazuh-integration": "sha256:4fca3c07cb30403971cd8964dcf517ba28361ba5abf46ca9efcca70702079586",
-      "lab-target": "sha256:854a33b0d4b3bd89df7344ba0e6694b245ceb39a3467a087abbeb1f02b775c65"
+      "ml-inference": "sha256:61065e1fd7013aac8da58733cbea268a076c7bd22d019fb780b540704beb67d7",
+      "feedback-service": "sha256:f50c56163833a26ba2599b9fe32aedc344aa8c467909cbca634779a8c3e5150f",
+      "rag-service": "sha256:fe3c92600157fdd117228686d80edc2a3b4941fe814aa9bbdc8c9ce27caf5b77",
+      "correlation-engine": "sha256:0a123e2c2748431487de8a3afaa5585f9358d335cf46c2f6926f674201c8e489",
+      "alert-triage": "sha256:caca22165ba4c2590754ef5d7a1413765936abb63ad28d0eac6799481306b736",
+      "rule-generator": "sha256:a1206ce2fb945c8b4cac287b76dcf293e7550b179fbb638b87f022c2f07294f6",
+      "response-orchestrator": "sha256:2576d382eb7b041291cf6985fd8fceea274c98e72f376faab0f1b154dbdfe83d",
+      "wazuh-integration": "sha256:2ab1fed11e7be501f24c1d61f6b0a8144737db17ee449b6295f1fd3bf32a36c5",
+      "dashboard": "sha256:dd19137f671f1d579cf1cc4bfe2881c6cd5d891c586ef263a808d4d1123c596a",
+      "retraining": "sha256:693651c9abb2127091e40e5ac725ca13317256dfae3c119a22e3dd47061c654f",
+      "lab-target": "sha256:524540fac9480f25c487bc7e55bc4235e049a02b3128db36932401a22d643c33"
     }
   },
-  "compose_runtime": "not accepted: new container startup stalled",
-  "lab_enforcement_runtime": "not accepted: container startup stalled; strict acceptance script prepared",
+  "compose_runtime": "accepted: full 12-check workflow, persisted-volume resume and final core checks; stopped after acceptance, native is the default runtime",
+  "lab_enforcement_runtime": {
+    "passed_checks": 8,
+    "report": "lab-verification.json"
+  },
   "github_ci": "not run remotely",
   "remote_publication": false,
   "production_enforcement": "not exercised",
@@ -62,5 +67,27 @@
     "Within-dataset multiclass holdout; no independent deployment captures",
     "No genuine eligible analyst feedback for improvement measurement",
     "Simulation validity and system-scale throughput not established"
-  ]
+  ],
+  "browser_acceptance": {
+    "passed_checks": 5,
+    "report": "browser-verification.json",
+    "container_report": "container-browser-verification.json"
+  },
+  "container_runtime_report": "container-runtime-verification.json",
+  "lab_response_recovery": {
+    "passed_checks": 4,
+    "report": "lab-plan-verification.json"
+  },
+  "docker_host_recovery": {
+    "backend": "Docker VMM (installed libkrun backend)",
+    "original_disk_and_settings_preserved": true,
+    "unrelated_running_containers_restored": true,
+    "native_mode_ports_released_after_desktop_restart": true
+  },
+  "retraining": {
+    "native_evaluation": "passed",
+    "container_evaluation": "passed",
+    "eligible_complete_reviewed_flows": 0,
+    "promoted_models": 0
+  }
 }

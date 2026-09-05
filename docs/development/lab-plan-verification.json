@@ -1,0 +1,298 @@
+{
+  "status": "passed",
+  "verified_at": "2026-09-05T03:54:25.222747+00:00",
+  "checks": [
+    "Reviewer approval executes a real scoped block and records unavailable prevention evidence honestly",
+    "Approved plan rollback restores real traffic and persists its audit",
+    "A real effect survives an interrupted result write; restart requests reconciliation and observes without replay",
+    "Interrupted plan rollback restores real traffic and persists its audit"
+  ],
+  "audits": [
+    {
+      "plan_id": "lab-plan-53d8caadf67c4f54a8703efd1a5b2ffa",
+      "events": [
+        {
+          "event_id": "3eab7448-a337-409b-b292-c1df8b8f8e7c",
+          "event": "controlled_lab_plan_created",
+          "occurred_at": "2026-09-05T03:52:58.545732",
+          "detail": {
+            "controlled_fixture": true
+          }
+        },
+        {
+          "event_id": "597ed569-b516-4407-8807-b18d1255d017",
+          "event": "approval_decision",
+          "occurred_at": "2026-09-05T03:52:58.956132",
+          "detail": {
+            "action_id": "lab-plan-53d8caadf67c4f54a8703efd1a5b2ffa-action",
+            "approved": true,
+            "analyst_id": "lab-acceptance-reviewer",
+            "notes": "Approve this controlled probe-only test plan"
+          }
+        },
+        {
+          "event_id": "26cc024b-bd13-434e-8c69-6f0aafab40ea",
+          "event": "action_intent",
+          "occurred_at": "2026-09-05T03:52:58.962112",
+          "detail": {
+            "action_id": "lab-plan-53d8caadf67c4f54a8703efd1a5b2ffa-action",
+            "dry_run": false
+          }
+        },
+        {
+          "event_id": "1cd10515-5a0f-479d-bf5a-0dd503dc1617",
+          "event": "action_result",
+          "occurred_at": "2026-09-05T03:53:18.393037",
+          "detail": {
+            "action_id": "lab-plan-53d8caadf67c4f54a8703efd1a5b2ffa-action",
+            "result": {
+              "success": true,
+              "action_type": "block_ip",
+              "target": "172.30.77.20",
+              "adapter": "firewall",
+              "detail": "Lab execute: independently observed container state",
+              "timestamp": "2026-09-05T03:53:18.390172",
+              "error": null,
+              "rollback_capable": true,
+              "raw_response": {
+                "success": true,
+                "action_type": "block_ip",
+                "target": "172.30.77.20",
+                "detail": "Lab execute: independently observed container state",
+                "evidence": {
+                  "active": true,
+                  "container_id": "fba9c131e259f8d3167ca5012f3a4949c6108836faa960e269484d7e03baaef7",
+                  "blocked_ips": [
+                    "172.30.77.20"
+                  ],
+                  "scope": "Lab ingress gateway: HTTP 8080 and SSH 2222"
+                },
+                "rollback_capable": true,
+                "simulated": false
+              }
+            }
+          }
+        },
+        {
+          "event_id": "88eeffe7-c30e-4b14-9708-51479d0dc1ec",
+          "event": "verification_started",
+          "occurred_at": "2026-09-05T03:53:18.396437",
+          "detail": {}
+        },
+        {
+          "event_id": "b88a07ec-5216-44dd-911b-bc41c903ac17",
+          "event": "verification_result",
+          "occurred_at": "2026-09-05T03:53:18.406912",
+          "detail": {
+            "evidence": {
+              "plan_id": "lab-plan-53d8caadf67c4f54a8703efd1a5b2ffa",
+              "verified_at": "2026-09-05T03:53:18.402595",
+              "pre_attack_success_rate": 0.0,
+              "post_attack_success_rate": 0.0,
+              "risk_reduction_pct": 0.0,
+              "re_simulation_id": null,
+              "continued_indicators": false,
+              "monitoring_duration_seconds": 0,
+              "new_alerts_during_monitoring": 0,
+              "verification_passed": false,
+              "verdict_reason": "Verification unavailable: a measured baseline and observed post-action environment are required; Wazuh indexer and incident indicators must be configured",
+              "evidence_available": false,
+              "simulation_available": false,
+              "monitoring_available": false
+            }
+          }
+        },
+        {
+          "event_id": "2572ab9f-076f-49da-a989-759e29f5bdec",
+          "event": "rollback_requested",
+          "occurred_at": "2026-09-05T03:53:18.814332",
+          "detail": {
+            "analyst_id": "lab-acceptance-reviewer",
+            "notes": "Restore the controlled lab baseline"
+          }
+        },
+        {
+          "event_id": "05d7e91e-0991-43b6-9e7e-a2af814504c7",
+          "event": "rollback_intent",
+          "occurred_at": "2026-09-05T03:53:18.818527",
+          "detail": {
+            "action_id": "lab-plan-53d8caadf67c4f54a8703efd1a5b2ffa-action"
+          }
+        },
+        {
+          "event_id": "c3630371-6a4f-4060-96ee-a3ac4cf745c7",
+          "event": "rollback_result",
+          "occurred_at": "2026-09-05T03:53:38.193062",
+          "detail": {
+            "action_id": "lab-plan-53d8caadf67c4f54a8703efd1a5b2ffa-action",
+            "result": {
+              "success": true,
+              "action_type": "block_ip",
+              "target": "172.30.77.20",
+              "adapter": "firewall",
+              "detail": "Lab rollback: independently observed container state",
+              "timestamp": "2026-09-05T03:53:38.190958",
+              "error": null,
+              "rollback_capable": true,
+              "raw_response": {
+                "success": true,
+                "action_type": "block_ip",
+                "target": "172.30.77.20",
+                "detail": "Lab rollback: independently observed container state",
+                "evidence": {
+                  "active": false,
+                  "container_id": "fba9c131e259f8d3167ca5012f3a4949c6108836faa960e269484d7e03baaef7",
+                  "blocked_ips": [],
+                  "scope": "Lab ingress gateway: HTTP 8080 and SSH 2222"
+                },
+                "rollback_capable": true,
+                "simulated": false
+              }
+            }
+          }
+        },
+        {
+          "event_id": "672a31be-27e4-4f11-8ad3-93115de41af0",
+          "event": "manual_rollback_result",
+          "occurred_at": "2026-09-05T03:53:38.196243",
+          "detail": {
+            "complete": true
+          }
+        }
+      ],
+      "final_status": "rolled_back"
+    },
+    {
+      "plan_id": "lab-plan-be2fc446201d468abb198d55659dca08",
+      "events": [
+        {
+          "event_id": "9d8498c6-af82-4ed4-b826-df1bb2f3e0d0",
+          "event": "controlled_lab_plan_created",
+          "occurred_at": "2026-09-05T03:53:38.606141",
+          "detail": {
+            "controlled_fixture": true
+          }
+        },
+        {
+          "event_id": "bc62f7fd-5e75-441a-87f5-ad8f4a34c088",
+          "event": "action_intent",
+          "occurred_at": "2026-09-05T03:53:39.035423",
+          "detail": {
+            "action_id": "lab-plan-be2fc446201d468abb198d55659dca08-action"
+          }
+        },
+        {
+          "event_id": "0dd7b678-622e-46f9-83a1-a279e39101d5",
+          "event": "restart_requires_reconciliation",
+          "occurred_at": "2026-09-05T03:53:58.450011",
+          "detail": {}
+        },
+        {
+          "event_id": "0f966ba8-c8b6-4014-94c5-91d94b57ae26",
+          "event": "reconciliation_probe",
+          "occurred_at": "2026-09-05T03:54:05.357812",
+          "detail": {
+            "action_id": "lab-plan-be2fc446201d468abb198d55659dca08-action",
+            "analyst_id": "lab-acceptance-reviewer",
+            "result": {
+              "success": true,
+              "action_type": "block_ip",
+              "target": "172.30.77.20",
+              "adapter": "firewall",
+              "detail": "Lab verify: independently observed container state",
+              "timestamp": "2026-09-05T03:54:05.354774",
+              "error": null,
+              "rollback_capable": true,
+              "raw_response": {
+                "success": true,
+                "action_type": "block_ip",
+                "target": "172.30.77.20",
+                "detail": "Lab verify: independently observed container state",
+                "evidence": {
+                  "active": true,
+                  "container_id": "fba9c131e259f8d3167ca5012f3a4949c6108836faa960e269484d7e03baaef7",
+                  "blocked_ips": [
+                    "172.30.77.20"
+                  ],
+                  "scope": "Lab ingress gateway: HTTP 8080 and SSH 2222"
+                },
+                "rollback_capable": true,
+                "simulated": false
+              }
+            }
+          }
+        },
+        {
+          "event_id": "80df23c3-92d7-4669-9c52-1c3d32ddbcef",
+          "event": "action_reconciled",
+          "occurred_at": "2026-09-05T03:54:05.362170",
+          "detail": {
+            "action_id": "lab-plan-be2fc446201d468abb198d55659dca08-action",
+            "analyst_id": "lab-acceptance-reviewer",
+            "disposition": "verify_active",
+            "notes": "Controller observed the active policy; independent probe confirmed denied traffic"
+          }
+        },
+        {
+          "event_id": "50df1c85-00d7-49cd-a707-02d16b8651a5",
+          "event": "rollback_requested",
+          "occurred_at": "2026-09-05T03:54:05.365666",
+          "detail": {
+            "analyst_id": "lab-acceptance-reviewer",
+            "notes": "Restore the controlled lab baseline"
+          }
+        },
+        {
+          "event_id": "e54c1d44-2e7c-4625-bc78-4f5f602e5969",
+          "event": "rollback_intent",
+          "occurred_at": "2026-09-05T03:54:05.369425",
+          "detail": {
+            "action_id": "lab-plan-be2fc446201d468abb198d55659dca08-action"
+          }
+        },
+        {
+          "event_id": "d9f2b95f-9c50-4b23-8189-2058c8ea54a1",
+          "event": "rollback_result",
+          "occurred_at": "2026-09-05T03:54:24.792326",
+          "detail": {
+            "action_id": "lab-plan-be2fc446201d468abb198d55659dca08-action",
+            "result": {
+              "success": true,
+              "action_type": "block_ip",
+              "target": "172.30.77.20",
+              "adapter": "firewall",
+              "detail": "Lab rollback: independently observed container state",
+              "timestamp": "2026-09-05T03:54:24.790052",
+              "error": null,
+              "rollback_capable": true,
+              "raw_response": {
+                "success": true,
+                "action_type": "block_ip",
+                "target": "172.30.77.20",
+                "detail": "Lab rollback: independently observed container state",
+                "evidence": {
+                  "active": false,
+                  "container_id": "fba9c131e259f8d3167ca5012f3a4949c6108836faa960e269484d7e03baaef7",
+                  "blocked_ips": [],
+                  "scope": "Lab ingress gateway: HTTP 8080 and SSH 2222"
+                },
+                "rollback_capable": true,
+                "simulated": false
+              }
+            }
+          }
+        },
+        {
+          "event_id": "3c567d09-8600-40d9-95b3-e6fbdff86930",
+          "event": "manual_rollback_result",
+          "occurred_at": "2026-09-05T03:54:24.796038",
+          "detail": {
+            "complete": true
+          }
+        }
+      ],
+      "final_status": "rolled_back"
+    }
+  ],
+  "scope": "Real engine/adapters/controller/traffic with authored fixture plans and isolated durable storage; no production prevention claim"
+}

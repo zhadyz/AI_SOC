@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "verified_at": "2026-09-05T03:41:21.304Z",
+  "browser": "Isolated headless Chromium with a fresh profile",
+  "checks": [
+    "Administrator signs in through the browser and command center executes without script errors",
+    "Reviewer inspects source evidence and submits an independent label decision",
+    "Approved rule downloads as a YAML file from the browser",
+    "Account administration creates and disables a test viewer through the UI",
+    "Sign-out prevents subsequent access to authenticated pages"
+  ],
+  "page_errors": [],
+  "screenshots": [
+    "command-center.png",
+    "reviews.png",
+    "accounts.png"
+  ],
+  "desktop_unlock_required": false
+}

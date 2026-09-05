@@ -16,9 +16,9 @@
   "llm_exercised": true,
   "full": true,
   "rule_generation_method": "local_llm",
-  "rule_id": "RULE-e02ce16e",
-  "alert_id": "smoke-2b13ef717c84",
+  "rule_id": "RULE-84a69c72",
+  "alert_id": "smoke-e43d7df2d02d",
   "incident_id": "INC-20260905002602-dd11",
-  "plan_id": "PLAN-20260905040558-7d55",
-  "verified_at": "2026-09-05T04:06:21.902118+00:00"
+  "plan_id": "PLAN-20260905034841-da1a",
+  "verified_at": "2026-09-05T03:51:50.328001+00:00"
 }

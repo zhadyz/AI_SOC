@@ -69,18 +69,24 @@ def validate_action(action):
 def observe(action):
     cid, details = container("target")
     if action.action_type == "block_ip":
-        result = docker("exec", cid, "nft", "-j", "list", "set", "inet", "ai_soc_lab", "blocked_ips")
-        nft = json.loads(result.stdout)
-        elements = [element for entry in nft["nftables"] if "set" in entry
-                    for element in entry["set"].get("elem", [])]
-        return {"active": action.target in elements, "container_id": details["Id"], "blocked_ips": elements}
+        result = docker("exec", cid, "cat", "/run/ai-soc/blocked-ips.json")
+        elements = json.loads(result.stdout)
+        if not isinstance(elements, list):
+            raise ValueError("Invalid lab gateway policy")
+        return {"active": action.target in elements, "container_id": details["Id"], "blocked_ips": elements,
+                "scope": "Lab ingress gateway: HTTP 8080 and SSH 2222"}
     if action.action_type == "isolate_host":
         networks = details["NetworkSettings"]["Networks"]
         if set(networks) - {NETWORK}:
             raise ValueError("Target has an unexpected network; isolated-lab scope is no longer valid")
         return {"active": not networks, "container_id": details["Id"], "networks": list(networks)}
-    status = docker("exec", cid, "passwd", "-S", "lab-user").stdout.split()
-    return {"active": status[1] in {"L", "LK"}, "container_id": details["Id"], "account_status": status[1]}
+    # The pinned Wazuh image has shadow-utils but no passwd executable. Query
+    # shadow inside the target and return only lock status, never its hash.
+    status = docker("exec", cid, "python3", "-c",
+                    "import spwd; h=spwd.getspnam('lab-user').sp_pwdp; print('L' if h.startswith(('!','*')) else 'P')").stdout.strip()
+    if status not in {"L", "P"}:
+        raise RuntimeError("Unexpected lab account state")
+    return {"active": status == "L", "container_id": details["Id"], "account_status": status}
 
 
 def connect():
@@ -125,8 +131,8 @@ def perform(action, operation):
         if current["active"] != desired:
             cid, _ = container("target")
             if action.action_type == "block_ip":
-                docker("exec", "-i", cid, "nft", "-f", "-",
-                       data=f"{'add' if desired else 'delete'} element inet ai_soc_lab blocked_ips {{ {action.target} }}\n")
+                update = "import json,os,sys; from pathlib import Path; p=Path('/run/ai-soc/blocked-ips.json'); ips=set(json.loads(p.read_text())); (ips.add if sys.argv[2]=='true' else ips.discard)(sys.argv[1]); q=p.with_suffix('.tmp'); q.write_text(json.dumps(sorted(ips))); q.chmod(0o600); os.replace(q,p)"
+                docker("exec", cid, "python3", "-c", update, action.target, "true" if desired else "false")
             elif action.action_type == "isolate_host":
                 if desired:
                     docker("network", "disconnect", NETWORK, cid)

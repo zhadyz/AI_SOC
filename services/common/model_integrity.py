@@ -17,6 +17,12 @@ def canonical(payload):
     return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
 
 
+def bundle_fingerprint(artifacts):
+    """Identify the exact verified bytes, independent of storage location/signing."""
+    return hashlib.sha256(canonical({name: hashlib.sha256(data).hexdigest()
+                                     for name, data in artifacts.items()})).hexdigest()
+
+
 def write_manifest(directory, signing_key=None):
     directory = Path(directory)
     payload = {"version": 1, "files": {name: hashlib.sha256((directory / name).read_bytes()).hexdigest()

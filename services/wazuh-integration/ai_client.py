@@ -82,6 +82,17 @@ class AIClient:
 
         return triage_payload
 
+    async def queue_alert(self, wazuh_alert: WazuhAlert) -> Dict[str, Any]:
+        """Acknowledge only after triage commits its durable job journal."""
+        async with service_client(timeout=20) as client:
+            response = await client.post(f"{self.triage_url}/analyze/async",
+                                        json=self.transform_wazuh_to_triage_format(wazuh_alert))
+            response.raise_for_status()
+            data = response.json()
+            if response.status_code != 202 or not data.get("job_id"):
+                raise ValueError("Triage did not confirm durable admission")
+            return {**data, "wazuh_alert_id": wazuh_alert.id}
+
     async def analyze_alert(self, wazuh_alert: WazuhAlert) -> Dict[str, Any]:
         """
         Send alert to Alert Triage service for AI analysis.

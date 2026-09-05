@@ -6,12 +6,16 @@ import os
 from pathlib import Path
 import secrets
 import signal
+import shutil
+import tempfile
+import time
 import subprocess
 import sys
 from xml.sax.saxutils import escape
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+from scripts.docker_control import start_container
 from scripts.configure_local import configure as configure_soc
 from scripts.local_stack import occupied, wait_http
 
@@ -40,7 +44,7 @@ def configure(state):
   <auth><disabled>no</disabled><port>1515</port><use_source_ip>no</use_source_ip><purge>yes</purge><use_password>no</use_password></auth>
   <ruleset><decoder_dir>ruleset/decoders</decoder_dir><rule_dir>ruleset/rules</rule_dir><rule_dir>etc/rules</rule_dir></ruleset>
   <command><name>firewall-drop</name><executable>firewall-drop</executable><timeout_allowed>yes</timeout_allowed></command>
-  <integration><name>custom-ai-soc</name><hook_url>http://host.docker.internal:8002/webhook</hook_url><api_key>{escape(config['AI_SOC_API_KEY'])}</api_key><rule_id>100100</rule_id><alert_format>json</alert_format></integration>
+  <integration><name>custom-ai-soc</name><hook_url>http://host.docker.internal:8002/webhook/async</hook_url><api_key>{escape(config['AI_SOC_API_KEY'])}</api_key><rule_id>100100</rule_id><alert_format>json</alert_format></integration>
 </ossec_config>\n""")
     os.chmod(state / "manager.conf", 0o600)
     (state / "local_rules.xml").write_text('''<group name="ai_soc_lab,">
@@ -61,6 +65,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=["configure", "up", "down", "status"])
     parser.add_argument("--state-dir", type=Path, default=ROOT / "work/lab")
+    parser.add_argument("--skip-build", action="store_true", help="Reuse the existing lab target image")
     args = parser.parse_args()
     state = args.state_dir.resolve()
     config = configure(state)
@@ -73,15 +78,83 @@ def main():
     elif args.action == "up":
         if occupied(8900):
             raise RuntimeError("Port 8900 is in use; no existing controller was changed")
-        subprocess.run([*command, "up", "-d", "--build"], cwd=ROOT, check=True, timeout=600)
-        manager = subprocess.check_output([*command, "ps", "-q", "manager"], text=True).strip()
+        subprocess.run([*command, "create", *([] if args.skip_build else ["--build"])], cwd=ROOT, check=True, timeout=600)
+        manager = subprocess.check_output([*command, "ps", "-aq", "manager"], text=True).strip()
+        target = subprocess.check_output([*command, "ps", "-aq", "target"], text=True).strip()
+        manager = subprocess.check_output(["docker", "inspect", manager, "--format", "{{.Name}}"], text=True).strip().lstrip("/")
+        target = subprocess.check_output(["docker", "inspect", target, "--format", "{{.Name}}"], text=True).strip().lstrip("/")
+        # Provision the disposable containers without depending on Desktop host
+        # filesystem sharing. Secrets stay out of image layers and command args.
+        with tempfile.TemporaryDirectory(dir=state) as staging:
+            staging = Path(staging)
+            for service, cid, source in [("manager", manager, state / "manager.conf"), ("target", target, state / "agent.conf")]:
+                mount = staging / service / "wazuh-config-mount"
+                (mount / "etc").mkdir(parents=True)
+                shutil.copy2(source, mount / "etc/ossec.conf")
+                if service == "manager":
+                    (mount / "etc/rules").mkdir()
+                    shutil.copy2(state / "local_rules.xml", mount / "etc/rules/local_rules.xml")
+                subprocess.run(["docker", "cp", str(mount), cid + ":/"], check=True, timeout=30)
+            secrets_dir = staging / "secrets"
+            secrets_dir.mkdir()
+            shutil.copy2(state / "lab-password.txt", secrets_dir / "lab_password")
+            subprocess.run(["docker", "cp", str(secrets_dir), target + ":/run/"], check=True, timeout=30)
+        for service in ("manager", "probe", "target"):
+            cid = subprocess.check_output([*command, "ps", "-aq", service], text=True).strip()
+            name = subprocess.check_output(["docker", "inspect", cid, "--format", "{{.Name}}"], text=True).strip().lstrip("/")
+            running = subprocess.check_output(["docker", "inspect", name, "--format", "{{.State.Running}}"], text=True).strip()
+            if running != "true":
+                start_container(name)
+        deadline = time.monotonic() + 180
+        while time.monotonic() < deadline:
+            status = subprocess.run(["docker", "exec", manager, "/var/ossec/bin/wazuh-control", "status"], capture_output=True, text=True, timeout=30)
+            if "wazuh-analysisd is running" in status.stdout and "wazuh-apid is running" in status.stdout:
+                break
+            time.sleep(1)
+        else:
+            raise RuntimeError("Wazuh manager did not become ready; inspect its container logs")
         for source, destination in [(state / "server.crt", "/var/ossec/api/configuration/ssl/server.crt"),
                                     (state / "server.key", "/var/ossec/api/configuration/ssl/server.key"),
+                                    (state / "manager.conf", "/var/ossec/etc/ossec.conf"),
+                                    (state / "local_rules.xml", "/var/ossec/etc/rules/local_rules.xml"),
                                     (ROOT / "lab/custom-ai-soc", "/var/ossec/integrations/custom-ai-soc")]:
             subprocess.run(["docker", "cp", str(source), manager + ":" + destination], check=True, timeout=30)
             subprocess.run(["docker", "exec", manager, "chown", "root:wazuh", destination], check=True, timeout=30)
             subprocess.run(["docker", "exec", manager, "chmod", "750" if "integrations" in destination else "640", destination], check=True, timeout=30)
         subprocess.run(["docker", "exec", manager, "/var/ossec/bin/wazuh-control", "restart"], check=True, timeout=120)
+        # The manager's durable registration survives target image replacement.
+        # Restore ONLY this disposable agent's key through the trusted Docker
+        # channel. Key material never appears in argv, logs or image layers.
+        deadline = time.monotonic() + 120
+        while time.monotonic() < deadline:
+            registered = subprocess.check_output(["docker", "exec", manager,
+                "/var/ossec/framework/python/bin/python3", "-c",
+                "from pathlib import Path; print(''.join(line for line in Path('/var/ossec/etc/client.keys').read_text().splitlines(True) if len(line.split())==4 and line.split()[1]=='lab-target'),end='')"], text=True, timeout=30)
+            if registered.strip():
+                if len(registered.strip().splitlines()) != 1:
+                    raise RuntimeError("Ambiguous lab agent registration")
+                break
+            time.sleep(2)
+        else:
+            raise RuntimeError("Lab target did not enroll with the manager; inspect agent logs")
+        with tempfile.TemporaryDirectory(dir=state) as staging:
+            key_file = Path(staging) / "client.keys"
+            key_file.write_text(registered)
+            key_file.chmod(0o600)
+            for source, destination in [(key_file, "/var/ossec/etc/client.keys"),
+                                        (state / "agent.conf", "/var/ossec/etc/ossec.conf")]:
+                subprocess.run(["docker", "cp", str(source), target + ":" + destination], check=True, timeout=30)
+                subprocess.run(["docker", "exec", target, "chown", "root:wazuh", destination], check=True, timeout=30)
+                subprocess.run(["docker", "exec", target, "chmod", "640", destination], check=True, timeout=30)
+        subprocess.run(["docker", "exec", target, "/var/ossec/bin/wazuh-control", "restart"], check=True, timeout=120)
+        deadline = time.monotonic() + 120
+        while time.monotonic() < deadline:
+            agents = subprocess.check_output(["docker", "exec", manager, "/var/ossec/bin/agent_control", "-lc"], text=True, timeout=30)
+            if any("lab-target" in line and "Active" in line for line in agents.splitlines()):
+                break
+            time.sleep(2)
+        else:
+            raise RuntimeError("Lab agent registration exists but the target did not connect")
         env = {**os.environ, **config, "PYTHONPATH": str(ROOT), "AI_SOC_LAB_STATE": str(state)}
         with (state / "controller.log").open("a") as log:
             process = subprocess.Popen([str(ROOT / ".venv/bin/python"), "-m", "uvicorn", "lab.control:app", "--host", "127.0.0.1", "--port", "8900"],

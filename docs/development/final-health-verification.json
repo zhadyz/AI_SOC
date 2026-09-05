@@ -1,0 +1,10 @@
+{
+  "checks": [
+    "All eight service health endpoints and dashboard respond",
+    "Unauthenticated model API access is rejected",
+    "All three bundled models produce real predictions",
+    "Runbook retrieval returns embedded security knowledge"
+  ],
+  "llm_exercised": false,
+  "verified_at": "2026-09-05T04:12:13.537379+00:00"
+}

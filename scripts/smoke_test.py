@@ -22,7 +22,7 @@ def run(skip_llm=False, full=False):
     checks = []
     def call(service, path, method="GET", **kwargs):
         response = requests.request(method, f"http://127.0.0.1:{PORTS[service]}{path}",
-                                    headers=headers, timeout=240, **kwargs)
+                                    headers=headers, timeout=480, **kwargs)
         if not response.ok:
             raise RuntimeError(f"{service}{path}: HTTP {response.status_code}: {response.text[:400]}")
         return response.json()

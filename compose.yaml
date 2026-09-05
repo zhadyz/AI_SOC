@@ -49,7 +49,7 @@ services:
     build: {context: ., args: {SERVICE: ml-inference}}
     command: [uvicorn, 'ml_training.inference_api:app', --host, 0.0.0.0, --port, '8000']
     ports: ['127.0.0.1:8500:8000']
-    volumes: ['./models:/app/models:ro']
+    volumes: [model-data:/app/models:ro]
     environment:
       <<: *shared-env
       MODEL_PATH: /app/models
@@ -109,11 +109,10 @@ services:
       CORRELATION_DATABASE_URL: postgresql+asyncpg://ai_soc:${POSTGRES_PASSWORD}@postgres:5432/ai_soc
       CORRELATION_SIMULATOR_OLLAMA_HOST: http://ollama:11434
       CORRELATION_SIMULATOR_OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:3b}
-      CORRELATION_SIMULATOR_ENVIRONMENT_CONFIG: /app/config/default-environment.json
+      CORRELATION_SIMULATOR_ENVIRONMENT_CONFIG: /app/config/simulation/default-environment.json
       CORRELATION_AUTO_DEFEND_ENABLED: 'false'
       SWARM_HISTORY_DIR: /app/data
     volumes:
-      - ./config/simulation/default-environment.json:/app/config/default-environment.json:ro
       - simulation-history:/app/data
     depends_on:
       postgres: {condition: service_healthy}
@@ -166,12 +165,23 @@ services:
       <<: *shared-env
       DASHBOARD_CONTAINER_NETWORK: 'true'
       AI_SOC_IDENTITY_DB: /app/identity/identity.sqlite
-    volumes: ['${AI_SOC_IDENTITY_DIR:-./work/runtime/identity}:/app/identity']
+    volumes: [identity-data:/app/identity]
     healthcheck:
       test: [CMD, curl, -fsS, 'http://localhost:5050/health']
       interval: 15s
       timeout: 5s
       retries: 5
+  retraining:
+    profiles: [maintenance]
+    build: {context: ., args: {SERVICE: retraining}}
+    command: [python, -m, services.retraining.retrain, --evaluate-only]
+    environment:
+      <<: *shared-env
+      FEEDBACK_DATABASE_URL: postgresql://ai_soc:${POSTGRES_PASSWORD}@postgres:5432/ai_soc
+      ML_INFERENCE_URL: http://ml-inference:8000
+      MODEL_DIR: /app/models
+      AI_SOC_MODEL_SIGNING_KEY: ${AI_SOC_MODEL_SIGNING_KEY:?Run python scripts/configure_local.py first}
+    volumes: [model-data:/app/models]
 volumes:
   postgres-data:
   ollama-data:
@@ -179,3 +189,5 @@ volumes:
   simulation-history:
   rule-data:
   triage-data:
+  model-data:
+  identity-data:

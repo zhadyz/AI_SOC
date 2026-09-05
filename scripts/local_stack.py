@@ -17,6 +17,7 @@ import time
 import urllib.request
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
 SERVICES = {
     "ml-inference": ("ml_training.inference_api:app", 8500),
     "feedback-service": ("services.feedback_service.main:app", 8400),
@@ -109,11 +110,18 @@ def main():
             raise RuntimeError(
                 f"Port {port} is already in use; no existing process was changed"
             )
-    subprocess.run(
-        ["docker", "compose", "up", "-d", "--pull", "never", "--wait", "postgres"],
-        cwd=ROOT,
-        check=True,
-    )
+    from scripts.docker_control import start_container
+    subprocess.run(["docker", "compose", "create", "--pull", "never", "postgres"], cwd=ROOT, check=True, timeout=120)
+    database = subprocess.check_output(["docker", "compose", "ps", "-aq", "postgres"], cwd=ROOT, text=True, timeout=30).strip()
+    start_container(database)
+    deadline = time.monotonic() + 90
+    while time.monotonic() < deadline:
+        health = subprocess.check_output(["docker", "inspect", database, "--format", "{{.State.Health.Status}}"], text=True, timeout=15).strip()
+        if health == "healthy":
+            break
+        time.sleep(1)
+    else:
+        raise RuntimeError("PostgreSQL did not become healthy; inspect its container logs")
     db_url = f"postgresql+asyncpg://ai_soc:{config['POSTGRES_PASSWORD']}@127.0.0.1:5435/ai_soc"
     env.update(
         {
