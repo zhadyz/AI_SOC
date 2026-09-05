@@ -10,6 +10,7 @@ import json
 import logging
 import os
 import pickle
+from services.common.model_integrity import write_manifest, verified_bytes
 import uuid
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -46,13 +47,19 @@ def active_directory():
 
 
 def load_feature_names():
-    with (active_directory() / "feature_names.pkl").open("rb") as stream:
-        return list(pickle.load(stream))
+    return list(pickle.loads(load_artifacts()["feature_names.pkl"]))
+
+
+def load_artifacts():
+    directory = active_directory()
+    return verified_bytes(directory, os.getenv("AI_SOC_MODEL_SIGNING_KEY"),
+                          require_signature=directory.resolve() != MODEL_DIR.resolve())
 
 
 def load_current_models():
+    artifacts = load_artifacts()
     return {
-        name: pickle.loads((active_directory() / f"{name}_ids.pkl").read_bytes())
+        name: pickle.loads(artifacts[f"{name}_ids.pkl"])
         for name in MODEL_NAMES
     }
 
@@ -256,15 +263,39 @@ def save_models(models, scaler, label_encoder, *, activate=False, metadata=None)
             stream.flush()
             os.fsync(stream.fileno())
     (directory / "evaluation.json").write_text(json.dumps(metadata or {}, indent=2))
+    signing_key = os.getenv("AI_SOC_MODEL_SIGNING_KEY")
+    if not signing_key:
+        raise ValueError("Configure AI_SOC_MODEL_SIGNING_KEY before creating a candidate bundle")
+    write_manifest(directory, signing_key)
     if activate:
-        pointer = {"bundle": str(directory.relative_to(MODEL_DIR))}
-        temporary = MODEL_DIR / f".active-{uuid.uuid4().hex}.json"
-        with temporary.open("w") as stream:
-            json.dump(pointer, stream)
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.replace(temporary, MODEL_DIR / "active.json")
+        activate_bundle(directory)
     return directory
+
+
+def activate_bundle(directory):
+    """Restore the previous disk pointer if live activation fails, including timeout.
+
+    A timeout may mean the new bundle loaded; reload again after restoring the
+    pointer so the running server converges to the previous champion too.
+    """
+    pointer = MODEL_DIR / "active.json"
+    previous = pointer.read_bytes() if pointer.exists() else None
+    temporary = MODEL_DIR / f".active-{uuid.uuid4().hex}.json"
+    temporary.write_text(json.dumps({"bundle": str(directory.relative_to(MODEL_DIR))}))
+    os.replace(temporary, pointer)
+    try:
+        trigger_reload()
+    except Exception:
+        if previous is None:
+            pointer.unlink(missing_ok=True)
+        else:
+            temporary.write_bytes(previous)
+            os.replace(temporary, pointer)
+        try:
+            trigger_reload()
+        except Exception:
+            logger.error("Serving state needs reconciliation; previous disk pointer restored")
+        raise
 
 
 def trigger_reload():
@@ -334,8 +365,9 @@ def main():
             "At least five reviewed, unique flow samples per class are required"
         )
     directory = active_directory()
-    scaler = pickle.loads((directory / "scaler.pkl").read_bytes())
-    encoder = pickle.loads((directory / "label_encoder.pkl").read_bytes())
+    artifacts = load_artifacts()
+    scaler = pickle.loads(artifacts["scaler.pkl"])
+    encoder = pickle.loads(artifacts["label_encoder.pkl"])
     # Freeze serving preprocessing so all candidate/champion comparisons use the
     # exact same representation. Never refit a scaler underneath old models.
     if args.holdout:
@@ -367,11 +399,11 @@ def main():
     }
     activate = args.promote and "promote" in decisions.values()
     bundle = save_models(
-        selected, scaler, encoder, activate=activate, metadata=metadata
+        selected, scaler, encoder, activate=False, metadata=metadata
     )
     logger.info("Saved %s; activated=%s", bundle, activate)
     if activate:
-        trigger_reload()
+        activate_bundle(bundle)
 
 
 if __name__ == "__main__":

@@ -4,10 +4,16 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends curl libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 COPY requirements-runtime.txt ./
-COPY services/ ./services/
-COPY ml_training/ ./ml_training/
-COPY dashboard/ ./dashboard/
-COPY config/ ./config/
+COPY ml_training/requirements-inference.txt ./ml_training/requirements-inference.txt
+COPY dashboard/requirements.txt ./dashboard/requirements.txt
+COPY services/alert-triage/requirements.txt ./services/alert-triage/requirements.txt
+COPY services/correlation-engine/requirements.txt ./services/correlation-engine/requirements.txt
+COPY services/feedback-service/requirements.txt ./services/feedback-service/requirements.txt
+COPY services/rag-service/requirements.txt ./services/rag-service/requirements.txt
+COPY services/response-orchestrator/requirements.txt ./services/response-orchestrator/requirements.txt
+COPY services/retraining/requirements.txt ./services/retraining/requirements.txt
+COPY services/rule-generator/requirements.txt ./services/rule-generator/requirements.txt
+COPY services/wazuh-integration/requirements.txt ./services/wazuh-integration/requirements.txt
 RUN if [ "$SERVICE" = "ml-inference" ]; then \
       pip install --no-cache-dir -r ml_training/requirements-inference.txt; \
     elif [ "$SERVICE" = "dashboard" ]; then \
@@ -15,6 +21,10 @@ RUN if [ "$SERVICE" = "ml-inference" ]; then \
     else \
       pip install --no-cache-dir -r "services/$SERVICE/requirements.txt"; \
     fi
+COPY services/ ./services/
+COPY ml_training/ ./ml_training/
+COPY dashboard/ ./dashboard/
+COPY config/ ./config/
 RUN useradd --create-home --uid 1000 soc && mkdir -p /app/data && chown -R soc:soc /app
 USER soc
 ENV PYTHONUNBUFFERED=1

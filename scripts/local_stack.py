@@ -93,7 +93,7 @@ def main():
             "This state directory already has a run; use status/down before up"
         )
     subprocess.run(
-        [sys.executable, str(ROOT / "scripts/configure_local.py")], check=True
+        [sys.executable, str(ROOT / "scripts/configure_local.py"), "--state-dir", str(state)], check=True
     )
     config = dict(
         line.split("=", 1)
@@ -104,7 +104,7 @@ def main():
     python = ROOT / ".venv/bin/python"
     if not python.exists():
         raise RuntimeError("Create .venv and install dependencies first")
-    for port in [11434, 8200, 5050] + [p for _, p in SERVICES.values()]:
+    for port in [11434, 5050] + [p for _, p in SERVICES.values()]:
         if occupied(port):
             raise RuntimeError(
                 f"Port {port} is already in use; no existing process was changed"
@@ -118,11 +118,12 @@ def main():
     env.update(
         {
             "MODEL_PATH": str(ROOT / "models"),
+            "AI_SOC_IDENTITY_DB": str(Path(config["AI_SOC_IDENTITY_DIR"]) / "identity.sqlite"),
             "OLLAMA_HOST": "http://127.0.0.1:11434",
             "OLLAMA_MODELS": str(state / "ollama-models"),
             "OLLAMA_MODEL": config.get("OLLAMA_MODEL", "llama3.2:3b"),
-            "RAG_CHROMADB_HOST": "127.0.0.1",
-            "RAG_CHROMADB_PORT": "8200",
+            "RAG_CHROMADB_PATH": str(state / "chroma"),
+            "RAG_EMBEDDING_CACHE": str(state / "embedding-model"),
             "HF_HOME": str(state / "huggingface"),
             "TRIAGE_OLLAMA_HOST": "http://127.0.0.1:11434",
             "TRIAGE_PRIMARY_MODEL": config.get("OLLAMA_MODEL", "llama3.2:3b"),
@@ -133,6 +134,7 @@ def main():
             "TRIAGE_FEEDBACK_SERVICE_URL": "http://127.0.0.1:8400",
             "TRIAGE_CORRELATION_ENGINE_URL": "http://127.0.0.1:8600",
             "TRIAGE_LLM_TIMEOUT": "180",
+            "TRIAGE_JOB_STORE_PATH": str(state / "triage-jobs.sqlite"),
             "FEEDBACK_DATABASE_URL": db_url,
             "CORRELATION_DATABASE_URL": db_url,
             "ORCHESTRATOR_DATABASE_URL": db_url,
@@ -180,22 +182,6 @@ def main():
         subprocess.run(
             ["ollama", "pull", env["OLLAMA_MODEL"]], cwd=ROOT, env=env, check=True
         )
-    start(
-        "chromadb",
-        [
-            str(ROOT / ".venv/bin/chroma"),
-            "run",
-            "--path",
-            str(state / "chroma"),
-            "--host",
-            "127.0.0.1",
-            "--port",
-            "8200",
-        ],
-        8200,
-        "chroma run",
-    )
-    wait_http("http://127.0.0.1:8200/api/v2/heartbeat")
     for name, (module, port) in SERVICES.items():
         start(
             name,

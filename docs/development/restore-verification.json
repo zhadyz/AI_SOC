@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "postgres_restored_row_counts": {
+    "alerts": 14,
+    "defense_outcomes": 0,
+    "defense_plans": 0,
+    "feedback": 13,
+    "feedback_reviews": 10,
+    "incident_alerts": 14,
+    "incidents": 2,
+    "planned_actions": 0,
+    "response_plan_events": 44,
+    "response_plan_state": 8,
+    "verification_results": 0
+  },
+  "sqlite_integrity": {
+    "rules.sqlite": "ok",
+    "identity.sqlite": "ok",
+    "triage-jobs.sqlite": "ok",
+    "chroma/chroma.sqlite3": "ok"
+  },
+  "verified_files": 31,
+  "working_database_changed": false,
+  "temporary_database_removed": true
+}

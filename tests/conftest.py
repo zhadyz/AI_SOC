@@ -214,6 +214,7 @@ def cleanup_test_artifacts(tmp_path):
 def setup_test_environment():
     """Setup test environment variables"""
     os.environ.setdefault("TESTING", "true")
+    os.environ.setdefault("AI_SOC_ALLOW_INSECURE_LOCAL", "true")
     os.environ.setdefault("LOG_LEVEL", "DEBUG")
     yield
     # Cleanup

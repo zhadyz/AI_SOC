@@ -234,7 +234,7 @@ async def backtest_rule(rule_text):
 
 # --- Endpoints ---
 
-from services.common.api_security import protect_app
+from services.common.api_security import protect_app, actor_id
 
 protect_app(app)
 
@@ -320,6 +320,18 @@ async def pending_rules():
     return {"total": len(pending), "rules": pending}
 
 
+@app.get("/rules/{rule_id}/export")
+async def export_rule(rule_id: str):
+    from starlette.responses import Response
+    rule = rules_store.get(rule_id)
+    if not rule:
+        raise HTTPException(404, "Rule not found")
+    if rule.get("status") != "approved":
+        raise HTTPException(409, "Review and approve the rule before export")
+    return Response(rule["rule_text"], media_type="application/yaml",
+                    headers={"Content-Disposition": 'attachment; filename="approved-rule.yml"'})
+
+
 @app.put("/rules/{rule_id}/approve")
 async def approve_rule(
     rule_id: str,
@@ -330,7 +342,7 @@ async def approve_rule(
     if rule_id not in rules_store:
         raise HTTPException(status_code=404, detail=f"Rule {rule_id} not found")
     updated = rules_store[rule_id]
-    updated.update(status="approved", analyst_notes=notes, reviewed_by=analyst_id)
+    updated.update(status="approved", analyst_notes=notes, reviewed_by=actor_id(analyst_id))
     rules_store[rule_id] = updated
     logger.info(f"Rule {rule_id} approved")
     return rules_store[rule_id]
@@ -346,7 +358,7 @@ async def reject_rule(
     if rule_id not in rules_store:
         raise HTTPException(status_code=404, detail=f"Rule {rule_id} not found")
     updated = rules_store[rule_id]
-    updated.update(status="rejected", analyst_notes=notes, reviewed_by=analyst_id)
+    updated.update(status="rejected", analyst_notes=notes, reviewed_by=actor_id(analyst_id))
     rules_store[rule_id] = updated
     logger.info(f"Rule {rule_id} rejected")
     return rules_store[rule_id]

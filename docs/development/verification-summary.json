@@ -1,22 +1,66 @@
 {
+  "updated_at": "2026-09-05T02:49:43.527596+00:00",
+  "upstream_baseline": "60902fa",
+  "branch": "codex/complete-research-platform",
+  "native_runtime": "operational",
   "offline_tests": {
-    "passed": 160,
-    "skipped": 14,
-    "failures": 0
+    "passed": 180,
+    "skipped": 1,
+    "failures": 0,
+    "skip_reason": "Explicit live opt-in case; equivalent full workflow exercised separately"
   },
-  "live_report": "live-verification.json",
+  "live_workflow": {
+    "passed_checks": 12,
+    "report": "live-verification.json"
+  },
+  "live_security": {
+    "passed_checks": 6,
+    "report": "security-live-verification.json"
+  },
+  "durable_async_restart": "async-verification.json",
+  "restore_drill": "restore-verification.json",
+  "multiclass_evaluation": "multiclass-evaluation.json",
+  "multiclass_serving": "multiclass-serving-verification.json",
+  "dependency_audit": {
+    "packages": 151,
+    "unresolved": 0,
+    "documented_mitigations": 4,
+    "report": "dependency-audit.json",
+    "review_by": "2026-10-04"
+  },
   "compilation": "passed",
   "fatal_lint": "passed",
-  "compose_validation": "passed",
-  "image_build": "unverified: base-image metadata retrieval timed out",
-  "github_ci": "not run",
+  "compose_validation": "root, both compatibility includes and lab passed",
+  "rendered_javascript": "all four authenticated/login pages passed node --check",
+  "new_pages_visual_review": "pending manual Mac unlock",
+  "image_build": {
+    "application_images": 9,
+    "lab_target_images": 1,
+    "status": "passed",
+    "image_ids": {
+      "alert-triage": "sha256:f4d6b4a7320b9fb4fb17300025533e1e3f88c85ca46e8627111b2886d088a9b0",
+      "correlation-engine": "sha256:4e03be43a4d5a45631d3d63807983b1a321945a29b5d223c9c1fb4456b0a09a0",
+      "dashboard": "sha256:b76bccc8c3be97cc2c99cd3c0c135244f1bb76c8ada4e742a8bbc427f05fa0c8",
+      "feedback-service": "sha256:17555c243b50e6767d85ced6bc9680284c05ccb6effc6c9e928b3950ae600536",
+      "ml-inference": "sha256:f0e0955eb33e1335586c8df6d6867152b9dfad4e6db3f62141f579fadf4cb12c",
+      "rag-service": "sha256:ce39c90d2d080f817ab11cc1b619ac10314da544a06ba48b302ab4e1ffd1ee9f",
+      "response-orchestrator": "sha256:f5a1cfd8f86b8f44487f5bded99c5e10b6a4b679d9cda5c60b15ac9b7c14c028",
+      "rule-generator": "sha256:c4953fb5fa4c94f950c5e173106958a97b3b55e69a7e6732966894dec0bb0a97",
+      "wazuh-integration": "sha256:4fca3c07cb30403971cd8964dcf517ba28361ba5abf46ca9efcca70702079586",
+      "lab-target": "sha256:854a33b0d4b3bd89df7344ba0e6694b245ceb39a3467a087abbeb1f02b775c65"
+    }
+  },
+  "compose_runtime": "not accepted: new container startup stalled",
+  "lab_enforcement_runtime": "not accepted: container startup stalled; strict acceptance script prepared",
+  "github_ci": "not run remotely",
+  "remote_publication": false,
   "production_enforcement": "not exercised",
   "models_promoted": 0,
   "mitre_documents_ingested": 858,
-  "postgres_restart_plans_restored": 4,
-  "updated_at": "2026-09-05T01:11:45.167647+00:00",
-  "browser_feedback_correction": "verified: medium persisted",
   "native_dashboard_server": "Waitress 3.0.2",
-  "browser_rule_generation_and_review": "verified: labeled grounded fallback displayed and export approval persisted",
-  "live_rule_generation_method": "local_llm"
+  "research_limits": [
+    "Within-dataset multiclass holdout; no independent deployment captures",
+    "No genuine eligible analyst feedback for improvement measurement",
+    "Simulation validity and system-scale throughput not established"
+  ]
 }

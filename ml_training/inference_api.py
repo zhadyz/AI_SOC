@@ -13,6 +13,7 @@ import numpy as np
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, FiniteFloat
+from services.common.model_integrity import verified_bytes
 
 logger = logging.getLogger(__name__)
 MODEL_PATH = Path(os.getenv("MODEL_PATH", str(Path(__file__).resolve().parent.parent / "models")))
@@ -59,10 +60,11 @@ def load_models():
         if not bundle_dir.is_relative_to(MODEL_PATH.resolve()):
             raise ValueError("Model bundle must be inside MODEL_PATH")
     objects = {}
+    artifacts = verified_bytes(bundle_dir, os.getenv("AI_SOC_MODEL_SIGNING_KEY"),
+                               require_signature=bundle_dir.resolve() != MODEL_PATH.resolve())
     for name in (*MODEL_NAMES, "scaler", "label_encoder", "feature_names"):
         filename = f"{name}_ids.pkl" if name in MODEL_NAMES else f"{name}.pkl"
-        with (bundle_dir / filename).open("rb") as stream:
-            objects[name] = pickle.load(stream)
+        objects[name] = pickle.loads(artifacts[filename])
     names = list(objects["feature_names"])
     if len(names) != FEATURE_COUNT or len(set(names)) != FEATURE_COUNT:
         raise ValueError(f"Bundle must contain {FEATURE_COUNT} unique feature names")

@@ -106,6 +106,7 @@ def run(skip_llm=False, full=False):
         passed("Local attack-campaign simulation completes")
     return {"checks": checks, "llm_exercised": True, "full": full,
             "rule_generation_method": rule["rule"]["generation_method"] if full else None,
+            "rule_id": rule["rule"]["rule_id"] if full else None,
             "alert_id": alert_id, "incident_id": incident_id, "plan_id": plan["plan_id"]}
 
 

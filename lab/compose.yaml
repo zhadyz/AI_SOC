@@ -1,0 +1,43 @@
+name: ai-soc-lab
+services:
+  manager:
+    image: wazuh/wazuh-manager:4.14.7
+    hostname: wazuh.manager
+    labels: {ai-soc.lab: 'true'}
+    environment:
+      API_USERNAME: soc-lab
+      API_PASSWORD: ${LAB_WAZUH_PASSWORD:?Run scripts/lab_stack.py configure}
+    ports: ['127.0.0.1:15500:55000']
+    volumes:
+      - manager-data:/var/ossec/data
+      - ${LAB_STATE_DIR}/manager.conf:/wazuh-config-mount/etc/ossec.conf:ro
+      - ${LAB_STATE_DIR}/local_rules.xml:/var/ossec/etc/rules/local_rules.xml:ro
+    networks: {workload: {ipv4_address: 172.30.77.2}}
+  target:
+    build: {context: .., dockerfile: lab/target/Dockerfile}
+    hostname: lab-target
+    labels: {ai-soc.lab: 'true'}
+    cap_add: [NET_ADMIN]
+    environment:
+      WAZUH_MANAGER_SERVER: 172.30.77.2
+      WAZUH_AGENT_NAME: lab-target
+    secrets: [lab_password]
+    ports: ['127.0.0.1:18922:2222', '127.0.0.1:18910:8080']
+    volumes:
+      - ${LAB_STATE_DIR}/agent.conf:/wazuh-config-mount/etc/ossec.conf:ro
+    networks: {workload: {ipv4_address: 172.30.77.10}}
+    depends_on: [manager]
+  probe:
+    image: python:3.11-slim
+    labels: {ai-soc.lab: 'true'}
+    command: [python, -c, 'import time; time.sleep(100000000)']
+    networks: {workload: {ipv4_address: 172.30.77.20}}
+networks:
+  workload:
+    ipam:
+      config: [{subnet: 172.30.77.0/24}]
+volumes:
+  manager-data:
+secrets:
+  lab_password:
+    file: ${LAB_STATE_DIR}/lab-password.txt

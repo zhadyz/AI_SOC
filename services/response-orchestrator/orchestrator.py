@@ -48,9 +48,14 @@ class ResponseOrchestrator:
         self._adapters = {
             "wazuh": WazuhAdapter(api_url=settings.wazuh_api_url, username=settings.wazuh_api_username,
                                   password=settings.wazuh_api_password, verify_ssl=settings.wazuh_api_verify_ssl,
+                                  ca_bundle=settings.wazuh_api_ca_bundle,
                                   block_command=settings.wazuh_block_command),
             "firewall": FirewallAdapter(), "network": FirewallAdapter(), "edr": EDRAdapter(), "identity": IdentityAdapter(),
         }
+        if settings.lab_url:
+            from services.response_orchestrator.adapters.lab import LabAdapter
+            for name in ("firewall", "network", "edr", "identity"):
+                self._adapters[name] = LabAdapter(name, settings.lab_url)
 
     async def restore(self):
         if not self.store:
@@ -113,6 +118,7 @@ class ResponseOrchestrator:
             self._plans[plan.plan_id] = plan
             self._locks[plan.plan_id] = asyncio.Lock()
             for action in plan.actions:
+                action.parameters.setdefault("operation_id", action.action_id)
                 if action.adapter.value == "wazuh":
                     action.parameters.setdefault("agent_list", list(self.settings.wazuh_agent_ids))
             await self._save(plan, "plan_created")
@@ -272,6 +278,60 @@ class ResponseOrchestrator:
             await self._save(plan, "verification_requested", analyst_id=analyst_id,
                              observed_environment=environment_json)
             self._spawn(self._verify_and_complete(plan, environment_json))
+        return plan
+
+    async def reconcile_action(self, plan_id, action_id, analyst_id, disposition, notes):
+        plan = self._plans.get(plan_id)
+        if not plan:
+            raise ValueError("Plan not found")
+        async with self._locks.setdefault(plan_id, asyncio.Lock()):
+            if plan.dry_run or plan.status != PlanStatus.RECOVERY_REQUIRED:
+                raise ValueError("Only a real plan requiring recovery can be reconciled")
+            action = next((a for a in plan.actions if a.action_id == action_id), None)
+            if not action or action.status not in {ActionStatus.EXECUTING, ActionStatus.FAILED}:
+                raise ValueError("Action is not awaiting reconciliation")
+            if disposition == "verify_active":
+                adapter = self._adapters.get(action.adapter.value)
+                if not adapter:
+                    raise ValueError("No adapter can verify this action")
+                result = await adapter.verify(action.action_type.value, action.target, action.parameters)
+                await self._save(plan, "reconciliation_probe", action_id=action_id,
+                                 analyst_id=analyst_id, result=result.to_dict())
+                if not result.success:
+                    raise ValueError("Adapter could not independently confirm the action")
+                action.adapter_response = result.to_dict()
+                action.status = ActionStatus.COMPLETED
+            elif disposition == "confirm_not_applied":
+                # Explicit reviewer attestation is preserved separately from
+                # machine verification; this never re-executes the action.
+                action.status = ActionStatus.SKIPPED
+            else:
+                raise ValueError("Invalid reconciliation disposition")
+            action.error_message = None
+            await self._save(plan, "action_reconciled", action_id=action_id, analyst_id=analyst_id,
+                             disposition=disposition, notes=notes)
+            if all(a.status in {ActionStatus.SKIPPED, ActionStatus.VETOED, ActionStatus.ROLLED_BACK} for a in plan.actions):
+                plan.status = PlanStatus.CANCELLED
+                plan.completed_at = datetime.utcnow()
+                await self._save(plan, "reconciled_without_active_actions")
+        return plan
+
+    async def request_rollback(self, plan_id, analyst_id, notes):
+        plan = self._plans.get(plan_id)
+        if not plan:
+            raise ValueError("Plan not found")
+        async with self._locks.setdefault(plan_id, asyncio.Lock()):
+            if plan.dry_run or plan.status not in {PlanStatus.RECOVERY_REQUIRED, PlanStatus.COMPLETED}:
+                raise ValueError("Only a settled real response can be rolled back")
+            if any(a.status in {ActionStatus.PENDING, ActionStatus.EXECUTING, ActionStatus.FAILED} for a in plan.actions):
+                raise ValueError("Reconcile uncertain actions before rollback")
+            if not any(a.status == ActionStatus.COMPLETED for a in plan.actions):
+                raise ValueError("No executed actions remain to roll back")
+            await self._save(plan, "rollback_requested", analyst_id=analyst_id, notes=notes)
+            complete = await self._rollback_plan(plan)
+            plan.status = PlanStatus.ROLLED_BACK if complete else PlanStatus.RECOVERY_REQUIRED
+            plan.completed_at = datetime.utcnow() if complete else None
+            await self._save(plan, "manual_rollback_result", complete=complete)
         return plan
 
     async def _verify_and_complete(self, plan, updated_environment=None):

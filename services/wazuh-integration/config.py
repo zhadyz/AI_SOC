@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     wazuh_username: str = "wazuh-wui"
     wazuh_password: str = Field("", validation_alias=AliasChoices("WAZUH_PASSWORD", "API_PASSWORD"))
     wazuh_verify_ssl: bool = True
+    wazuh_ca_bundle: str = ""
 
     # Wazuh Alert Filtering
     min_severity: int = 7  # Minimum rule_level to process (7-15 = high priority)

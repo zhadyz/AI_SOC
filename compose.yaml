@@ -4,6 +4,7 @@ x-app: &app
   init: true
   environment: &shared-env
     AI_SOC_API_KEY: ${AI_SOC_API_KEY:?Run python scripts/configure_local.py first}
+    AI_SOC_AUTH_SECRET: ${AI_SOC_AUTH_SECRET:?Run python scripts/configure_local.py first}
   healthcheck:
     test: [CMD, curl, -fsS, 'http://localhost:8000/health']
     interval: 15s
@@ -43,14 +44,6 @@ services:
     command: ['${OLLAMA_MODEL:-llama3.2:3b}']
     depends_on:
       ollama: {condition: service_healthy}
-  chromadb:
-    image: chromadb/chroma:1.0.20
-    restart: unless-stopped
-    environment:
-      IS_PERSISTENT: 'TRUE'
-      ANONYMIZED_TELEMETRY: 'FALSE'
-    volumes: [chroma-data:/data]
-    ports: ['127.0.0.1:8200:8000']
   ml-inference:
     <<: *app
     build: {context: ., args: {SERVICE: ml-inference}}
@@ -60,6 +53,7 @@ services:
     environment:
       <<: *shared-env
       MODEL_PATH: /app/models
+      AI_SOC_MODEL_SIGNING_KEY: ${AI_SOC_MODEL_SIGNING_KEY:?Run python scripts/configure_local.py first}
   feedback-service:
     <<: *app
     build: {context: ., args: {SERVICE: feedback-service}}
@@ -77,13 +71,11 @@ services:
     ports: ['127.0.0.1:8300:8000']
     environment:
       <<: *shared-env
-      RAG_CHROMADB_HOST: chromadb
-      RAG_CHROMADB_PORT: '8000'
+      RAG_CHROMADB_PATH: /app/data/chroma
+      RAG_EMBEDDING_CACHE: /app/data/embedding-model
       RAG_INGEST_RUNBOOKS: 'true'
       HF_HOME: /app/data/huggingface
     volumes: [rag-model-cache:/app/data]
-    depends_on:
-      chromadb: {condition: service_started}
   alert-triage:
     <<: *app
     build: {context: ., args: {SERVICE: alert-triage}}
@@ -101,6 +93,8 @@ services:
       TRIAGE_CORRELATION_ENGINE_URL: http://correlation-engine:8000
       TRIAGE_LLM_TIMEOUT: '180'
       TRIAGE_WORKER_COUNT: '1'
+      TRIAGE_JOB_STORE_PATH: /app/data/triage-jobs.sqlite
+    volumes: [triage-data:/app/data]
     depends_on:
       model-init: {condition: service_completed_successfully}
       feedback-service: {condition: service_healthy}
@@ -171,6 +165,8 @@ services:
     environment:
       <<: *shared-env
       DASHBOARD_CONTAINER_NETWORK: 'true'
+      AI_SOC_IDENTITY_DB: /app/identity/identity.sqlite
+    volumes: ['${AI_SOC_IDENTITY_DIR:-./work/runtime/identity}:/app/identity']
     healthcheck:
       test: [CMD, curl, -fsS, 'http://localhost:5050/health']
       interval: 15s
@@ -179,7 +175,7 @@ services:
 volumes:
   postgres-data:
   ollama-data:
-  chroma-data:
   rag-model-cache:
   simulation-history:
   rule-data:
+  triage-data:

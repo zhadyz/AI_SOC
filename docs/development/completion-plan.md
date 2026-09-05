@@ -55,14 +55,35 @@ cannot be declared complete through code changes or synthetic test results.
 - [x] Reproducible local deployment, documented configuration and smoke checks.
 - [x] Verified dashboard/API access and a current status report with remaining gates.
 
-## External acceptance still required
+## Continuation acceptance
 
-* Choose production firewall/EDR/identity vendors and provide a disposable test
-  environment before implementing or accepting real destructive response actions.
-* Connect a Wazuh installation and test active-response commands on lab agents.
-* Supply labeled multiclass flow data and independent held-out traffic for
-  multiclass training, robustness evaluation, and promotion acceptance.
-* Run controlled adversary-emulation exercises to validate simulation forecasts.
-* Observe genuine analyst feedback over time to measure retraining improvement.
+- [x] Persistent accounts, service-enforced roles, CSRF, identity-bound audit and rate limits.
+- [x] Analyst/reviewer interface with independent label decisions and real YAML exports.
+- [x] Durable triage admission/results and restart recovery; no accepted in-memory-only jobs.
+- [x] Artifact verification before deserialization, signed candidates and failed-promotion recovery.
+- [x] Train/evaluate all three classifiers on real 15-class flows with leakage checks.
+- [x] Cold backup and real isolated restore drill, including the job journal and identity.
+- [x] Enforcing dependency audit with explicit expiring mitigations.
+- [x] Build all nine application images and the Linux/Wazuh lab target image.
+- [x] Implement narrowly scoped lab actions, observation, rollback and acceptance tooling.
+- [ ] Accept full Compose runtime and execute the real lab traffic/SSH/Wazuh checks.
+- [ ] Visually accept the new review/access pages after the Mac is unlocked.
+- [ ] Validate production vendors, shared deployment and empirical research claims.
 
-These checked gates cover the implemented local research scope. Container-image build acceptance and the external production/research gates above remain open. Exact commands and limits are recorded in `status.md`.
+## Remaining acceptance
+
+Docker new-container startup stalled on this host. The desktop tool reports that
+manual Mac unlock is required. Pending launch attempts were stopped; native
+services remain operational. The lab has code and a built target image, but its
+real effects/rollback have not passed acceptance. No successful lab report is
+implied by unit tests or simulated webhooks.
+
+The real multiclass benchmark is complete as a within-dataset experiment. Separate
+captures are still required for generalization/robustness claims. Genuine reviewed
+traffic remains necessary for empirical feedback-driven improvement. Production
+vendor choices, identity/TLS deployment, retention requirements and observed
+adversary-emulation outcomes also remain external inputs.
+
+The exact passed checks, limitations and next acceptance commands are recorded in
+[status.md](status.md) and [operations.md](operations.md). These distinctions prevent
+an implemented feature from being mistaken for a verified production outcome.

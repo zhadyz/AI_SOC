@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     wazuh_api_username: str = "wazuh-wui"
     wazuh_api_password: str = ""
     wazuh_api_verify_ssl: bool = True
+    wazuh_api_ca_bundle: str = ""
 
     # Simulation Integration
     simulation_swarm_size: int = 50
@@ -62,6 +63,7 @@ class Settings(BaseSettings):
     max_concurrent_plans: int = 3
     critical_asset_always_requires_approval: bool = True
     dry_run_mode: bool = True  # Explicit opt-in required for real response
+    lab_url: str = ""  # Optional isolated lab controller; never a vendor API
     wazuh_block_command: str = ""
     wazuh_agent_ids: list[str] = []  # Never default to all agents
     wazuh_indexer_url: str = ""

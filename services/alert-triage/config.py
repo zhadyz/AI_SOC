@@ -71,6 +71,8 @@ class Settings(BaseSettings):
 
     # Async Worker Pool (Phase 3)
     worker_count: int = 3
+    job_store_path: str = "work/triage-jobs.sqlite"
+    queue_capacity: int = 1000
     queue_threshold: int = 50  # Circuit breaker activates above this queue depth
     circuit_breaker_enabled: bool = True
 

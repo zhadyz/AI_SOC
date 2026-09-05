@@ -107,6 +107,9 @@ for _i, _name in enumerate(CICIDS2017_FEATURES):
     _FEATURE_INDEX[_name.lower()] = _i
     _FEATURE_INDEX[_name.lower().replace(" ", "_")] = _i
     _FEATURE_INDEX[_name.lower().replace(" ", "_").replace("/", "_per_")] = _i
+from services.common.flow_schema import CICIDS_COLUMN_ALIASES
+for _alias, _canonical in CICIDS_COLUMN_ALIASES.items():
+    _FEATURE_INDEX[_alias.lower()] = CICIDS2017_FEATURES.index(_canonical)
 
 
 class MLPrediction(BaseModel):
@@ -168,12 +171,16 @@ class MLInferenceClient:
         for key, value in flow.items():
             if not isinstance(key, str):
                 continue
+            key = key.strip()
             index = _FEATURE_INDEX.get(key)
             if index is None:
                 index = _FEATURE_INDEX.get(key.lower())
             if index is not None:
                 try:
-                    features[index] = float(value)
+                    measured = float(value)
+                    if features[index] is not None and features[index] != measured:
+                        return None  # Conflicting aliases are ambiguous evidence.
+                    features[index] = measured
                 except (TypeError, ValueError):
                     return None
         if any(value is None or not math.isfinite(value) for value in features):

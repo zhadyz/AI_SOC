@@ -1,7 +1,7 @@
 -r ../ml_training/requirements-inference.txt
 -r ../services/response-orchestrator/requirements.txt
-pytest==8.3.3
-pytest-asyncio==0.24.0
+pytest==9.1.1
+pytest-asyncio==1.4.0
 pytest-cov==5.0.0
 pytest-mock==3.15.1
 pytest-benchmark==5.3.0

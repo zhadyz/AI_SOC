@@ -9,6 +9,7 @@ import ipaddress
 from datetime import datetime, timedelta
 
 import httpx
+from services.common.tls import vendor_tls
 
 from services.response_orchestrator.adapters.base import BaseAdapter, AdapterResult
 
@@ -21,11 +22,12 @@ class WazuhAdapter(BaseAdapter):
         password="",
         verify_ssl=True,
         block_command="",
+        ca_bundle="",
     ):
         super().__init__("wazuh")
         self.api_url = api_url.rstrip("/")
         self.username, self.password = username, password
-        self.verify_ssl, self.block_command = verify_ssl, block_command
+        self.verify_ssl, self.block_command = vendor_tls(verify_ssl, ca_bundle), block_command
         self._token = None
         self._token_expiry = None
 

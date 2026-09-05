@@ -22,7 +22,8 @@ class WazuhClient:
         self.base_url = settings.wazuh_manager_url
         self.username = settings.wazuh_username
         self.password = settings.wazuh_password
-        self.verify_ssl = settings.wazuh_verify_ssl
+        from services.common.tls import vendor_tls
+        self.verify_ssl = vendor_tls(settings.wazuh_verify_ssl, settings.wazuh_ca_bundle)
 
         self._token: Optional[str] = None
         self._token_expiry: Optional[datetime] = None

@@ -92,7 +92,7 @@ app = FastAPI(
 # --- Health Check ---
 
 
-from services.common.api_security import protect_app
+from services.common.api_security import protect_app, actor_id
 protect_app(app)
 
 @app.get("/health")
@@ -115,10 +115,15 @@ async def health_check():
 from services.feedback_service.models import FeedbackReview
 
 
+@app.get("/feedback/reviews/pending")
+async def pending_feedback_reviews():
+    return await db.pending_reviews()
+
+
 @app.post("/feedback/reviews/{feedback_id}")
 async def review_feedback(feedback_id: str, request: FeedbackReview):
     try:
-        result = await db.review_feedback(feedback_id, request.reviewer_id, request.approved, request.notes)
+        result = await db.review_feedback(feedback_id, actor_id(request.reviewer_id), request.approved, request.notes)
     except ValueError as exc:
         raise HTTPException(422, str(exc))
     if result is None:
@@ -225,6 +230,7 @@ async def submit_feedback(alert_id: str, submission: FeedbackSubmission):
     - Notes capture institutional knowledge
     """
     with REQUEST_DURATION.labels(endpoint="submit_feedback").time():
+        submission.analyst_id = actor_id(submission.analyst_id)
         result = await db.store_feedback(alert_id, submission.model_dump())
         if not result:
             raise HTTPException(

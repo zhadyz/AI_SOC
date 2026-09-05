@@ -21,7 +21,7 @@ def action(tier=ApprovalTier.HUMAN_REQUIRED):
                          adapter=AdapterType.FIREWALL, confidence=.9, impact_score=.8, safety_score=.9,
                          composite_score=.85, blast_radius=BlastRadius.LOW, approval_tier=tier,
                          requires_approval=tier == ApprovalTier.HUMAN_REQUIRED,
-                         parameters={"duration_hours": 1})
+                         parameters={"duration_hours": 1, "operation_id": "act-1"})
 
 
 @pytest.fixture
@@ -51,7 +51,7 @@ async def test_restart_preserves_plan_and_approval_audit(store):
     assert plan.status == PlanStatus.AWAITING_APPROVAL
     restored = ResponseOrchestrator(orch.settings, store=store)
     await restored.restore()
-    assert restored.get_plan("plan-1").actions[0].parameters == {"duration_hours": 1}
+    assert restored.get_plan("plan-1").actions[0].parameters == {"duration_hours": 1, "operation_id": "act-1"}
     restored._adapters["firewall"] = adapter
     await restored.approve_action("plan-1", "act-1", False, "analyst-1", "Wrong source")
     adapter.execute.assert_not_called()
@@ -70,7 +70,7 @@ async def test_concurrent_approvals_execute_once_and_forward_parameters(store):
         orch.approve_action("plan-1", "act-1", True, "analyst-1"),
         orch.approve_action("plan-1", "act-1", True, "analyst-2"), return_exceptions=True)
     assert sum(isinstance(result, ValueError) for result in results) == 1
-    adapter.execute.assert_awaited_once_with("block_ip", "203.0.113.5", {"duration_hours": 1})
+    adapter.execute.assert_awaited_once_with("block_ip", "203.0.113.5", {"duration_hours": 1, "operation_id": "act-1"})
     assert (await store.load())[0].actions[0].status == ActionStatus.COMPLETED
     await orch.close()
 
@@ -83,6 +83,36 @@ async def test_restart_does_not_replay_uncertain_remote_action(store):
     await orch.restore()
     assert orch.get_plan("plan-1").status == PlanStatus.RECOVERY_REQUIRED
     adapter.execute.assert_not_called()
+
+
+async def test_reconciliation_verifies_without_replaying_then_rolls_back(store):
+    orch, plan, adapter = make_orch(store)
+    plan.status = PlanStatus.RECOVERY_REQUIRED
+    plan.actions[0].status = ActionStatus.EXECUTING
+    orch._plans[plan.plan_id] = plan
+    adapter.verify = AsyncMock(return_value=AdapterResult(True, "block_ip", "203.0.113.5", "firewall", "Observed active rule", rollback_capable=True))
+    adapter.rollback = AsyncMock(return_value=AdapterResult(True, "block_ip", "203.0.113.5", "firewall", "Prior state restored"))
+    await orch.reconcile_action(plan.plan_id, "act-1", "reviewer", "verify_active", "Checked authoritative rule table")
+    adapter.execute.assert_not_called()
+    assert plan.actions[0].status == ActionStatus.COMPLETED
+    await orch.request_rollback(plan.plan_id, "reviewer", "Restore previous access")
+    adapter.rollback.assert_awaited_once()
+    assert (await store.load())[0].status == PlanStatus.ROLLED_BACK
+    assert any(e["event"] == "action_reconciled" for e in await store.events(plan.plan_id))
+
+
+async def test_reconciliation_does_not_accept_unavailable_verification(store):
+    orch, plan, adapter = make_orch(store)
+    plan.status = PlanStatus.RECOVERY_REQUIRED
+    plan.actions[0].status = ActionStatus.FAILED
+    orch._plans[plan.plan_id] = plan
+    adapter.verify = AsyncMock(return_value=AdapterResult(False, "block_ip", "203.0.113.5", "firewall", "Unavailable", rollback_capable=False))
+    with pytest.raises(ValueError, match="independently"):
+        await orch.reconcile_action(plan.plan_id, "act-1", "reviewer", "verify_active", "Requested backend observation")
+    assert plan.actions[0].status == ActionStatus.FAILED
+    adapter.execute.assert_not_called()
+    await orch.reconcile_action(plan.plan_id, "act-1", "reviewer", "confirm_not_applied", "Operator inspected target and confirmed no rule")
+    assert plan.status == PlanStatus.CANCELLED
     with pytest.raises(ValueError):
         await orch.approve_action("plan-1", "act-1", True, "analyst")
 

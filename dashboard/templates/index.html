@@ -2061,7 +2061,7 @@ code, .mono { font-family: var(--font-mono); }
   <div class="mb-section" style="border-right:none;margin-left:auto;padding-right:0;">
     <span class="mb-refresh" id="mb-refresh-time">Refreshing...</span>
   </div>
-</header>
+<a href="/reviews" style="color:#79c0ff;font-size:12px;margin-left:12px">Reviews</a><a href="/account" style="color:#79c0ff;font-size:12px;margin-left:12px">{{ g.user.username if g.user else "Account" }} · Account</a></header>
 
 <!-- ============================================================
      MAIN CONTENT
@@ -2290,9 +2290,11 @@ code, .mono { font-family: var(--font-mono); }
 <!-- ============================================================
      JAVASCRIPT
      ============================================================ -->
-{% raw %}<script>
+<script>
 // ── CONSTANTS ────────────────────────────────────────────────
-const ANALYST_ID = 'analyst-1';
+const ANALYST_ID = {{ (g.user.username if g.user else 'local-development')|tojson }};
+const CSRF_TOKEN = {{ session.get('csrf', '')|tojson }};
+{% raw %}
 const KILL_CHAIN_STAGES = ['RECON','ACCESS','EXEC','PERSIST','PRIV ESC','LATERAL','COLLECT','C2','EXFIL','IMPACT'];
 const KILL_CHAIN_KEYS = ['reconnaissance','initial_access','execution','persistence','privilege_escalation','lateral_movement','collection','command_and_control','exfiltration','impact'];
 let refreshTimer = null;
@@ -2364,7 +2366,9 @@ function gradeLabel(grade) {
 
 async function apiFetch(url, opts = {}) {
   try {
+    opts = {...opts, headers: {...(opts.headers || {}), 'X-CSRF-Token': CSRF_TOKEN}};
     const resp = await fetch(url, opts);
+    if (resp.status === 401) { window.location.assign('/login'); }
     const data = await resp.json().catch(() => ({}));
     return { ok: resp.ok, status: resp.status, data };
   } catch (e) {

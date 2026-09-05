@@ -1,0 +1,14 @@
+#!/var/ossec/framework/python/bin/python3
+"""Forward a Wazuh alert to the explicitly configured local SOC receiver."""
+import json
+from pathlib import Path
+import sys
+import urllib.request
+
+payload = Path(sys.argv[1]).read_bytes()
+json.loads(payload)
+request = urllib.request.Request(sys.argv[3], data=payload,
+    headers={"Authorization": "Bearer " + sys.argv[2], "Content-Type": "application/json"})
+with urllib.request.urlopen(request, timeout=240) as response:
+    if response.status != 200:
+        raise RuntimeError("SOC ingestion rejected the alert")

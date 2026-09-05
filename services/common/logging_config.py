@@ -36,6 +36,7 @@ def setup_logging(
     # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(level)
+    console_handler.addFilter(SecurityLogFilter())
 
     if json_logs:
         # JSON formatter for structured logging
@@ -98,9 +99,9 @@ class SecurityLogFilter(logging.Filter):
         Returns:
             bool: True to emit, False to drop
         """
-        # TODO: Week 4 - Implement sensitive data redaction
-        # if hasattr(record, 'msg'):
-        #     record.msg = self._redact_secrets(str(record.msg))
+        from services.common.security import sanitize_log
+        record.msg = sanitize_log(record.getMessage())
+        record.args = ()
         return True
 
     def _redact_secrets(self, message: str) -> str:

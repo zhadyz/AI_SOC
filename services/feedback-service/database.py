@@ -168,6 +168,8 @@ class DatabaseManager:
                 "ml_confidence": record.ml_confidence,
                 "created_at": record.created_at.isoformat() if record.created_at else None,
                 "feedback_count": record.feedback_count,
+                "raw_alert": record.raw_alert_json,
+                "triage_result": record.triage_result_json,
                 "feedback": [
                     {
                         "feedback_id": str(fb.id),
@@ -288,6 +290,20 @@ class DatabaseManager:
                 "is_false_positive": feedback.is_false_positive,
                 "created_at": feedback.created_at.isoformat() if feedback.created_at else None,
             }
+
+    async def pending_reviews(self, limit=50):
+        async with self.session() as session:
+            rows = (await session.execute(
+                select(FeedbackRecord, AlertRecord.rule_description)
+                .join(AlertRecord, AlertRecord.alert_id == FeedbackRecord.alert_id)
+                .outerjoin(FeedbackReviewRecord, FeedbackReviewRecord.feedback_id == FeedbackRecord.id)
+                .where(FeedbackReviewRecord.feedback_id.is_(None), FeedbackRecord.true_label.is_not(None))
+                .order_by(FeedbackRecord.created_at).limit(limit)
+            )).all()
+            return {"feedback": [{"feedback_id": str(fb.id), "alert_id": fb.alert_id,
+                    "analyst_id": fb.analyst_id, "true_label": fb.true_label, "notes": fb.notes,
+                    "rule_description": description, "created_at": fb.created_at.isoformat()}
+                    for fb, description in rows]}
 
     async def review_feedback(self, feedback_id, reviewer_id, approved, notes=None):
         async with self.session() as session:

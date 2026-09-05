@@ -8,6 +8,7 @@ Manages collections, embeddings, and similarity search.
 
 import logging
 import hashlib
+import os
 from typing import List, Dict, Any, Optional
 import chromadb
 from chromadb.config import Settings
@@ -40,12 +41,11 @@ class VectorStore:
         self.port = port
 
         try:
-            self.client = chromadb.HttpClient(
-                host=host,
-                port=port,
-                settings=Settings(anonymized_telemetry=False)
+            self.client = chromadb.PersistentClient(
+                path=os.getenv("RAG_CHROMADB_PATH", "work/chroma"),
+                settings=Settings(anonymized_telemetry=False, allow_reset=False)
             )
-            logger.info(f"Connected to ChromaDB at {host}:{port}")
+            logger.info("Opened private embedded ChromaDB; no HTTP database listener")
         except Exception as e:
             logger.error(f"Failed to connect to ChromaDB: {e}")
             raise RuntimeError("ChromaDB connection unavailable") from e
@@ -92,13 +92,14 @@ class VectorStore:
 
             # Try to get existing collection first
             try:
-                self.client.get_collection(name=name)
+                self.client.get_collection(name=name, embedding_function=None)
                 logger.info(f"Collection {name} already exists")
                 return True
             except:
                 # Collection doesn't exist, create it
                 self.client.create_collection(
                     name=name,
+                    embedding_function=None,
                     metadata=metadata or {"hnsw:space": "l2"}
                 )
                 logger.info(f"Successfully created collection: {name}")
@@ -137,7 +138,7 @@ class VectorStore:
             logger.info(f"Adding {len(documents)} documents to {collection_name}")
 
             # Get collection
-            collection = self.client.get_collection(collection_name)
+            collection = self.client.get_collection(collection_name, embedding_function=None)
 
             # Generate IDs if not provided
             if ids is None:
@@ -197,7 +198,7 @@ class VectorStore:
             logger.info(f"Querying {collection_name}: '{query_text[:50]}...'")
 
             # Get collection
-            collection = self.client.get_collection(collection_name)
+            collection = self.client.get_collection(collection_name, embedding_function=None)
 
             # Generate query embedding
             query_embedding = self.embedding_engine.embed_text(query_text)
@@ -253,7 +254,7 @@ class VectorStore:
                 logger.error("ChromaDB client not initialized")
                 return {"count": 0, "status": "not_connected"}
 
-            collection = self.client.get_collection(collection_name)
+            collection = self.client.get_collection(collection_name, embedding_function=None)
             return {
                 'name': collection_name,
                 'count': collection.count(),

@@ -134,7 +134,7 @@ app = FastAPI(
 # Health & Info
 # ---------------------------------------------------------------------------
 
-from services.common.api_security import protect_app
+from services.common.api_security import protect_app, actor_id, principal
 protect_app(app)
 
 @app.get("/", tags=["Info"])
@@ -247,6 +247,10 @@ async def trigger_defense(request: TriggerPlanRequest):
     """
     if not orchestrator:
         raise HTTPException(status_code=503, detail="Orchestrator not initialized")
+
+    user = principal.get()
+    if request.auto_execute and user and user["role"] not in {"admin", "reviewer", "service"}:
+        raise HTTPException(403, "A reviewer must authorize automatic response execution")
 
     try:
         plan = await orchestrator.trigger_defense(
@@ -369,7 +373,7 @@ async def approve_action(
             plan_id=plan_id,
             action_id=action_id,
             approved=request.approved,
-            analyst_id=request.analyst_id,
+            analyst_id=actor_id(request.analyst_id),
             notes=request.notes,
         )
         return action
@@ -387,6 +391,31 @@ class VerificationRequest(PlanDecision):
     environment_json: dict
 
 
+class ReconciliationRequest(PlanDecision):
+    disposition: str = Field(pattern="^(verify_active|confirm_not_applied)$")
+    notes: str = Field(min_length=10, max_length=2000)
+
+
+@app.post("/plans/{plan_id}/actions/{action_id}/reconcile", response_model=DefensePlan, tags=["Defense"])
+async def reconcile_action(plan_id: str, action_id: str, request: ReconciliationRequest):
+    if not orchestrator:
+        raise HTTPException(503, "Orchestrator not initialized")
+    try:
+        return await orchestrator.reconcile_action(plan_id, action_id, actor_id(request.analyst_id), request.disposition, request.notes)
+    except ValueError as exc:
+        raise HTTPException(409, str(exc))
+
+
+@app.post("/plans/{plan_id}/rollback", response_model=DefensePlan, tags=["Defense"])
+async def rollback_plan(plan_id: str, request: PlanDecision):
+    if not orchestrator:
+        raise HTTPException(503, "Orchestrator not initialized")
+    try:
+        return await orchestrator.request_rollback(plan_id, actor_id(request.analyst_id), request.notes)
+    except ValueError as exc:
+        raise HTTPException(409, str(exc))
+
+
 @app.get("/plans/{plan_id}/events", tags=["Defense"])
 async def plan_events(plan_id: str):
     if not orchestrator or not orchestrator.get_plan(plan_id):
@@ -399,7 +428,7 @@ async def cancel_plan(plan_id: str, request: PlanDecision):
     if not orchestrator:
         raise HTTPException(503, "Orchestrator not initialized")
     try:
-        return await orchestrator.cancel_plan(plan_id, request.analyst_id, request.notes)
+        return await orchestrator.cancel_plan(plan_id, actor_id(request.analyst_id), request.notes)
     except ValueError as exc:
         raise HTTPException(409, str(exc))
 
@@ -409,7 +438,7 @@ async def verify_plan(plan_id: str, request: VerificationRequest):
     if not orchestrator:
         raise HTTPException(503, "Orchestrator not initialized")
     try:
-        return await orchestrator.request_verification(plan_id, request.environment_json, request.analyst_id)
+        return await orchestrator.request_verification(plan_id, request.environment_json, actor_id(request.analyst_id))
     except ValueError as exc:
         raise HTTPException(409, str(exc))
 

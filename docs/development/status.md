@@ -1,98 +1,130 @@
-# Recovery assessment and verified state
+# Current implementation and acceptance state
 
-Date: 2026-09-04 (America/Los_Angeles). Upstream baseline: `60902fa` on `master`.
-Local branch: `codex/complete-research-platform`.
+Assessment: 2026-09-04 (America/Los_Angeles). Upstream baseline: `60902fa` on
+`master`. Local branch: `codex/complete-research-platform`. The initial recovery
+was committed as `be32d29`; this continuation adds the functionality below.
 
 ## Outcome
 
-The recoverable local research workflow is operational. Eight APIs, PostgreSQL,
-ChromaDB, Ollama and the dashboard run locally. The original repository had no
-complete committed master plan: its roadmap was a placeholder and its status link
-was missing. The target was reconstructed from the README, architecture, services
-and experiments, and recorded in [completion-plan.md](completion-plan.md).
+The native research application is operational at http://localhost:5050 with
+persistent sign-in, eight authenticated APIs, local Ollama, embedded vector
+retrieval, PostgreSQL, and a durable asynchronous queue. All nine application
+images and the disposable lab target image build successfully.
 
-This completes that local implementation scope. It does **not** establish a
-production SOC, empirical prevention effectiveness, multiclass classification,
-robustness, or feedback-driven model improvement. Those acceptance gates are listed
-below with the information required to complete them.
+The wider master-plan vision is **not fully accepted yet**. Full Compose startup,
+the real Linux/Wazuh enforcement lab, and visual review of the new access/review
+pages remain blocked on this Mac. Docker new-container startup stalled; the desktop
+automation tool explicitly reported a locked Mac and requested manual unlock.
+The stalled launch/diagnostic CLI processes were stopped. Other applications and
+Docker Desktop itself were not restarted or reconfigured.
 
-## What was recovered
+## Implemented in this continuation
 
-| Area | Baseline problem | Current behavior |
-|---|---|---|
-| Packaging | `models`/`config` imports collided across service test suites | Explicit importable service namespaces; existing directory names preserved |
-| ML | Stale dependency versions, 78-feature tests, fabricated partial flows, weak reload behavior | Real 77-feature models validated together, complete finite measurements only, named-feature reordering and atomic bundle reload |
-| Triage | RAG setting unused; storage/correlation differed by entry point | Retrieved evidence and references in the prompt; sync/batch/async share durable alert storage and idempotent correlation |
-| Context | Requests to an absent contexts API and feedback summaries with no verdicts | Bounded operator environment notes and actual analyst verdict retrieval |
-| Knowledge | Zero-embedding fallbacks and false-success errors | Real embeddings; explicit dependency failures; persistent runbook/MITRE retrieval |
-| Correlation | Concurrent retries could duplicate incident membership | Transaction lock and alert-ID deduplication; tactic IDs/names normalize consistently |
-| Response | In-memory plans, unenforced veto delay, missing action parameters | Transactional plan/event state, approval identities, waiting veto windows, parameter forwarding and restart recovery |
-| Evidence | Stub adapters and failed monitoring reported success; briefings invented reductions and targets | Unavailable adapter outcomes, no fabricated targets, policy-derived briefings, independent monitoring/post-action evidence required |
-| Learning | Synthetic features and inconsistent partial model promotion | Independent review, actual flow features, conflicting-label exclusion, holdout-overlap checks and complete immutable bundles |
-| Rules | Fragile YAML generation, keyword-based fake backtests, volatile state | Sample-grounded schema-constrained drafts, validated Sigma subset, labeled-event evaluation, persisted reviews, unknown FPR until measured |
-| Dashboard | Misleading containment buttons, invalid sample/rule requests, lost corrections | Accurate feedback labels, explicit defense previews, saved plan/audit view and corrected investigation requests |
-| Runtime | Conflicting stacks, stale Dockerfiles and failure-suppressing CI | Canonical loopback Compose, private generated config, native launcher, aligned root-context Dockerfiles and enforceable CI definitions |
+| Area | Current behavior |
+|---|---|
+| Identity | Persistent scrypt password accounts, viewer/analyst/reviewer/admin roles, CSRF-protected browser sessions, role-preserving short-lived API tokens and rate limits |
+| Audit authorship | Human authors/reviewers come from verified identities; ordinary analysts cannot approve their own labels or elevate response execution |
+| Review interface | Pending independent label review, source alert evidence, rule review/backtest/YAML export, response reconciliation and rollback |
+| Queue durability | Accepted jobs commit to SQLite before HTTP 202; bounded admission, restart recovery, durable result lookup and idempotent downstream alert correlation |
+| Model integrity | Hashes checked before deserialization, signed candidate manifests, complete-bundle validation, failed promotion restores the previous active pointer |
+| Flow schema | Known CICFlowMeter aliases normalize into the exact 77-feature contract; conflicting aliases, missing Protocol and fabricated partial measurements are rejected |
+| Multiclass research | Three real classifiers trained and evaluated across 15 CICIDS2017 classes; a separate signed research bundle serves through the real inference API |
+| Response recovery | Durable operation IDs; observe uncertain effects without replay; reviewer attestation and tested settled-action rollback state transitions |
+| Disposable enforcement lab | Scoped Linux firewall/network/account controller, durable intent/prior-state journal, Wazuh manager/agent configuration, pinned local certificates and strict behavior/rollback/forwarding acceptance script |
+| Dependency posture | Embedded Chroma with fixed ONNX embeddings; removed unused PyTorch/Transformers stack; enforcing audit with four narrow, expiring mitigations |
+| Recovery | Private cold backup and an actual restore drill into a separate PostgreSQL database, with row-count/hash/SQLite-integrity validation |
+| Delivery | Aligned cached Docker builds, current operating instructions and evidence reports; no remote publication |
+
+The lab row records implemented code, not successful live enforcement. Its
+acceptance is explicitly pending below.
 
 ## Verification evidence
 
-- **160 tests passed, 14 skipped** in the final offline run with Python 3.11.15.
-  These include real bundled-model inference, malformed/nonfinite input, failed
-  reload preservation, durable plan recovery, duplicate approval races, veto
-  timing, unavailable evidence, honest targets, review eligibility and rule
-  matching. Skips comprise nine explicit live tests and five old placeholders
-  covering rate limiting, dependency scanning, user management, artifact integrity
-  checks and broader configuration validation. Skips are not successful checks.
-- **12 live workflow checks passed** using real local Ollama, PostgreSQL, ChromaDB
-  and service HTTP endpoints. See [live-verification.json](live-verification.json)
-  for timestamp and artifact IDs. The checks cover all service health endpoints,
-  authentication, all three trained models, real knowledge retrieval, LLM triage,
-  persistence/correlation, concurrent retries, independent feedback review,
-  durable dry-run planning/audit, rule generation/backtesting, Wazuh-format webhook
-  ingestion, and a short simulated campaign. Some checks combine related steps.
-- **Four saved PostgreSQL plans were restored after a process restart**, including
-  prior dry-run results and audit events. SQLite lifecycle tests also exercise
-  interrupted execution recovery without replay.
-- **858 MITRE technique documents were ingested** from MITRE's enterprise dataset;
-  startup runbooks and MITRE persist in ChromaDB.
-- **Zero eligible retraining flows** were found among synthetic text-only smoke
-  alerts. No candidate was trained or promoted; bundled models remain unchanged.
-- Python compilation, fatal-error Ruff checks, dashboard JavaScript syntax, root
-  Compose validation, both compatibility includes, `git diff --check`, and a scan
-  for the newly generated credentials passed.
-- The dashboard was inspected in the browser with all eight services responding,
-  incident investigation, accurate dry-run controls, and saved plans/audit visible.
-  Browser testing confirmed that a submitted severity correction was saved under the correct backend field. The browser displayed a clearly labeled sample-match fallback and persisted its approval for export under analyst-1. Rule generation and review use the actual nested rule response and per-alert rule IDs. Earlier smoke drafts are test artifacts, not operational detection recommendations.
+- **180 offline tests passed; one explicitly opt-in live case skipped.** No
+  placeholder security skips remain. Tests cover actual model inference, auth,
+  CSRF, role boundaries, independent review, rate limiting, tampered artifacts,
+  failed promotion, interrupted durable jobs, lab intent/rollback/idempotency, response recovery and rule matching.
+  The live case calls the same full workflow that was exercised separately.
+- **12 live workflow checks passed** against the native APIs, real local Ollama,
+  PostgreSQL and ONNX/Chroma retrieval. They cover health/auth, all three serving
+  models, knowledge retrieval, triage/persistence/correlation, concurrent retries,
+  independent review, stored dry runs/audit, grounded rule generation/backtesting,
+  Wazuh-format webhook ingestion and simulation.
+  [Workflow evidence](live-verification.json).
+- **Six live identity/review checks passed**, including account creation/sign-in,
+  rejected privilege escalation, identity-bound authorship, self-review rejection,
+  YAML export and account/session revocation. A bounded 100-request inference run
+  with concurrency 10 had zero failures (p50 326.72 ms, p95 377.83 ms). Synthetic
+  complete inputs measure this workload only, not flow classification accuracy or
+  whole-SOC scale. Test accounts were disabled afterward.
+  [Security/load evidence](security-live-verification.json).
+- A real async alert received HTTP 202, completed through LLM/storage/correlation,
+  and remained queryable after a complete service restart. Interrupted work is
+  additionally tested by cancellation and reconstruction of the worker pool.
+  [Queue evidence](async-verification.json).
+- **31 backup files verified**. A fresh PostgreSQL restore matched every table
+  count, including 14 alerts and 44 response audit events. Identity, rules, job
+  journal and Chroma SQLite checks all returned `ok`. The temporary restore DB was
+  removed and the working DB was not overwritten. Later smoke records are not
+  part of that earlier snapshot. [Restore evidence](restore-verification.json).
+- The three 15-class models loaded through the real inference API from an isolated
+  signed bundle and returned valid 15-class probabilities.
+  [Serving-contract evidence](multiclass-serving-verification.json).
+- Dependency audit scanned **151 installed packages**, with zero unresolved
+  findings and **four documented Chroma mitigations**, reviewed by 2026-10-04.
+  This is not a zero-CVE claim. [Audit](dependency-audit.json),
+  [exact policy](../security/dependency-exceptions.json).
+- Python compilation, fatal-error Ruff checks, root/compatibility/lab Compose
+  validation, rendered dashboard JavaScript syntax, and `git diff --check` passed.
+  The new identity values were moved outside Jinja's raw script block after the
+  rendered-script check caught invalid JavaScript; a regression test covers it.
+- All nine final application images and the final Linux lab target image built.
+  Full container startup is not verified. GitHub Actions was not run remotely.
+- All four dashboard pages (`/`, `/reviews`, `/account`, `/login`) render and their
+  inline JavaScript parses after restart. New-page visual interaction remains
+  unverified because desktop access requires the Mac to be unlocked.
 
-Commands: `pytest -q -rs`, `python -m compileall -q services ml_training dashboard
-scripts`, `ruff check --select E9,F63,F7,F82 services ml_training dashboard scripts
-tests`, `python scripts/smoke_test.py --full`, and `docker compose config --quiet`.
+## Multiclass results
 
-## Deployment qualification
+Archive: `GeneratedLabelledFlows.zip` from an explicitly identified public mirror
+of CICIDS2017, pinned by SHA-256. The original repository's purported MD5 file was
+an HTML 404 response and has been removed. Input provenance is documented under
+`datasets/CICIDS2017/raw/README.md`.
 
-Native Python/Ollama plus an isolated PostgreSQL container is the verified runtime
-on this Mac. The native dashboard uses Waitress to avoid macOS process-fork reload
-failures; container deployment uses Gunicorn on Linux. See [operations.md](operations.md)
-and the root README for start/stop/configuration instructions.
+The benchmark fits on 34,935 rows and evaluates 8,728 held-out rows across all 15
+classes, with zero feature-vector overlap. It caps unique samples per class,
+rejects nonfinite rows and observed conflicting labels, and fits scaling on the
+training set only.
 
-Docker stalled fetching `python:3.11-slim` metadata and eventually timed out. The
-Compose definitions validate, but a complete image build/start was **not verified
-on this host**. The new CI matrix builds all nine actual application images and
-fails on errors; it has not been executed on GitHub. No remote code, images or
-production resources were published by this task.
+| Model | Accuracy | Macro F1 |
+|---|---:|---:|
+| Random Forest | 97.54% | 0.8746 |
+| Decision Tree | 97.22% | 0.9073 |
+| XGBoost | 97.88% | 0.8616 |
 
-## Remaining acceptance gates
+[Per-class supports, scores, confusion matrices and methodology](multiclass-evaluation.json)
+are part of the result. Very small rare classes limit conclusions. This is a
+within-dataset split, not a held-out deployment or time-based generalization test.
+The signed research bundle exists locally under
+`models/bundles/cicids2017-multiclass-20260904`; large generated artifacts are
+excluded from Git. The original binary serving bundle is unchanged.
 
-| Work | Required input/environment | Completion evidence |
+Genuine independently reviewed complete feedback flows remain absent. No
+feedback-driven improvement or candidate promotion has been claimed or performed.
+
+## Remaining gates
+
+| Gate | Current blocker / needed input | Required acceptance |
 |---|---|---|
-| Vendor enforcement | Selected firewall, EDR and identity vendors; credentials; disposable assets | Contract tests and lab execution/rollback with independent telemetry |
-| Wazuh command enforcement | Running manager/indexer, named lab agents, installed/tested command, trusted certificates | Actual agent command submission, verified host behavior and recovery; the webhook test alone is insufficient |
-| Shared/production operations | Identity provider and role model, deployment target, retention and recovery requirements | Enforced authorization, TLS, rate limits, backup/restore, security review and operational load tests |
-| Container acceptance | Working Docker base-image retrieval and a clean build runner | All service image builds plus the strict live smoke against Compose |
-| Multiclass/robust ML | Real labeled multiclass flows and a held-out independent dataset | Reproducible evaluation, leakage checks and accepted baseline comparison |
-| Learning improvement | Enough genuine independently reviewed complete flows, independent holdout | Measured candidate/champion improvement and accepted bundle promotion |
-| Simulation validity/scale | Controlled adversary-emulation lab and defined workload | Forecast agreement with observed outcomes, repeatable scale/robustness measurements |
+| Full Compose runtime | New container startup stalled on this host | Start isolated stack and pass the strict live workflow against container services |
+| Disposable lab runtime | Same Docker startup issue; desktop is locked | Real HTTP/SSH denial and restoration; Wazuh agent event forwarded through triage; audited plan execution/recovery |
+| New dashboard visual QA | Manual Mac unlock | Sign in, navigate reviews/accounts, submit a review and inspect an export in the browser |
+| Production integrations | Selected vendors, credentials, assets and deployment target | Actual vendor contract/enforcement/telemetry/rollback checks |
+| Shared operations | Identity provider, TLS endpoint, retention and recovery requirements | Deployment-specific auth, TLS, load, backup cutover and operational review |
+| ML robustness | Independent deployment captures and defined acceptance thresholds | Out-of-distribution/time-separated evaluation with adequate class support |
+| Learning improvement | Genuine reviewed flows accumulated over time | Accepted candidate/champion evaluation and promotion |
+| Simulation validity/scale | Controlled exercises and workload definition | Forecast agreement with observed outcomes and repeatable system-scale measurements |
 
-These are unfinished parts of the broader vision. Code and synthetic smoke results
-cannot substitute for their missing evidence. Historical phase documents and
-archived test sketches are preserved for reference; this report is the current
-source of verification status.
+No remote push, pull request, image publication or production deployment occurred.
+See [operations.md](operations.md) for exact launch, sign-in, recovery and lab
+commands. This report supersedes historical phase-completion claims.

@@ -1,155 +1,225 @@
-# Operating the recovered platform
+# Operating AI-SOC
 
-## Local installation in this assessment
+## This installation
 
-The repository is in `outputs/AI_SOC`. Native services were started with:
+From the repository, use `.venv/bin/python scripts/local_stack.py up
+--skip-model-pull --state-dir ../../work/runtime`. Use the same state option for
+`status`, `down`, and backup. The dashboard is http://localhost:5050.
 
-```bash
-.venv/bin/python scripts/local_stack.py up --skip-model-pull --state-dir ../../work/runtime
-```
+The private administrator password is in `../../work/runtime/admin-credentials.txt`.
+Identity lives in the `.env`-configured `AI_SOC_IDENTITY_DIR`. Runtime logs, the
+triage job journal, Chroma, rules, simulation state, Ollama models and embeddings
+live under the state directory. PostgreSQL uses the `ai-soc-postgres-1` container
+and its named volume. `docker compose stop postgres` stops only this database.
+Other applications' containers are not part of this deployment.
 
-Use that same state directory for `status` and `down`. The dashboard is
-http://localhost:5050. Process logs, Ollama models, embeddings, Chroma data, rules
-and simulation history are under the state directory. Alert/incident/feedback and
-response state is in the isolated `ai-soc-postgres-1` container and its named
-volume. `docker compose stop postgres` stops it without deleting the volume.
-Existing unrelated Docker containers were left unchanged. Ollama and libomp were
-installed through Homebrew; the launcher starts Ollama for this workspace, without
-registering an automatic login service.
+## Identity and API access
 
-## API usage
+| Role | Access |
+|---|---|
+| Viewer | Read incidents, plans and rules; retrieval and inference |
+| Analyst | Viewer access plus triage, investigation, labels, rule drafts and dry runs |
+| Reviewer | Analyst access plus independent label review, response decisions and rule approval |
+| Admin | All operations, account administration, ingestion and model reload |
 
-The generated `.env` contains the local API key and database password. This example
-uses them without putting secrets in the command line or output:
+Accounts are persistent. Passwords use salted scrypt. Browser sessions last eight
+hours and are revoked on account/password/role changes. Browser writes require a
+CSRF token and login attempts are limited to ten per minute per source address.
+API limits default to 600 requests per minute per identity. Forged forwarding
+headers do not change the rate-limit identity.
+
+The gateway signs two-minute, audience-bound human API tokens. Services enforce
+roles and replace human-supplied audit names with the verified username. An already
+issued direct token can remain valid for up to two minutes after account revocation;
+browser sessions are revoked immediately. The privileged `AI_SOC_API_KEY` is for
+trusted automation and internal services and can deliberately supply audit IDs.
+Do not distribute it to ordinary dashboard users.
+
+Create users in **Account & access**. Admins can PATCH `/api/auth/users/{username}`
+with `role`, boolean `active`, or a new `password` (14–256 characters). This revokes
+existing browser sessions. The last active administrator cannot be disabled or
+demoted. Local emergency recovery can use `IdentityStore.update_user` after stopping
+the dashboard and reading its private database path from `.env`.
 
 ```python
 from dotenv import dotenv_values
 import requests
 key = dotenv_values('.env')['AI_SOC_API_KEY']
-headers = {'Authorization': f'Bearer {key}'}
-response = requests.get('http://127.0.0.1:8500/models', headers=headers, timeout=10)
+response = requests.get('http://127.0.0.1:8500/models',
+                        headers={'Authorization': f'Bearer {key}'}, timeout=10)
 response.raise_for_status()
 print(response.json())
 ```
 
-The same header is required for `/docs` and `/openapi.json`. The dashboard proxy
-attaches it server-side. This local shared-key boundary is not enterprise identity:
-analyst/reviewer IDs are user-supplied audit fields. Before shared/remote use,
-add an identity provider, enforce role separation, configure TLS, audit retention,
-rate limits, backup/restore, and validate all vendor integrations in a lab.
+All published endpoints bind to loopback. Shared/remote deployment still needs a
+chosen identity provider, HTTPS termination and trusted-proxy configuration,
+retention policy and operational review. `AI_SOC_HTTPS=true` makes session cookies
+secure; it does not itself install a TLS proxy. Native defaults are intended for
+one local deployment, not multiple uncoordinated replicas.
 
-## Knowledge and rules
+## Knowledge, queues and rules
 
-Runbooks load into `security_runbooks` during startup. Populate MITRE with
-`POST http://127.0.0.1:8300/ingest/mitre` using the bearer header. This downloads
-MITRE's enterprise ATT&CK data. The assessment loaded 858 technique documents.
-CVE and historical-incident ingestion remain optional data-source integrations.
-RAG exceptions surface as errors; triage includes a pipeline warning if retrieval
-is unavailable. Retrieved text and LLM outputs remain untrusted evidence.
+RAG uses Chroma `PersistentClient` with fixed ONNX MiniLM embeddings and no Chroma
+HTTP server. Never expose a Chroma listener without resolving the documented
+advisories. `POST :8300/ingest/mitre` imports enterprise ATT&CK; 858 techniques were
+loaded in this installation. Runbooks load automatically. Treat retrieved text
+and generated outputs as untrusted evidence.
 
-Rule generation uses Ollama JSON-schema output to create a conjunctive Sigma
-mapping selector, then serializes and validates YAML. Rules and review state are
-stored in SQLite under `RULE_STORE_PATH`. `PUT /rules/{id}/approve?analyst_id=...`
-approves a draft for export; it does not activate it on a SIEM.
+The triage SQLite journal commits jobs before returning HTTP 202. Unfinished jobs
+are replayed at least once after restart; persistence and correlation deduplicate
+by alert ID. Completed/failed results remain on disk. Failed jobs are not retried
+automatically; investigate the error before submitting the original alert again.
+Queue capacity defaults to 1,000 waiting jobs and rejects excess requests. Use one
+triage process per journal; no distributed worker lease is implemented. Configure
+retention/archival before sustained ingestion, since journal and audit data are
+not deleted automatically.
 
-Use `POST /rules/{id}/backtest` with `{"events":[{"event":{"EventID":4625},
-"label":"ATTACK"},{"event":{"EventID":4624},"label":"BENIGN"}]}`. Supply actual
-normalized fields matching the rule's log source. The matcher supports mapping
-selectors, scalar/list values, wildcards, contains/startswith/endswith/all modifiers,
-and boolean conditions including `1/all of`. Aggregation, regex and other Sigma
-features are rejected. False-positive rate is false matches / benign events;
-it is unknown without benign labeled events. A two-event smoke fixture does not
-establish operational detection quality.
+Rules and reviews persist in `RULE_STORE_PATH`. `/reviews` provides independent
+label decisions, sample inspection, rule backtesting and YAML export. Rules require
+observed event fields and a sample match. If two model drafts fail that constraint,
+the service labels a deterministic sample-match fallback. This is a draft, not
+proof of detection quality. The supported Sigma subset rejects unsupported features.
 
-## Defense lifecycle and lab integration
+`POST /rules/{id}/backtest` accepts `{"events":[{"event":{"EventID":4625},
+"label":"ATTACK"},{"event":{"EventID":4624},"label":"BENIGN"}]}`. Supply real
+normalized events for meaningful evaluation. Only approved rules can be downloaded
+from `GET /rules/{id}/export`; approval never installs a rule in a SIEM.
 
-`POST /defend` accepts an incident ID, optional environment, `dry_run`,
-`auto_execute`, and `skip_simulation`. Request and deployment defaults are dry-run.
-The native launcher always forces dry-run. The dashboard explicitly submits
-`dry_run=true, auto_execute=false`. Missing affected accounts/domains are not
-invented: supply `affected_accounts` and `confirmed_malicious_domains` in an
-operator-reviewed environment when those targets are known.
+## Response lifecycle
 
-Plans and audit events are committed together before and after actions. View them
-at `GET /plans/{id}` and `GET /plans/{id}/events`. Dry runs are terminal
-`dry_run_completed`; actions are `simulated`, without `executed_at`. Restarted
-execution/verification becomes `recovery_required`; it is never automatically
-replayed. Native processes use a single orchestrator worker. Horizontal execution
-across multiple orchestrator replicas is not supported by the current in-process
-execution locks.
+`POST :8800/defend` takes an incident ID and optional environment. Both request and
+deployment defaults are dry-run. The native launcher forces dry-run, and the
+dashboard submits `dry_run=true, auto_execute=false`. Known accounts/domains can
+be supplied through `affected_accounts` and `confirmed_malicious_domains`; missing
+targets are never invented.
 
-For a configured lab plan requiring a decision, post
-`{"approved":true,"analyst_id":"operator-id","notes":"review rationale"}` to
-`/plans/{plan}/actions/{action}/approve`. Use `approved=false` to reject or veto.
-`POST /plans/{id}/cancel` takes `analyst_id` and optional `notes`. Uncertain remote
-actions require out-of-band reconciliation with the target system. The API refuses
-to retry an uncertain action as if it had never run.
+Plans and audit events are committed before/after effects. Dry runs use terminal
+`dry_run_completed` with simulated actions and no execution timestamp. Approval and
+veto require reviewer/admin identity. Veto windows wait before execution.
+Interrupted real execution becomes `recovery_required` and is not automatically
+replayed. Use one orchestrator process; horizontal execution is not supported.
 
-Verification requires both observed post-action environment data and monitoring.
-`POST /plans/{id}/verify` takes `analyst_id` and `environment_json`. A model-generated
-posture or a missing indexer is not proof of enforcement. The default monitoring
-window is 30 minutes; configure it for the lab. Unsupported rollback is reported
-as unavailable rather than successful.
+The review center exposes recovery actions:
 
-To test real Wazuh command submission, first configure a disposable Wazuh lab:
+- `POST /plans/{p}/actions/{a}/reconcile` with `resolution="verify_active"` asks the
+  adapter to observe the target without executing anything.
+- `resolution="confirm_not_applied"` records a reviewer's explicit out-of-band
+  attestation. Notes must explain the evidence. This is not machine verification.
+- `POST /plans/{p}/rollback` restores supported settled actions. Unknown effects
+  must be reconciled first. Partial or unsupported rollback remains visible.
 
-- `ORCHESTRATOR_WAZUH_API_URL`, `ORCHESTRATOR_WAZUH_API_USERNAME`,
-  `ORCHESTRATOR_WAZUH_API_PASSWORD` and trusted TLS certificates.
-- `ORCHESTRATOR_WAZUH_AGENT_IDS` as an explicit JSON list of lab-agent IDs.
-- `ORCHESTRATOR_WAZUH_BLOCK_COMMAND` as a command already configured and tested
-  on those agents. Manager/all-agent targets are rejected.
-- `ORCHESTRATOR_WAZUH_INDEXER_URL`, `ORCHESTRATOR_WAZUH_INDEXER_USERNAME`,
-  `ORCHESTRATOR_WAZUH_INDEXER_PASSWORD` for monitoring `wazuh-alerts-*`.
+Post-plan verification needs observed environment data and independent monitoring;
+a simulated posture or missing indexer cannot establish prevention. The monitoring
+window defaults to 30 minutes. Generic production firewall/EDR/identity adapters
+remain unavailable until actual vendors are chosen and tested.
 
-A separately reviewed Compose override must explicitly set
-`ORCHESTRATOR_DRY_RUN_MODE=false` before a request with `dry_run=false` can execute.
-Wazuh `PUT /active-response?agents_list=...` acknowledgment means the command was
-submitted, not that a host enforced it. Only `block_ip` submission is implemented;
-other Wazuh commands and firewall/EDR/identity vendor enforcement remain unavailable.
-Choose and test those vendor adapters rather than filling in successful stubs.
-The Wazuh API contract is described in the [official reference](https://documentation.wazuh.com/current/user-manual/api/reference.html).
+## Disposable Linux/Wazuh lab — runtime acceptance pending
 
-## Feedback and retraining
-
-Submit labels to `POST /feedback/{alert_id}`; approved labels use
-`POST /feedback/reviews/{feedback_id}` with a different `reviewer_id`, `approved`
-and optional `notes`. Only independently reviewed, unambiguous BENIGN/ATTACK labels
-with all finite 77 named flow features qualify. Self-review, missing flows,
-contradictory labels and conflicting duplicate feature vectors are excluded.
+Install `lab/requirements.txt` alongside native dependencies, then:
 
 ```bash
-.venv/bin/python scripts/retrain_local.py --evaluate-only
-.venv/bin/python scripts/retrain_local.py --holdout /path/to/independent.csv
-.venv/bin/python scripts/retrain_local.py --holdout /path/to/independent.csv --promote
+.venv/bin/python scripts/lab_stack.py up --state-dir work/lab
+.venv/bin/python scripts/lab_smoke.py --state-dir work/lab --output work/lab-verification.json
+.venv/bin/python scripts/lab_stack.py down --state-dir work/lab
 ```
 
-The holdout CSV requires all feature columns plus `Label`, both classes, and no
-feature-vector overlap with training feedback. `--force` permits exploratory runs
-below the usual 100-sample threshold, never bypasses review/feature/holdout checks,
-and still requires at least five examples per class. Candidate and champion
-models use the same scaler. Bundles contain all three classifiers, the scaler,
-encoder, feature names and evaluation metadata. `models/active.json` is the atomic
-bundle pointer; `/models/reload` retains the previous in-memory bundle if loading
-fails. Retain accepted previous bundles and their evaluation metadata for rollback.
+The lab owns only project `ai-soc-lab`: Wazuh manager, a Linux agent/HTTP/SSH target,
+and a probe on `172.30.77.0/24`. Check this subnet does not conflict with local
+routing. Bindings are loopback: manager API 15500, target HTTP 18910, SSH 18922,
+controller 8900. Generated passwords and a local trusted certificate stay in the
+private lab state directory. The target gets NET_ADMIN for its own network
+namespace; no host firewall or arbitrary container target is accepted.
 
-The assessment's synthetic text alerts yielded **zero eligible training flows**;
-no classifier was trained or promoted. Supply real reviewed traffic and an
-independent holdout to complete the empirical learning cycle.
+The controller scopes IP blocking to the probe, isolation to the lab target and
+account disabling to `lab-user`. It journals intent/prior state before effects,
+checks operation IDs and container identity, and restores prior state on rollback.
+The acceptance script verifies real HTTP and SSH behavior, restoration, and a real
+Wazuh agent event forwarded into SOC storage. A simulated webhook does not meet
+that acceptance criterion. On this Mac container startup stalled; no successful
+live lab report has been produced.
 
-## Research and deployment limits
+The optional `ORCHESTRATOR_LAB_URL` selects these adapters. A separately configured
+lab orchestrator must explicitly set `ORCHESTRATOR_DRY_RUN_MODE=false` for real plan
+execution. The standard native launch path keeps dry-run enforced. The smoke script
+calls only the scoped lab controller and does not change the main orchestrator.
 
-The live smoke verifies one short campaign, not swarm-scale throughput, adversarial
-robustness, calibrated probability, real prevention, or longitudinal improvement.
-Simulation rankings and confidence are heuristics. The simplified kill-chain
-mapping is a UI/correlation abstraction rather than a canonical ATT&CK sequence.
-Historical phase reports are retained as prior material, not revalidated results.
+The Wazuh adapter can submit configured `block_ip` commands to an explicit list of
+agent IDs. Set `ORCHESTRATOR_WAZUH_API_URL`, `_API_USERNAME`, `_API_PASSWORD`,
+`_API_CA_BUNDLE`, `_AGENT_IDS` and `_BLOCK_COMMAND`. All-agent/manager targets are rejected.
+An API acknowledgment is only submission evidence; host behavior and rollback still
+need verification. Monitoring requires a real Wazuh indexer. Production integration
+is not implied by the disposable lab.
 
-The root Compose file and compatibility includes validate locally. A complete
-image build could not be verified on this host: Docker stalled while retrieving
-`python:3.11-slim` metadata and timed out. Native services were used for live
-acceptance. CI now builds all actual images and fails on build/test errors, but
-GitHub Actions and registry publication were not run from this local task.
+## Models and empirical research
 
-Rule drafts must use observed sample-event fields and match that event before acceptance. Supply `sample_event` (a flat scalar-valued event) and `logsource` when generating a source-specific rule. Without a sample event, the alert text is treated as a generic `message` field; the source remains generic. This grounding check is not a substitute for representative labeled backtesting.
+The binary baseline remains active. Six artifact hashes are checked before pickle
+deserialization. Promoted bundles require HMAC signatures using the private
+`AI_SOC_MODEL_SIGNING_KEY`. Treat both source-controlled baseline artifacts and
+training inputs as trusted local material. A signing key does not make an arbitrary
+untrusted pickle safe to use.
 
-If two model drafts fail evidence validation, the service discards their filters and emits an explicitly marked `evidence_fallback` rule matching the sample exactly. The dashboard labels this fallback; it still requires analyst review and backtesting. Unavailable model service calls remain errors.
+The locally generated bundle `models/bundles/cicids2017-multiclass-20260904` includes
+15-class models, a train-only scaler, encoder, feature names, training/holdout CSVs,
+signed manifest and evaluation. The original dataset is
+[UNB CICIDS2017](https://www.unb.ca/cic/datasets/ids-2017.html). The downloaded archive
+came from the [bencorn public mirror](https://huggingface.co/datasets/bencorn/CICIDS2017),
+not an official UNB distribution endpoint. Its pinned SHA-256 is recorded in the
+benchmark report and script. GeneratedLabelledFlows includes the required Protocol
+column; the MachineLearningCSV variant lacks it and is rejected.
+
+Sampling retains at most 5,000 deduplicated vectors per class and removes observed
+conflicting labels. A deterministic hash-ranked 20% holdout per class is excluded before
+fitting the scaler and models. This is a within-dataset split; it does not remove
+all host/day/environment correlations or prove out-of-distribution robustness.
+Rare-class support and per-class scores must accompany overall accuracy claims.
+
+Feedback retraining requires independently approved, unambiguous BENIGN/ATTACK
+labels with all 77 finite flow values. Genuine eligible feedback remains absent in
+this installation. Use `scripts/retrain_local.py --evaluate-only` to inspect it.
+`--holdout /path/to/independent.csv` trains/evaluates; adding `--promote` requires
+acceptance checks and activates a complete signed bundle. Feature overlap with the
+holdout is rejected. `--force` relaxes only the normal sample threshold, not review,
+feature or holdout checks.
+
+`models/active.json` is the bundle pointer. Failed promotion restores the preceding
+pointer and tries to reload the prior model; a failed API reload keeps the working
+in-memory model. Keep accepted old bundles and metadata for rollback. No bundle
+was promoted during this assessment.
+
+## Backup and restore drill
+
+Stop native services first, leaving PostgreSQL running. With this installation's
+state override:
+
+```bash
+.venv/bin/python scripts/local_stack.py down --state-dir ../../work/runtime
+.venv/bin/python scripts/backup_restore.py backup ../../work/backups/new-snapshot --state-dir ../../work/runtime
+.venv/bin/python scripts/backup_restore.py drill ../../work/backups/new-snapshot --report work/restore-report.json
+.venv/bin/python scripts/local_stack.py up --skip-model-pull --state-dir ../../work/runtime
+```
+
+The private backup includes a PostgreSQL custom dump and row counts, consistent
+SQLite snapshots, Chroma/simulation state, model bundles, configuration and hashes.
+The restore drill creates a fresh temporary PostgreSQL database, restores and
+compares every table count, checks SQLite integrity, then removes the temporary
+database. It does not replace the working database. A disaster cutover requires a
+stopped target and an operator-controlled restoration of these files/credentials;
+the drill deliberately has no overwrite-working-deployment option.
+
+Keep backups on protected storage with a retention policy. Model/embedding download
+caches can be reacquired and are omitted. Loss of configuration/signing keys can
+prevent authentication or acceptance of signed model bundles.
+
+## Verification limits
+
+The enforcing dependency audit has four version-specific Chroma exceptions for
+unused HTTP/configurable-embedding/SimpleRBAC features, expiring 2026-10-04. This
+means mitigated findings, not zero known advisories. Recheck before that date and
+before changing RAG deployment shape.
+
+Live workflow, identity, bounded inference load and restore evidence are in
+[status.md](status.md). CI definitions build every application image, but no GitHub
+run, push, registry publish or production deployment was performed. Native HTTP
+page rendering was verified; the newly added review/access pages still need visual
+inspection after the Mac is unlocked. Simulation accuracy, multi-user operational
+load, production enforcement and longitudinal learning are open research gates.

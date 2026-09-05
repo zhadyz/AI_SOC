@@ -1,156 +1,41 @@
-"""
-Embedding Engine - RAG Service
-AI-Augmented SOC
+"""Fixed, checksum-verified MiniLM ONNX embeddings; no remote model code."""
+import os
+from pathlib import Path
+from threading import Lock
 
-Generates vector embeddings using HuggingFace sentence-transformers.
-Optimized for security domain with all-MiniLM-L6-v2 model.
-"""
-
-import logging
-from typing import List, Optional
 import numpy as np
-
-logger = logging.getLogger(__name__)
+from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2
 
 
 class EmbeddingEngine:
-    """
-    Text embedding generator using sentence-transformers.
-
-    Model: all-MiniLM-L6-v2
-    - Dimensions: 384
-    - Speed: ~1000 sentences/second (CPU)
-    - Quality: Balanced for semantic similarity
-    """
-
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
-        """
-        Initialize embedding model.
-
-        Args:
-            model_name: HuggingFace model identifier
-        """
+    def __init__(self, model_name="all-MiniLM-L6-v2"):
+        if model_name != "all-MiniLM-L6-v2":
+            raise ValueError("Only the fixed MiniLM embedding model is supported")
         self.model_name = model_name
+        self.lock = Lock()
+        self.model = ONNXMiniLM_L6_V2(preferred_providers=["CPUExecutionProvider"])
+        self.model.DOWNLOAD_PATH = Path(os.getenv("RAG_EMBEDDING_CACHE", "work/embedding-model"))
+        # The library verifies the archive SHA256 before loading ONNX weights.
+        self.model(["startup probe"])
+        self.model.tokenizer.enable_truncation(max_length=256)
+        self.model.tokenizer.enable_padding(length=256)
 
-        try:
-            from sentence_transformers import SentenceTransformer
-            logger.info(f"Loading embedding model: {model_name}")
-            self.model = SentenceTransformer(model_name)
-            logger.info(f"Successfully loaded embedding model: {model_name}")
-        except Exception as e:
-            logger.error(f"Failed to load embedding model {model_name}: {e}")
-            raise RuntimeError(f"Embedding model {model_name} is unavailable") from e
+    def embed_text(self, text):
+        return self.embed_batch([text])[0].tolist()
 
-        logger.info(f"EmbeddingEngine initialized (model: {model_name})")
-
-    def embed_text(self, text: str) -> List[float]:
-        """
-        Generate embedding for single text.
-
-        Args:
-            text: Input text
-
-        Returns:
-            List of 384 floats (embedding vector)
-        """
-        if not self.model:
-            logger.warning("Embedding model not loaded, returning zero vector")
-            raise RuntimeError("Embedding model unavailable")
-
-        try:
-            embedding = self.model.encode(text, convert_to_numpy=True, normalize_embeddings=True)
-            return embedding.tolist()
-        except Exception as e:
-            logger.error(f"Failed to generate embedding: {e}")
-            raise RuntimeError("Embedding failed") from e
-
-    def embed_batch(self, texts: List[str], batch_size: int = 32) -> np.ndarray:
-        """
-        Generate embeddings for batch of texts.
-
-        Optimized for throughput with batching.
-
-        Args:
-            texts: List of input texts
-            batch_size: Batch size for processing
-
-        Returns:
-            numpy array of shape (len(texts), 384)
-        """
-        if not self.model:
-            logger.warning("Embedding model not loaded, returning zero vectors")
-            raise RuntimeError("Embedding model unavailable")
-
-        try:
-            embeddings = self.model.encode(
-                texts,
-                batch_size=batch_size,
-                show_progress_bar=len(texts) > 100,  # Only show progress for large batches
-                convert_to_numpy=True,
-                normalize_embeddings=True
-            )
-            return embeddings
-        except Exception as e:
-            logger.error(f"Failed to generate batch embeddings: {e}")
-            raise RuntimeError("Embedding model unavailable")
+    def embed_batch(self, texts, batch_size=32):
+        if not texts:
+            return np.empty((0, 384), dtype=np.float32)
+        with self.lock:
+            result = np.concatenate([np.asarray(self.model(texts[i:i + batch_size]))
+                                     for i in range(0, len(texts), batch_size)])
+        if result.shape != (len(texts), 384) or not np.isfinite(result).all():
+            raise RuntimeError("Invalid embedding output")
+        return result
 
     def get_embedding_function(self):
-        """
-        Get embedding function for ChromaDB integration.
+        return self.model
 
-        Returns:
-            Callable embedding function
-
-        TODO: Week 5 - Return ChromaDB-compatible function
-        """
-        engine = self
-        class EmbeddingFunction:
-            def __call__(self, input):
-                return engine.embed_batch(input).tolist()
-        return EmbeddingFunction()
-
-    def compute_similarity(self, text1: str, text2: str) -> float:
-        """
-        Compute cosine similarity between two texts.
-
-        Args:
-            text1: First text
-            text2: Second text
-
-        Returns:
-            float: Similarity score (0.0-1.0)
-        """
-        if not self.model:
-            logger.warning("Embedding model not loaded")
-            return 0.0
-
-        try:
-            emb1 = np.array(self.embed_text(text1))
-            emb2 = np.array(self.embed_text(text2))
-
-            # Cosine similarity (already normalized, so just dot product)
-            similarity = np.dot(emb1, emb2)
-            return float(similarity)
-        except Exception as e:
-            logger.error(f"Failed to compute similarity: {e}")
-            return 0.0
-
-
-# TODO: Week 5 - Add domain-specific embedding optimization
-# class SecurityEmbedding(EmbeddingEngine):
-#     """
-#     Security-domain optimized embeddings.
-#
-#     Potential improvements:
-#     - Fine-tune on security text corpus
-#     - Add domain-specific vocabulary
-#     - Optimize for technical terms (CVE, MITRE ATT&CK, etc)
-#     """
-#
-#     def __init__(self):
-#         super().__init__(model_name="all-MiniLM-L6-v2")
-#
-#     def preprocess_security_text(self, text: str) -> str:
-#         """Preprocess security-specific text for better embeddings"""
-#         # Normalize CVE IDs, IP addresses, etc.
-#         pass
+    def compute_similarity(self, text1, text2):
+        a, b = self.embed_batch([text1, text2])
+        return float(np.dot(a, b))

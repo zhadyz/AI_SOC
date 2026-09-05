@@ -9,13 +9,14 @@ Run with: python dashboard/app.py
 Access at: http://localhost:5050
 """
 
-from flask import Flask, render_template, jsonify, request, Response
+from flask import Flask, render_template, jsonify, request, Response, g
 import subprocess
 import json
 import requests
 import os
 from urllib.parse import urlparse
-from services.common.api_security import service_headers
+from services.common.api_security import service_headers as machine_headers
+from services.common.identity import issue_token
 from datetime import datetime
 
 app = Flask(__name__)
@@ -89,6 +90,17 @@ def local_browser_boundary():
     if request.path.startswith("/api/") and (request.headers.get("Sec-Fetch-Site") == "cross-site"
             or (origin and origin.rstrip("/") != request.host_url.rstrip("/"))):
         return jsonify({"error": "Cross-origin API access is disabled"}), 403
+
+
+from dashboard.authentication import install_auth
+install_auth(app)
+
+
+def service_headers():
+    # Preserve the authenticated human identity through every gateway route.
+    if getattr(g, "user", None) and os.getenv("AI_SOC_AUTH_SECRET"):
+        return {"Authorization": "Bearer " + issue_token(g.user, os.environ["AI_SOC_AUTH_SECRET"])}
+    return machine_headers()
 
 
 @app.route("/health")
@@ -358,6 +370,47 @@ def post_feedback(alert_id):
 @app.route("/api/feedback/stats")
 def feedback_stats():
     return _proxy("http://localhost:8400/feedback/stats", timeout=TIMEOUT_STD)
+
+
+@app.get("/reviews")
+def reviews_page():
+    return render_template("reviews.html")
+
+
+@app.get("/api/feedback/reviews/pending")
+def pending_feedback_reviews():
+    return _proxy("http://localhost:8400/feedback/reviews/pending")
+
+
+@app.post("/api/feedback/reviews/<feedback_id>")
+def review_feedback(feedback_id):
+    return _proxy(f"http://localhost:8400/feedback/reviews/{feedback_id}", method="POST")
+
+
+@app.put("/api/rules/<rule_id>/reject")
+def reject_rule(rule_id):
+    return _proxy(f"http://localhost:8700/rules/{rule_id}/reject", method="PUT")
+
+
+@app.get("/api/rules/<rule_id>/export")
+def export_rule(rule_id):
+    try:
+        response = requests.get(_service_url(f"http://localhost:8700/rules/{rule_id}/export"), headers=service_headers(), timeout=TIMEOUT_STD)
+        return Response(response.content, status=response.status_code,
+                        content_type=response.headers.get("Content-Type", "application/yaml"),
+                        headers={"Content-Disposition": 'attachment; filename="approved-rule.yml"'})
+    except requests.RequestException:
+        return jsonify(error="Rule service unavailable"), 502
+
+
+@app.post("/api/defense/plans/<plan_id>/rollback")
+def rollback_plan(plan_id):
+    return _proxy(f"http://localhost:8800/plans/{plan_id}/rollback", method="POST", timeout=TIMEOUT_LONG)
+
+
+@app.post("/api/defense/plans/<plan_id>/actions/<action_id>/reconcile")
+def reconcile_action(plan_id, action_id):
+    return _proxy(f"http://localhost:8800/plans/{plan_id}/actions/{action_id}/reconcile", method="POST", timeout=TIMEOUT_LONG)
 
 
 # ---------------------------------------------------------------------------

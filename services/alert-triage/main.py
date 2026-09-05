@@ -83,6 +83,8 @@ async def lifespan(app: FastAPI):
         worker_count=settings.worker_count,
         queue_threshold=settings.queue_threshold,
         circuit_breaker_enabled=settings.circuit_breaker_enabled,
+        store_path=settings.job_store_path,
+        queue_capacity=settings.queue_capacity,
     )
     await worker_pool.start()
     app.state.worker_pool = worker_pool
@@ -324,20 +326,26 @@ async def batch_analyze(alerts: list[SecurityAlert]):
     }
 
 
-@app.post("/analyze/async")
+@app.post("/analyze/async", status_code=202)
 async def analyze_async(alert: SecurityAlert, callback_url: str = None):
     """
     Submit alert for async triage. Returns job_id immediately.
 
-    High-severity alerts are processed first. When queue is deep,
-    low-severity alerts get ML-only results (circuit breaker).
+    High-severity alerts are processed first. Accepted jobs persist before
+    acknowledgment and unfinished jobs resume after a process restart.
 
     Poll GET /jobs/{job_id} for results.
     """
     if callback_url:
         raise HTTPException(422, "Callbacks are disabled; poll /jobs/{job_id} for results")
     pool = app.state.worker_pool
-    job_id = pool.submit(alert.model_dump(mode="json"), callback_url=callback_url)
+    try:
+        job_id = pool.submit(alert.model_dump(mode="json"), callback_url=callback_url)
+    except asyncio.QueueFull:
+        raise HTTPException(429, "Triage queue is full; retry later")
+    except Exception:
+        logger.exception("Failed to persist accepted triage job")
+        raise HTTPException(503, "Job could not be persisted; it was not accepted")
     return {
         "job_id": job_id,
         "status": "queued",

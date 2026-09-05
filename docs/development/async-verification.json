@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "job_id": "job-a57c01efc6eb4aa780b95bbc9b90fd65",
+  "alert_id": "async-acceptance-1eaed945d4a242099bc612ea6f3d3527",
+  "accepted_status": 202,
+  "result_persisted": true,
+  "completed_result_survives_process_restart": true,
+  "verified_at": "2026-09-05T02:49:44.286433+00:00",
+  "interrupted_job_recovery": "Covered by worker cancellation/reconstruction unit test"
+}
