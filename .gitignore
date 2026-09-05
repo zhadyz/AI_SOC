@@ -41,7 +41,6 @@ ENV/
 *~
 
 # Docker
-.dockerignore
 *.log
 
 # Secrets & Credentials
@@ -117,3 +116,10 @@ htmlcov/
 # Documentation builds
 docs/_build/
 site/
+
+# Local research runtime and generated model candidates
+work/
+*.sqlite
+*.sqlite-*
+models/bundles/
+models/active.json

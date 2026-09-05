@@ -1,39 +1,26 @@
-# Response Orchestrator Service - Dockerfile
-# AI-Augmented SOC - Autonomous Adaptive Defense
-
+# Compatibility build: run docker build from the repository root with -f services/response-orchestrator/Dockerfile
 FROM python:3.11-slim
-
-# Metadata
-LABEL maintainer="abdul.bari8019@coyote.csusb.edu"
-LABEL version="1.0.0"
-LABEL description="Autonomous adaptive defense - simulation-driven response orchestration"
-
-# Set working directory
+ARG SERVICE=response-orchestrator
 WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    gcc \
+RUN apt-get update && apt-get install -y --no-install-recommends curl libgomp1 \
     && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements first for layer caching
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
-COPY . .
-
-# Create non-root user for security
-RUN useradd -m -u 1000 orchuser && chown -R orchuser:orchuser /app
-USER orchuser
-
-# Expose FastAPI port
+COPY requirements-runtime.txt ./
+COPY services/ ./services/
+COPY ml_training/ ./ml_training/
+COPY dashboard/ ./dashboard/
+COPY config/ ./config/
+RUN if [ "$SERVICE" = "ml-inference" ]; then \
+      pip install --no-cache-dir -r ml_training/requirements-inference.txt; \
+    elif [ "$SERVICE" = "dashboard" ]; then \
+      pip install --no-cache-dir -r dashboard/requirements.txt; \
+    else \
+      pip install --no-cache-dir -r "services/$SERVICE/requirements.txt"; \
+    fi
+RUN useradd --create-home --uid 1000 soc && mkdir -p /app/data && chown -R soc:soc /app
+USER soc
+ENV PYTHONUNBUFFERED=1
 EXPOSE 8000
+HEALTHCHECK --interval=15s --timeout=10s --start-period=60s --retries=5 \
+    CMD curl -fsS http://localhost:8000/health || exit 1
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
-
-# Run FastAPI with uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+CMD ["uvicorn", "services.response_orchestrator.main:app", "--host", "0.0.0.0", "--port", "8000"]

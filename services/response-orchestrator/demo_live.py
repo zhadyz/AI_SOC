@@ -205,7 +205,7 @@ async def run_simulation(env):
 def d3fend_lookup(report):
     section("STEP 3 — D3FEND Countermeasure Mapping")
 
-    from d3fend import get_countermeasures, get_unique_actions_for_incident
+    from services.response_orchestrator.d3fend import get_countermeasures, get_unique_actions_for_incident
 
     # Extract techniques from simulation
     techniques = set()
@@ -240,7 +240,7 @@ def d3fend_lookup(report):
 async def generate_defense_plan(techniques, report, env):
     section("STEP 4 — Generating Simulation-Informed Defense Plan")
 
-    from planner import DefensePlanner
+    from services.response_orchestrator.planner import DefensePlanner
 
     planner = DefensePlanner(
         ollama_host=OLLAMA_HOST,
@@ -359,10 +359,10 @@ def display_plan(plan):
 async def simulate_execution(plan):
     section("STEP 6 — Executing Defense Plan (DRY RUN)")
 
-    from adapters.wazuh import WazuhAdapter
-    from adapters.firewall import FirewallAdapter
-    from adapters.edr import EDRAdapter
-    from adapters.identity import IdentityAdapter
+    from services.response_orchestrator.adapters.wazuh import WazuhAdapter
+    from services.response_orchestrator.adapters.firewall import FirewallAdapter
+    from services.response_orchestrator.adapters.edr import EDRAdapter
+    from services.response_orchestrator.adapters.identity import IdentityAdapter
 
     adapters = {
         "wazuh": WazuhAdapter(),

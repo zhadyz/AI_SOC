@@ -1,3 +1,5 @@
+> Historical deployment material. For the supported recovered stack, use the [current README](../../README.md) and [operations guide](../development/operations.md). The verification limits are in [development status](../development/status.md).
+
 # Performance Optimization Guide for AI-SOC
 
 ## Executive Summary

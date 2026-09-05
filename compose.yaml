@@ -1,0 +1,185 @@
+name: ai-soc
+x-app: &app
+  restart: unless-stopped
+  init: true
+  environment: &shared-env
+    AI_SOC_API_KEY: ${AI_SOC_API_KEY:?Run python scripts/configure_local.py first}
+  healthcheck:
+    test: [CMD, curl, -fsS, 'http://localhost:8000/health']
+    interval: 15s
+    timeout: 10s
+    retries: 8
+    start_period: 60s
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ai_soc
+      POSTGRES_USER: ai_soc
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run python scripts/configure_local.py first}
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    ports: ['127.0.0.1:5435:5432']
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U ai_soc -d ai_soc']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+  ollama:
+    image: ollama/ollama:0.11.10
+    restart: unless-stopped
+    volumes: [ollama-data:/root/.ollama]
+    ports: ['127.0.0.1:11434:11434']
+    healthcheck:
+      test: [CMD, ollama, list]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+  model-init:
+    image: ollama/ollama:0.11.10
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: [ollama, pull]
+    command: ['${OLLAMA_MODEL:-llama3.2:3b}']
+    depends_on:
+      ollama: {condition: service_healthy}
+  chromadb:
+    image: chromadb/chroma:1.0.20
+    restart: unless-stopped
+    environment:
+      IS_PERSISTENT: 'TRUE'
+      ANONYMIZED_TELEMETRY: 'FALSE'
+    volumes: [chroma-data:/data]
+    ports: ['127.0.0.1:8200:8000']
+  ml-inference:
+    <<: *app
+    build: {context: ., args: {SERVICE: ml-inference}}
+    command: [uvicorn, 'ml_training.inference_api:app', --host, 0.0.0.0, --port, '8000']
+    ports: ['127.0.0.1:8500:8000']
+    volumes: ['./models:/app/models:ro']
+    environment:
+      <<: *shared-env
+      MODEL_PATH: /app/models
+  feedback-service:
+    <<: *app
+    build: {context: ., args: {SERVICE: feedback-service}}
+    command: [uvicorn, 'services.feedback_service.main:app', --host, 0.0.0.0, --port, '8000']
+    ports: ['127.0.0.1:8400:8000']
+    environment:
+      <<: *shared-env
+      FEEDBACK_DATABASE_URL: postgresql+asyncpg://ai_soc:${POSTGRES_PASSWORD}@postgres:5432/ai_soc
+    depends_on:
+      postgres: {condition: service_healthy}
+  rag-service:
+    <<: *app
+    build: {context: ., args: {SERVICE: rag-service}}
+    command: [uvicorn, 'services.rag_service.main:app', --host, 0.0.0.0, --port, '8000']
+    ports: ['127.0.0.1:8300:8000']
+    environment:
+      <<: *shared-env
+      RAG_CHROMADB_HOST: chromadb
+      RAG_CHROMADB_PORT: '8000'
+      RAG_INGEST_RUNBOOKS: 'true'
+      HF_HOME: /app/data/huggingface
+    volumes: [rag-model-cache:/app/data]
+    depends_on:
+      chromadb: {condition: service_started}
+  alert-triage:
+    <<: *app
+    build: {context: ., args: {SERVICE: alert-triage}}
+    command: [uvicorn, 'services.alert_triage.main:app', --host, 0.0.0.0, --port, '8000']
+    ports: ['127.0.0.1:8100:8000']
+    environment:
+      <<: *shared-env
+      TRIAGE_OLLAMA_HOST: http://ollama:11434
+      TRIAGE_PRIMARY_MODEL: ${OLLAMA_MODEL:-llama3.2:3b}
+      TRIAGE_FALLBACK_MODEL: ${OLLAMA_MODEL:-llama3.2:3b}
+      TRIAGE_ML_API_URL: http://ml-inference:8000
+      TRIAGE_RAG_ENABLED: 'true'
+      TRIAGE_RAG_SERVICE_URL: http://rag-service:8000
+      TRIAGE_FEEDBACK_SERVICE_URL: http://feedback-service:8000
+      TRIAGE_CORRELATION_ENGINE_URL: http://correlation-engine:8000
+      TRIAGE_LLM_TIMEOUT: '180'
+      TRIAGE_WORKER_COUNT: '1'
+    depends_on:
+      model-init: {condition: service_completed_successfully}
+      feedback-service: {condition: service_healthy}
+      ml-inference: {condition: service_healthy}
+  correlation-engine:
+    <<: *app
+    build: {context: ., args: {SERVICE: correlation-engine}}
+    command: [uvicorn, 'services.correlation_engine.main:app', --host, 0.0.0.0, --port, '8000']
+    ports: ['127.0.0.1:8600:8000']
+    environment:
+      <<: *shared-env
+      CORRELATION_DATABASE_URL: postgresql+asyncpg://ai_soc:${POSTGRES_PASSWORD}@postgres:5432/ai_soc
+      CORRELATION_SIMULATOR_OLLAMA_HOST: http://ollama:11434
+      CORRELATION_SIMULATOR_OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:3b}
+      CORRELATION_SIMULATOR_ENVIRONMENT_CONFIG: /app/config/default-environment.json
+      CORRELATION_AUTO_DEFEND_ENABLED: 'false'
+      SWARM_HISTORY_DIR: /app/data
+    volumes:
+      - ./config/simulation/default-environment.json:/app/config/default-environment.json:ro
+      - simulation-history:/app/data
+    depends_on:
+      postgres: {condition: service_healthy}
+  rule-generator:
+    <<: *app
+    build: {context: ., args: {SERVICE: rule-generator}}
+    command: [uvicorn, 'services.rule_generator.main:app', --host, 0.0.0.0, --port, '8000']
+    ports: ['127.0.0.1:8700:8000']
+    environment:
+      <<: *shared-env
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:3b}
+      RULE_STORE_PATH: /app/data/rules.sqlite
+    volumes: [rule-data:/app/data]
+    depends_on:
+      model-init: {condition: service_completed_successfully}
+  response-orchestrator:
+    <<: *app
+    build: {context: ., args: {SERVICE: response-orchestrator}}
+    command: [uvicorn, 'services.response_orchestrator.main:app', --host, 0.0.0.0, --port, '8000', --workers, '1']
+    ports: ['127.0.0.1:8800:8000']
+    environment:
+      <<: *shared-env
+      ORCHESTRATOR_DATABASE_URL: postgresql+asyncpg://ai_soc:${POSTGRES_PASSWORD}@postgres:5432/ai_soc
+      ORCHESTRATOR_OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:3b}
+      ORCHESTRATOR_DRY_RUN_MODE: 'true'
+    depends_on:
+      postgres: {condition: service_healthy}
+      correlation-engine: {condition: service_healthy}
+  wazuh-integration:
+    <<: *app
+    build: {context: ., args: {SERVICE: wazuh-integration}}
+    command: [uvicorn, 'services.wazuh_integration.main:app', --host, 0.0.0.0, --port, '8000']
+    ports: ['127.0.0.1:8002:8000']
+    environment:
+      <<: *shared-env
+      ALERT_TRIAGE_URL: http://alert-triage:8000
+      RAG_SERVICE_URL: http://rag-service:8000
+      CORRELATION_ENGINE_URL: http://correlation-engine:8000
+      WAZUH_MANAGER_URL: ${WAZUH_MANAGER_URL:-https://host.docker.internal:55000}
+      WAZUH_USERNAME: ${WAZUH_USERNAME:-wazuh-wui}
+      WAZUH_PASSWORD: ${WAZUH_PASSWORD:-}
+  dashboard:
+    build: {context: ., args: {SERVICE: dashboard}}
+    command: [gunicorn, --bind, '0.0.0.0:5050', --workers, '1', --threads, '8', --timeout, '240', 'dashboard.app:app']
+    restart: unless-stopped
+    init: true
+    ports: ['127.0.0.1:5050:5050']
+    environment:
+      <<: *shared-env
+      DASHBOARD_CONTAINER_NETWORK: 'true'
+    healthcheck:
+      test: [CMD, curl, -fsS, 'http://localhost:5050/health']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+volumes:
+  postgres-data:
+  ollama-data:
+  chroma-data:
+  rag-model-cache:
+  simulation-history:
+  rule-data:

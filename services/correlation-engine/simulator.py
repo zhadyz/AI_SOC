@@ -21,17 +21,17 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, List, Optional, Set
 
-from environment import Environment
-from actions import (
+from services.correlation_engine.environment import Environment
+from services.correlation_engine.actions import (
     ActionOutcome,
     ActionResult,
     AgentState,
     execute_action,
     get_available_actions,
 )
-from archetypes import AttackerAgent
-from defender_archetypes import DefenderAgent
-from defender_actions import (
+from services.correlation_engine.archetypes import AttackerAgent
+from services.correlation_engine.defender_archetypes import DefenderAgent
+from services.correlation_engine.defender_actions import (
     DefenderState,
     DefenderActionOutcome,
     execute_defender_action,

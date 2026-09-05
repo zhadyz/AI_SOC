@@ -23,9 +23,9 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, List, Optional, Set, Callable
 
-from environment import Environment
-from simulator import CampaignSimulator, SimulationConfig
-from follower import FollowerAgent, FollowerConfig
+from services.correlation_engine.environment import Environment
+from services.correlation_engine.simulator import CampaignSimulator, SimulationConfig
+from services.correlation_engine.follower import FollowerAgent, FollowerConfig
 
 logger = logging.getLogger(__name__)
 

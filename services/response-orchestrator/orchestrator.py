@@ -1,503 +1,363 @@
-"""
-Core Orchestrator - Response Orchestrator Service
-AI-Augmented SOC
-
-The central state machine that drives the autonomous defense loop:
-
-  TRIGGERED → SIMULATING → PLANNING → AWAITING_APPROVAL →
-  EXECUTING → VERIFYING → COMPLETED (or ROLLED_BACK)
-
-Each transition is logged, persisted, and observable via API.
-The orchestrator coordinates between:
-  - Correlation Engine (incident data, simulation)
-  - Defense Planner (D3FEND lookup, LLM scoring)
-  - Action Execution Layer (adapters)
-  - Verification Engine (re-simulation, monitoring)
-  - Feedback Service (outcome recording)
-"""
-
+"""Durable response lifecycle with explicit dry runs, approvals and recovery."""
 import asyncio
 import logging
-import uuid
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from datetime import datetime, timedelta
 
 import httpx
+from services.common.api_security import service_client
 
-from models import (
-    ActionStatus, ActionType, AdapterType, ApprovalTier,
-    DefensePlan, PlannedAction, PlanStatus, VerificationResult,
+from services.response_orchestrator.models import (
+    ActionStatus, ApprovalTier, DefensePlan, PlanStatus,
 )
-from planner import DefensePlanner
-from verification import VerificationEngine
-from adapters.base import BaseAdapter, AdapterResult
-from adapters.wazuh import WazuhAdapter
-from adapters.firewall import FirewallAdapter
-from adapters.edr import EDRAdapter
-from adapters.identity import IdentityAdapter
-from config import Settings
+from services.response_orchestrator.planner import DefensePlanner
+from services.response_orchestrator.verification import VerificationEngine
+from services.response_orchestrator.adapters.base import AdapterResult
+from services.response_orchestrator.adapters.wazuh import WazuhAdapter
+from services.response_orchestrator.adapters.firewall import FirewallAdapter
+from services.response_orchestrator.adapters.edr import EDRAdapter
+from services.response_orchestrator.adapters.identity import IdentityAdapter
 
 logger = logging.getLogger(__name__)
+TERMINAL = {PlanStatus.COMPLETED, PlanStatus.FAILED, PlanStatus.ROLLED_BACK,
+            PlanStatus.DRY_RUN, PlanStatus.CANCELLED}
 
 
 class ResponseOrchestrator:
-    """
-    Drives the full autonomous defense loop.
-
-    Manages active defense plans, coordinates simulation → planning →
-    execution → verification, and handles approval workflows.
-    """
-
-    def __init__(self, settings: Settings):
+    def __init__(self, settings, store=None):
         self.settings = settings
-
-        # Active plans (in-memory cache, backed by PostgreSQL)
-        self._plans: Dict[str, DefensePlan] = {}
-
-        # Components
+        self.store = store
+        self._plans = {}
+        self._locks = {}
+        self._tasks = set()
+        self._starting = 0
+        self._capacity_lock = asyncio.Lock()
         self.planner = DefensePlanner(
-            ollama_host=settings.ollama_host,
-            ollama_model=settings.ollama_model,
+            ollama_host=settings.ollama_host, ollama_model=settings.ollama_model,
             auto_execute_min=settings.auto_execute_confidence_min,
             auto_veto_min=settings.auto_execute_with_veto_confidence_min,
         )
         self.verifier = VerificationEngine(
-            simulation_url=settings.simulation_url,
-            correlation_url=settings.correlation_engine_url,
-            wazuh_api_url=settings.wazuh_api_url,
-            wazuh_username=settings.wazuh_api_username,
-            wazuh_password=settings.wazuh_api_password,
-            wazuh_verify_ssl=settings.wazuh_api_verify_ssl,
+            simulation_url=settings.simulation_url, correlation_url=settings.correlation_engine_url,
+            wazuh_api_url=settings.wazuh_api_url, wazuh_username=settings.wazuh_api_username,
+            wazuh_password=settings.wazuh_api_password, wazuh_verify_ssl=settings.wazuh_api_verify_ssl,
             risk_reduction_threshold=settings.verification_risk_reduction_threshold,
             monitoring_duration_seconds=settings.verification_monitoring_duration_seconds,
+            indexer_url=settings.wazuh_indexer_url, indexer_username=settings.wazuh_indexer_username,
+            indexer_password=settings.wazuh_indexer_password,
         )
-
-        # Adapters
-        self._adapters: Dict[str, BaseAdapter] = {
-            "wazuh": WazuhAdapter(
-                api_url=settings.wazuh_api_url,
-                username=settings.wazuh_api_username,
-                password=settings.wazuh_api_password,
-                verify_ssl=settings.wazuh_api_verify_ssl,
-            ),
-            "firewall": FirewallAdapter(),
-            "edr": EDRAdapter(),
-            "identity": IdentityAdapter(),
+        self._adapters = {
+            "wazuh": WazuhAdapter(api_url=settings.wazuh_api_url, username=settings.wazuh_api_username,
+                                  password=settings.wazuh_api_password, verify_ssl=settings.wazuh_api_verify_ssl,
+                                  block_command=settings.wazuh_block_command),
+            "firewall": FirewallAdapter(), "network": FirewallAdapter(), "edr": EDRAdapter(), "identity": IdentityAdapter(),
         }
 
-    # ----- Main Loop -----
+    async def restore(self):
+        if not self.store:
+            return
+        for plan in await self.store.load():
+            self._plans[plan.plan_id] = plan
+            self._locks[plan.plan_id] = asyncio.Lock()
+            uncertain = plan.status in {PlanStatus.EXECUTING, PlanStatus.VERIFYING}
+            uncertain |= any(a.status == ActionStatus.EXECUTING for a in plan.actions)
+            if uncertain:
+                # A remote action may have succeeded before the process died.
+                # Never replay it automatically.
+                plan.status = PlanStatus.RECOVERY_REQUIRED
+                await self._save(plan, "restart_requires_reconciliation")
+            for action in plan.actions:
+                if action.veto_deadline and action.status == ActionStatus.PENDING:
+                    action.requires_approval = True
+                    action.veto_deadline = None
+                    plan.status = PlanStatus.AWAITING_APPROVAL
+                    await self._save(plan, "restart_requires_approval", action_id=action.action_id)
 
-    async def trigger_defense(
-        self,
-        incident_id: str,
-        environment_json: Optional[Dict] = None,
-        auto_execute: bool = True,
-        dry_run: bool = False,
-        skip_simulation: bool = False,
-    ) -> DefensePlan:
-        """
-        Entry point: trigger the full defense loop for an incident.
+    async def close(self):
+        for task in self._tasks:
+            task.cancel()
+        await asyncio.gather(*self._tasks, return_exceptions=True)
 
-        1. Fetch incident context from correlation engine
-        2. Run simulation (unless skipped)
-        3. Generate defense plan
-        4. Execute auto-approved actions
-        5. Queue remaining actions for human approval
-        6. Start verification (async)
-        """
-        logger.info(f"Defense triggered for incident {incident_id}")
-
-        # Check concurrent plan limit
-        active = [
-            p for p in self._plans.values()
-            if p.status not in (PlanStatus.COMPLETED, PlanStatus.FAILED, PlanStatus.ROLLED_BACK)
-        ]
-        if len(active) >= self.settings.max_concurrent_plans:
-            raise RuntimeError(
-                f"Max concurrent plans ({self.settings.max_concurrent_plans}) reached. "
-                f"Complete or cancel existing plans first."
-            )
-
-        # Step 1: Fetch incident context
-        incident = await self._fetch_incident(incident_id)
-        if not incident:
-            raise ValueError(f"Incident {incident_id} not found")
-
-        # Step 2: Run simulation
-        simulation_results = None
-        if not skip_simulation:
-            simulation_results = await self._run_simulation(
-                incident, environment_json
-            )
-
-        # Step 3: Generate plan
-        plan = await self.planner.generate_plan(
-            incident_id=incident_id,
-            detected_techniques=incident.get("mitre_techniques", []),
-            kill_chain_stage=incident.get("kill_chain_stage", ""),
-            source_ips=incident.get("source_ips", []),
-            dest_ips=incident.get("dest_ips", []),
-            incident_summary=incident.get("summary", ""),
-            simulation_results=simulation_results,
-            environment=environment_json,
-            dry_run=dry_run or self.settings.dry_run_mode,
-        )
-
-        self._plans[plan.plan_id] = plan
-
-        # Step 4: Execute auto-approved actions
-        if auto_execute and not plan.dry_run:
-            await self._execute_auto_actions(plan)
-
-        # Update status based on remaining actions
-        pending_approval = [
-            a for a in plan.actions
-            if a.requires_approval and a.status == ActionStatus.PENDING
-        ]
-        if pending_approval:
-            plan.status = PlanStatus.AWAITING_APPROVAL
-        elif all(a.status in (ActionStatus.COMPLETED, ActionStatus.SKIPPED) for a in plan.actions):
-            plan.status = PlanStatus.VERIFYING
-            # Start async verification
-            asyncio.create_task(self._verify_and_complete(plan))
-        else:
-            plan.status = PlanStatus.EXECUTING
-
+    async def _save(self, plan, event, **detail):
         plan.updated_at = datetime.utcnow()
-        return plan
+        if self.store:
+            await self.store.save(plan, event, **detail)
 
-    # ----- Incident Fetch -----
+    def _spawn(self, coroutine):
+        task = asyncio.create_task(coroutine)
+        self._tasks.add(task)
+        def finished(done):
+            self._tasks.discard(done)
+            if not done.cancelled() and done.exception():
+                logger.error("Response background task failed", exc_info=done.exception())
+        task.add_done_callback(finished)
 
-    async def _fetch_incident(self, incident_id: str) -> Optional[Dict]:
-        """Fetch incident details from the correlation engine."""
+    async def trigger_defense(self, incident_id, environment_json=None, auto_execute=False,
+                              dry_run=True, skip_simulation=False):
+        async with self._capacity_lock:
+            active = sum(p.status not in TERMINAL for p in self._plans.values())
+            if active + self._starting >= self.settings.max_concurrent_plans:
+                raise RuntimeError("Max concurrent plans reached; resolve active plans first")
+            self._starting += 1
         try:
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(
-                    f"{self.settings.correlation_engine_url}/incidents/{incident_id}",
-                    timeout=15.0,
-                )
-                if resp.status_code == 200:
-                    return resp.json()
-                elif resp.status_code == 404:
-                    logger.warning(f"Incident {incident_id} not found")
-                    return None
+            incident = await self._fetch_incident(incident_id)
+            if not incident:
+                raise ValueError(f"Incident {incident_id} not found")
+            simulation = None if skip_simulation else await self._run_simulation(incident, environment_json)
+            plan = await self.planner.generate_plan(
+                incident_id=incident_id, detected_techniques=incident.get("mitre_techniques", []),
+                kill_chain_stage=incident.get("kill_chain_stage", ""), source_ips=incident.get("source_ips", []),
+                dest_ips=incident.get("dest_ips", []), incident_summary=incident.get("summary", ""),
+                simulation_results=simulation, environment=environment_json,
+                dry_run=dry_run or self.settings.dry_run_mode,
+            )
+            self._plans[plan.plan_id] = plan
+            self._locks[plan.plan_id] = asyncio.Lock()
+            for action in plan.actions:
+                if action.adapter.value == "wazuh":
+                    action.parameters.setdefault("agent_list", list(self.settings.wazuh_agent_ids))
+            await self._save(plan, "plan_created")
+            if plan.dry_run:
+                for action in plan.actions:
+                    await self._execute_action(plan, action)
+                plan.status = PlanStatus.DRY_RUN
+                plan.completed_at = datetime.utcnow()
+                await self._save(plan, "dry_run_completed")
+            else:
+                if auto_execute:
+                    await self._execute_auto_actions(plan)
                 else:
-                    logger.error(f"Fetch incident failed: {resp.status_code}")
-                    return None
-        except Exception as e:
-            logger.error(f"Failed to fetch incident {incident_id}: {e}")
+                    for action in plan.actions:
+                        action.requires_approval = True
+                await self._finish_actions(plan)
+            return plan
+        except Exception:
+            if "plan" in locals():
+                plan.status = PlanStatus.RECOVERY_REQUIRED
+            raise
+        finally:
+            async with self._capacity_lock:
+                self._starting -= 1
+
+    async def _fetch_incident(self, incident_id):
+        async with service_client() as client:
+            response = await client.get(f"{self.settings.correlation_engine_url}/incidents/{incident_id}", timeout=15)
+            if response.status_code == 404:
+                return None
+            response.raise_for_status()
+            return response.json()
+
+    async def _run_simulation(self, incident, environment_json):
+        try:
+            async with service_client() as client:
+                response = await client.post(f"{self.settings.simulation_url}/simulate",
+                    params={"timesteps": self.settings.simulation_timesteps}, json=environment_json,
+                    timeout=self.settings.simulation_timeout_seconds)
+                response.raise_for_status()
+                return response.json()
+        except (httpx.HTTPError, ValueError):
+            logger.exception("Simulation unavailable; plan has no simulated risk baseline")
             return None
 
-    # ----- Simulation -----
-
-    async def _run_simulation(
-        self,
-        incident: Dict,
-        environment_json: Optional[Dict],
-    ) -> Optional[Dict]:
-        """Run a simulation against the environment."""
-        try:
-            async with httpx.AsyncClient() as client:
-                params = {
-                    "timesteps": self.settings.simulation_timesteps,
-                }
-                resp = await client.post(
-                    f"{self.settings.simulation_url}/simulate",
-                    params=params,
-                    json=environment_json,
-                    timeout=self.settings.simulation_timeout_seconds,
-                )
-                if resp.status_code == 200:
-                    result = resp.json()
-                    logger.info(
-                        f"Simulation complete: {result.get('simulation_id', 'unknown')}"
-                    )
-                    return result
-                else:
-                    logger.error(f"Simulation failed: {resp.status_code}")
-        except Exception as e:
-            logger.error(f"Simulation request failed: {e}")
-
-        return None
-
-    # ----- Action Execution -----
-
-    async def _execute_auto_actions(self, plan: DefensePlan) -> None:
-        """Execute all actions that don't require human approval."""
-        auto_count = 0
+    async def _execute_auto_actions(self, plan):
         for action in plan.actions:
-            if action.requires_approval:
-                continue
             if action.status != ActionStatus.PENDING:
                 continue
-
-            # Enforce rate limit
-            if auto_count >= self.settings.max_auto_actions_per_incident:
-                logger.warning(
-                    f"Max auto-actions ({self.settings.max_auto_actions_per_incident}) "
-                    f"reached for plan {plan.plan_id}. Remaining actions need approval."
-                )
+            if action.approval_tier == ApprovalTier.OBSERVE:
+                action.status = ActionStatus.SKIPPED
+                continue
+            if action.requires_approval or action.approval_tier not in {ApprovalTier.AUTO_SAFE, ApprovalTier.AUTO_VETO}:
                 action.requires_approval = True
                 continue
-
-            await self._execute_action(plan, action)
-            auto_count += 1
-
-            # Cooldown between actions
-            if self.settings.cooldown_between_actions_seconds > 0:
+            if plan.auto_executed_count >= self.settings.max_auto_actions_per_incident:
+                action.requires_approval = True
+                continue
+            plan.auto_executed_count += 1
+            if action.approval_tier == ApprovalTier.AUTO_VETO:
+                action.veto_deadline = datetime.utcnow() + timedelta(seconds=self.settings.veto_window_seconds)
+                await self._save(plan, "veto_window_opened", action_id=action.action_id,
+                                 deadline=action.veto_deadline.isoformat())
+                self._spawn(self._execute_after_veto(plan, action))
+            else:
+                await self._execute_action(plan, action)
+            if self.settings.cooldown_between_actions_seconds:
                 await asyncio.sleep(self.settings.cooldown_between_actions_seconds)
 
-        plan.auto_executed_count = auto_count
+    async def _execute_after_veto(self, plan, action):
+        delay = max(0, (action.veto_deadline - datetime.utcnow()).total_seconds())
+        await asyncio.sleep(delay)
+        async with self._locks[plan.plan_id]:
+            if action.status != ActionStatus.PENDING or action.requires_approval or plan.status in TERMINAL:
+                return
+            await self._execute_action(plan, action)
+            await self._finish_actions(plan)
 
-    async def _execute_action(
-        self, plan: DefensePlan, action: PlannedAction
-    ) -> AdapterResult:
-        """Execute a single defense action via its adapter."""
+    async def _execute_action(self, plan, action):
         adapter = self._adapters.get(action.adapter.value)
-        if not adapter:
-            action.status = ActionStatus.FAILED
-            action.error_message = f"No adapter found for {action.adapter.value}"
-            return AdapterResult(
-                success=False,
-                action_type=action.action_type.value,
-                target=action.target,
-                adapter=action.adapter.value,
-                detail=action.error_message,
-                error=action.error_message,
-            )
-
         action.status = ActionStatus.EXECUTING
-        action.executed_at = datetime.utcnow()
-
-        logger.info(
-            f"Executing: {action.action_type.value} on {action.target} "
-            f"via {action.adapter.value} (plan {plan.plan_id})"
-        )
-
-        if plan.dry_run:
-            result = await adapter.dry_run(action.action_type.value, action.target)
-        else:
-            result = await adapter.execute(action.action_type.value, action.target)
-
+        if not plan.dry_run:
+            action.executed_at = datetime.utcnow()
+        await self._save(plan, "action_intent", action_id=action.action_id, dry_run=plan.dry_run)
+        try:
+            if adapter is None:
+                raise ValueError(f"No adapter for {action.adapter.value}")
+            if plan.dry_run:
+                result = await adapter.dry_run(action.action_type.value, action.target, action.parameters)
+            else:
+                result = await adapter.execute(action.action_type.value, action.target, action.parameters)
+        except Exception as exc:
+            result = AdapterResult(False, action.action_type.value, action.target, action.adapter.value,
+                                   "Adapter execution failed", error=str(exc), rollback_capable=False)
+        action.adapter_response = result.to_dict()
         if result.success:
-            action.status = ActionStatus.COMPLETED
+            action.status = ActionStatus.SIMULATED if plan.dry_run else ActionStatus.COMPLETED
             action.completed_at = datetime.utcnow()
-            action.adapter_response = result.to_dict()
         else:
             action.status = ActionStatus.FAILED
             action.error_message = result.error or result.detail
-            action.adapter_response = result.to_dict()
-
-        plan.updated_at = datetime.utcnow()
+        await self._save(plan, "action_result", action_id=action.action_id, result=result.to_dict())
         return result
 
-    # ----- Approval Handling -----
-
-    async def approve_action(
-        self,
-        plan_id: str,
-        action_id: str,
-        approved: bool,
-        analyst_id: Optional[str] = None,
-        notes: Optional[str] = None,
-    ) -> PlannedAction:
-        """Approve or reject a pending action."""
+    async def approve_action(self, plan_id, action_id, approved, analyst_id=None, notes=None):
         plan = self._plans.get(plan_id)
         if not plan:
             raise ValueError(f"Plan {plan_id} not found")
-
-        action = next(
-            (a for a in plan.actions if a.action_id == action_id), None
-        )
-        if not action:
-            raise ValueError(f"Action {action_id} not found in plan {plan_id}")
-
-        if action.status != ActionStatus.PENDING:
-            raise ValueError(
-                f"Action {action_id} is {action.status.value}, not pending"
-            )
-
-        if approved:
-            plan.human_approved_count += 1
-            result = await self._execute_action(plan, action)
-            if not result.success:
-                logger.error(
-                    f"Approved action {action_id} failed: {result.error}"
-                )
-        else:
-            action.status = ActionStatus.VETOED
-            logger.info(f"Action {action_id} vetoed by {analyst_id}")
-
-        # Check if all actions are now resolved
-        all_resolved = all(
-            a.status in (
-                ActionStatus.COMPLETED, ActionStatus.FAILED,
-                ActionStatus.SKIPPED, ActionStatus.VETOED,
-            )
-            for a in plan.actions
-        )
-
-        if all_resolved:
-            plan.status = PlanStatus.VERIFYING
-            asyncio.create_task(self._verify_and_complete(plan))
-
-        plan.updated_at = datetime.utcnow()
-        return action
-
-    # ----- Verification & Completion -----
-
-    async def _verify_and_complete(self, plan: DefensePlan) -> None:
-        """Run verification and finalize the plan."""
-        try:
-            verification = await self.verifier.verify_plan(plan)
-            plan.verification = verification
-            plan.post_defense_risk = verification.post_attack_success_rate
-
-            if verification.verification_passed:
-                plan.status = PlanStatus.COMPLETED
-                plan.completed_at = datetime.utcnow()
-                logger.info(
-                    f"Plan {plan.plan_id} COMPLETED — "
-                    f"risk reduced by {verification.risk_reduction_pct*100:.1f}%"
-                )
+        if not analyst_id or not analyst_id.strip():
+            raise ValueError("An analyst identity is required")
+        async with self._locks.setdefault(plan_id, asyncio.Lock()):
+            if plan.status in TERMINAL or plan.status == PlanStatus.RECOVERY_REQUIRED:
+                raise ValueError(f"Plan {plan_id} does not accept approvals")
+            action = next((a for a in plan.actions if a.action_id == action_id), None)
+            if not action:
+                raise ValueError(f"Action {action_id} not found")
+            if action.status != ActionStatus.PENDING:
+                raise ValueError(f"Action {action_id} is not pending")
+            action.approved_by, action.approval_notes = analyst_id, notes
+            action.approved_at = datetime.utcnow()
+            await self._save(plan, "approval_decision", action_id=action_id, approved=approved,
+                             analyst_id=analyst_id, notes=notes)
+            if approved:
+                plan.human_approved_count += 1
+                await self._execute_action(plan, action)
             else:
-                # Check if auto-rollback is enabled
-                if self.settings.auto_rollback_on_verification_failure:
-                    await self._rollback_plan(plan)
-                    plan.status = PlanStatus.ROLLED_BACK
-                    logger.warning(
-                        f"Plan {plan.plan_id} ROLLED BACK — "
-                        f"verification failed: {verification.verdict_reason[:100]}"
-                    )
-                else:
-                    plan.status = PlanStatus.COMPLETED
-                    plan.completed_at = datetime.utcnow()
-                    logger.warning(
-                        f"Plan {plan.plan_id} completed with verification failure: "
-                        f"{verification.verdict_reason[:100]}"
-                    )
+                action.status = ActionStatus.VETOED
+                await self._save(plan, "action_vetoed", action_id=action_id)
+            await self._finish_actions(plan)
+            return action
 
-            # Record outcome in feedback service
-            await self._record_outcome(plan)
-
-        except Exception as e:
-            logger.error(f"Verification failed for plan {plan.plan_id}: {e}")
-            plan.status = PlanStatus.FAILED
-            plan.completed_at = datetime.utcnow()
-
-        plan.updated_at = datetime.utcnow()
-
-    async def _rollback_plan(self, plan: DefensePlan) -> None:
-        """Rollback all completed actions in reverse order."""
-        reversed_actions = [
-            a for a in reversed(plan.actions)
-            if a.status == ActionStatus.COMPLETED
-        ]
-
-        for action in reversed_actions:
-            adapter = self._adapters.get(action.adapter.value)
-            if not adapter:
-                continue
-
-            try:
-                result = await adapter.rollback(
-                    action.action_type.value, action.target
-                )
-                if result.success:
-                    action.status = ActionStatus.ROLLED_BACK
-                    action.rolled_back_at = datetime.utcnow()
-                    logger.info(
-                        f"Rolled back: {action.action_type.value} on {action.target}"
-                    )
-                else:
-                    logger.error(
-                        f"Rollback failed for {action.action_id}: {result.error}"
-                    )
-            except Exception as e:
-                logger.error(f"Rollback error for {action.action_id}: {e}")
-
-    # ----- Feedback Recording -----
-
-    async def _record_outcome(self, plan: DefensePlan) -> None:
-        """Record defense outcome in the feedback service for learning."""
-        if not plan.verification:
+    async def _finish_actions(self, plan):
+        if any(a.status == ActionStatus.PENDING for a in plan.actions):
+            plan.status = PlanStatus.AWAITING_APPROVAL
+        elif any(a.status == ActionStatus.FAILED for a in plan.actions):
+            plan.status = PlanStatus.RECOVERY_REQUIRED if any(a.executed_at for a in plan.actions) else PlanStatus.FAILED
+        elif any(a.status == ActionStatus.COMPLETED for a in plan.actions):
+            plan.status = PlanStatus.VERIFYING
+            await self._save(plan, "verification_started")
+            self._spawn(self._verify_and_complete(plan))
             return
+        else:
+            plan.status = PlanStatus.CANCELLED
+            plan.completed_at = datetime.utcnow()
+        await self._save(plan, "plan_state", status=plan.status.value)
 
+    async def request_verification(self, plan_id, environment_json, analyst_id):
+        plan = self._plans.get(plan_id)
+        if not plan:
+            raise ValueError("Plan not found")
+        async with self._locks.setdefault(plan_id, asyncio.Lock()):
+            if plan.dry_run or plan.status != PlanStatus.RECOVERY_REQUIRED:
+                raise ValueError("Only an executed plan awaiting reconciliation can be reverified")
+            if any(a.status in {ActionStatus.PENDING, ActionStatus.EXECUTING, ActionStatus.FAILED} for a in plan.actions):
+                raise ValueError("Resolve uncertain, pending or failed actions before verification")
+            plan.status = PlanStatus.VERIFYING
+            await self._save(plan, "verification_requested", analyst_id=analyst_id,
+                             observed_environment=environment_json)
+            self._spawn(self._verify_and_complete(plan, environment_json))
+        return plan
+
+    async def _verify_and_complete(self, plan, updated_environment=None):
         try:
-            async with httpx.AsyncClient() as client:
-                outcome = {
-                    "plan_id": plan.plan_id,
-                    "incident_id": plan.incident_id,
-                    "total_actions": plan.total_actions,
-                    "auto_executed": plan.auto_executed_count,
-                    "human_approved": plan.human_approved_count,
-                    "pre_risk": plan.pre_defense_risk,
-                    "post_risk": plan.post_defense_risk,
-                    "verification_passed": plan.verification.verification_passed,
-                    "risk_reduction_pct": plan.verification.risk_reduction_pct,
-                    "actions": [
-                        {
-                            "action_type": a.action_type.value,
-                            "target": a.target,
-                            "status": a.status.value,
-                            "d3fend_technique": a.d3fend_technique,
-                            "counters_techniques": a.counters_techniques,
-                            "impact_score": a.impact_score,
-                        }
-                        for a in plan.actions
-                    ],
-                }
+            verification = await self.verifier.verify_plan(plan, updated_environment)
+            plan.verification = verification
+            plan.post_defense_risk = verification.post_attack_success_rate if verification.simulation_available else None
+            if verification.verification_passed and verification.evidence_available:
+                plan.status = PlanStatus.COMPLETED
+            elif verification.evidence_available and self.settings.auto_rollback_on_verification_failure:
+                rolled_back = await self._rollback_plan(plan)
+                plan.status = PlanStatus.ROLLED_BACK if rolled_back else PlanStatus.RECOVERY_REQUIRED
+            else:
+                plan.status = PlanStatus.RECOVERY_REQUIRED
+            plan.completed_at = datetime.utcnow() if plan.status in TERMINAL else None
+            await self._save(plan, "verification_result", evidence=verification.model_dump(mode="json"))
+            await self._record_outcome(plan)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("Verification failed")
+            plan.status = PlanStatus.RECOVERY_REQUIRED
+            await self._save(plan, "verification_unavailable")
 
-                await client.post(
-                    f"{self.settings.feedback_service_url}/alerts",
-                    json={
-                        "alert_id": f"defense-{plan.plan_id}",
-                        "source": "response-orchestrator",
-                        "data": outcome,
-                    },
-                    timeout=10.0,
-                )
-        except Exception as e:
-            logger.warning(f"Failed to record defense outcome: {e}")
+    async def _rollback_plan(self, plan):
+        if plan.dry_run:
+            return False
+        complete = True
+        for action in reversed(plan.actions):
+            if action.status != ActionStatus.COMPLETED:
+                continue
+            adapter = self._adapters.get(action.adapter.value)
+            if not adapter or not (action.adapter_response or {}).get("rollback_capable", False):
+                complete = False
+                continue
+            await self._save(plan, "rollback_intent", action_id=action.action_id)
+            try:
+                result = await adapter.rollback(action.action_type.value, action.target, action.parameters)
+            except Exception:
+                complete = False
+                logger.exception("Rollback failed")
+                continue
+            if result.success:
+                action.status = ActionStatus.ROLLED_BACK
+                action.rolled_back_at = datetime.utcnow()
+            else:
+                complete = False
+            await self._save(plan, "rollback_result", action_id=action.action_id, result=result.to_dict())
+        return complete
 
-    # ----- Plan Management -----
+    async def cancel_plan(self, plan_id, analyst_id, notes=None):
+        plan = self._plans.get(plan_id)
+        if not plan:
+            raise ValueError(f"Plan {plan_id} not found")
+        async with self._locks.setdefault(plan_id, asyncio.Lock()):
+            if any(a.status in {ActionStatus.EXECUTING, ActionStatus.COMPLETED} for a in plan.actions):
+                raise ValueError("Executed actions require reconciliation; cancellation cannot undo them")
+            for action in plan.actions:
+                if action.status == ActionStatus.PENDING:
+                    action.status = ActionStatus.VETOED
+            plan.status = PlanStatus.CANCELLED
+            plan.completed_at = datetime.utcnow()
+            await self._save(plan, "plan_cancelled", analyst_id=analyst_id, notes=notes)
+        return plan
 
-    def get_plan(self, plan_id: str) -> Optional[DefensePlan]:
-        """Get a plan by ID."""
+    async def _record_outcome(self, plan):
+        try:
+            async with service_client() as client:
+                response = await client.post(f"{self.settings.feedback_service_url}/alerts", json={
+                    "alert_id": f"defense-{plan.plan_id}", "rule_description": "Defense outcome",
+                    "raw_alert": {"source": "response-orchestrator", "defense_plan": plan.model_dump(mode="json")},
+                }, timeout=10)
+                response.raise_for_status()
+        except httpx.HTTPError:
+            # The canonical outcome is already durably stored with the plan.
+            logger.exception("Feedback projection failed; outcome remains in response plan audit")
+
+    def get_plan(self, plan_id):
         return self._plans.get(plan_id)
 
-    def get_all_plans(
-        self,
-        status: Optional[str] = None,
-        limit: int = 50,
-    ) -> List[DefensePlan]:
-        """Get all plans, optionally filtered by status."""
-        plans = list(self._plans.values())
-        if status:
-            plans = [p for p in plans if p.status.value == status]
-        plans.sort(key=lambda p: p.created_at, reverse=True)
-        return plans[:limit]
+    def get_all_plans(self, status=None, limit=50):
+        plans = [p for p in self._plans.values() if not status or p.status.value == status]
+        return sorted(plans, key=lambda p: p.created_at, reverse=True)[:limit]
 
-    def get_pending_approvals(self) -> List[Dict[str, Any]]:
-        """Get all actions across all plans that need human approval."""
-        pending = []
-        for plan in self._plans.values():
-            if plan.status != PlanStatus.AWAITING_APPROVAL:
-                continue
-            for action in plan.actions:
-                if action.requires_approval and action.status == ActionStatus.PENDING:
-                    pending.append({
-                        "plan_id": plan.plan_id,
-                        "incident_id": plan.incident_id,
-                        "action_id": action.action_id,
-                        "action_type": action.action_type.value,
-                        "target": action.target,
-                        "target_hostname": action.target_hostname,
-                        "d3fend_label": action.d3fend_label,
-                        "impact_score": action.impact_score,
-                        "safety_score": action.safety_score,
-                        "blast_radius": action.blast_radius.value,
-                        "rationale": action.rationale,
-                        "counters_techniques": action.counters_techniques,
-                    })
-        return pending
+    def get_pending_approvals(self):
+        return [{"plan_id": plan.plan_id, "incident_id": plan.incident_id,
+                 **action.model_dump(mode="json")} for plan in self._plans.values()
+                if plan.status == PlanStatus.AWAITING_APPROVAL for action in plan.actions
+                if action.status == ActionStatus.PENDING]

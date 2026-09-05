@@ -15,7 +15,7 @@ from typing import Dict, List, Optional
 
 import httpx
 
-from environment import Environment, Host, HostDefenses, NetworkSegment, ServiceInfo
+from services.correlation_engine.environment import Environment, Host, HostDefenses, NetworkSegment, ServiceInfo
 
 logger = logging.getLogger(__name__)
 

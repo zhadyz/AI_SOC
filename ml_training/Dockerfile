@@ -1,30 +1,26 @@
+# Build from the repository root. Models must be mounted at /app/models.
 FROM python:3.11-slim
-
-# Set working directory
+ARG SERVICE=ml-inference
 WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
+RUN apt-get update && apt-get install -y --no-install-recommends curl libgomp1 \
     && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
-COPY inference_api.py .
-
-# Create non-root user
-RUN useradd -m -u 1000 mluser && chown -R mluser:mluser /app
-USER mluser
-
-# Expose port
+COPY requirements-runtime.txt ./
+COPY services/ ./services/
+COPY ml_training/ ./ml_training/
+COPY dashboard/ ./dashboard/
+COPY config/ ./config/
+RUN if [ "$SERVICE" = "ml-inference" ]; then \
+      pip install --no-cache-dir -r ml_training/requirements-inference.txt; \
+    elif [ "$SERVICE" = "dashboard" ]; then \
+      pip install --no-cache-dir -r dashboard/requirements.txt; \
+    else \
+      pip install --no-cache-dir -r "services/$SERVICE/requirements.txt"; \
+    fi
+RUN useradd --create-home --uid 1000 soc && mkdir -p /app/data && chown -R soc:soc /app
+USER soc
+ENV PYTHONUNBUFFERED=1
 EXPOSE 8000
+HEALTHCHECK --interval=15s --timeout=10s --start-period=60s --retries=5 \
+    CMD curl -fsS http://localhost:8000/health || exit 1
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
-
-# Run the application
-CMD ["uvicorn", "inference_api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "ml_training.inference_api:app", "--host", "0.0.0.0", "--port", "8000"]

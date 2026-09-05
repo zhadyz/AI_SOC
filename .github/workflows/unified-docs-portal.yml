@@ -1,9 +1,6 @@
 name: Deploy Unified Research Portal
 
 on:
-  push:
-    branches:
-      - master
   workflow_dispatch:
 
 permissions:

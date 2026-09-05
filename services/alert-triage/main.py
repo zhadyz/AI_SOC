@@ -13,15 +13,16 @@ from contextlib import asynccontextmanager
 from typing import Dict, Any
 
 import httpx
+from services.common.api_security import service_client
 from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.responses import JSONResponse
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 from starlette.responses import Response
 
-from config import settings
-from models import SecurityAlert, TriageResponse, HealthResponse
-from llm_client import OllamaClient
-from worker_pool import WorkerPool
+from services.alert_triage.config import settings
+from services.alert_triage.models import SecurityAlert, TriageResponse, HealthResponse
+from services.alert_triage.llm_client import OllamaClient
+from services.alert_triage.worker_pool import WorkerPool
 
 # Configure logging
 logging.basicConfig(
@@ -57,7 +58,7 @@ async def lifespan(app: FastAPI):
 
     Initializes Ollama client and validates connectivity.
     """
-    global llm_client
+    global llm_client, worker_pool
 
     logger.info(f"Starting {settings.service_name} v{settings.service_version}")
     logger.info(f"Ollama host: {settings.ollama_host}")
@@ -75,7 +76,7 @@ async def lifespan(app: FastAPI):
     # Initialize async worker pool
     async def _analyze_from_dict(alert_data: dict):
         alert = SecurityAlert(**alert_data)
-        return await llm_client.analyze_alert(alert)
+        return await analyze_alert(alert)
 
     worker_pool = WorkerPool(
         analyze_fn=_analyze_from_dict,
@@ -102,6 +103,9 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+
+from services.common.api_security import protect_app
+protect_app(app)
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
@@ -188,7 +192,9 @@ async def analyze_alert(alert: SecurityAlert):
 
         # Persist alert + result to feedback service (fire-and-forget)
         if settings.feedback_enabled:
-            asyncio.create_task(_persist_alert(alert, result))
+            await _persist_alert(alert, result)
+        if settings.correlation_enabled:
+            await _correlate_alert(alert, result)
 
         return result
 
@@ -220,11 +226,30 @@ async def _persist_alert(alert: SecurityAlert, result: TriageResponse):
             "ml_prediction": result.ml_prediction,
             "ml_confidence": result.ml_confidence,
         }
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            await client.post(f"{settings.feedback_service_url}/alerts", json=payload)
+        async with service_client(timeout=10.0) as client:
+            response = await client.post(f"{settings.feedback_service_url}/alerts", json=payload)
+            response.raise_for_status()
         logger.debug(f"Alert {alert.alert_id} persisted to feedback service")
     except Exception as e:
         logger.warning(f"Failed to persist alert {alert.alert_id}: {e}")
+        raise HTTPException(503, "Analysis completed but storage failed; retry using the same alert_id")
+
+
+async def _correlate_alert(alert, result):
+    payload = {
+        "alert_id": alert.alert_id, "source_ip": alert.source_ip, "dest_ip": alert.dest_ip,
+        "timestamp": alert.timestamp.isoformat(), "severity": result.severity.value,
+        "category": result.category.value, "mitre_techniques": result.mitre_techniques,
+        "mitre_tactics": result.mitre_tactics, "rule_description": alert.rule_description,
+    }
+    try:
+        async with service_client(timeout=15) as client:
+            response = await client.post(f"{settings.correlation_engine_url}/correlate", json=payload)
+            response.raise_for_status()
+            result.incident_id = response.json()["incident_id"]
+    except (httpx.HTTPError, KeyError):
+        logger.exception("Correlation unavailable for stored alert %s", alert.alert_id)
+        result.pipeline_warnings.append("Alert stored; correlation unavailable. Retry with the same alert_id.")
 
 
 @app.post("/batch", response_model=Dict[str, Any])
@@ -255,7 +280,7 @@ async def batch_analyze(alerts: list[SecurityAlert]):
     logger.info(f"Starting batch analysis of {len(alerts)} alerts")
 
     # Process alerts concurrently
-    tasks = [llm_client.analyze_alert(alert) for alert in alerts]
+    tasks = [analyze_alert(alert) for alert in alerts]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     # Categorize results
@@ -309,6 +334,8 @@ async def analyze_async(alert: SecurityAlert, callback_url: str = None):
 
     Poll GET /jobs/{job_id} for results.
     """
+    if callback_url:
+        raise HTTPException(422, "Callbacks are disabled; poll /jobs/{job_id} for results")
     pool = app.state.worker_pool
     job_id = pool.submit(alert.model_dump(mode="json"), callback_url=callback_url)
     return {

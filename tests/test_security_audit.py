@@ -3,10 +3,7 @@ Security Utility Testing - LOVELESS Audit
 Tests security.py functions against known attack patterns
 """
 
-import sys
-sys.path.append('services/common')
-
-from security import validate_input, sanitize_log, detect_prompt_injection
+from services.common.security import validate_input, sanitize_log, detect_prompt_injection
 
 # Test Cases
 def test_sql_injection():
@@ -22,7 +19,8 @@ def test_sql_injection():
 
     for text, expected_valid in test_cases:
         is_valid, msg = validate_input(text)
-        status = "PASS" if is_valid == expected_valid else "FAIL"
+        assert is_valid == expected_valid, msg
+        status = "PASS"
         print(f"  {status}: '{text[:50]}...' -> Valid={is_valid}")
 
 def test_command_injection():
@@ -38,7 +36,8 @@ def test_command_injection():
 
     for text, expected_valid in test_cases:
         is_valid, msg = validate_input(text)
-        status = "PASS" if is_valid == expected_valid else "FAIL"
+        assert is_valid == expected_valid, msg
+        status = "PASS"
         print(f"  {status}: '{text}' -> Valid={is_valid}")
 
 def test_prompt_injection():
@@ -56,7 +55,8 @@ def test_prompt_injection():
 
     for text, expected_injection in test_cases:
         is_injection, attack_type = detect_prompt_injection(text)
-        status = "PASS" if is_injection == expected_injection else "FAIL"
+        assert is_injection == expected_injection, attack_type
+        status = "PASS"
         print(f"  {status}: '{text[:60]}...' -> Injection={is_injection}, Type={attack_type}")
 
 def test_sanitize_log():
@@ -71,6 +71,7 @@ def test_sanitize_log():
 
     for log in test_logs:
         sanitized = sanitize_log(log)
+        assert sanitized != log and "[REDACTED]" in sanitized
         print(f"  Original: {log}")
         print(f"  Sanitized: {sanitized}")
         print()
@@ -86,7 +87,8 @@ def test_null_byte_injection():
 
     for text, expected_valid in test_cases:
         is_valid, msg = validate_input(text)
-        status = "PASS" if is_valid == expected_valid else "FAIL"
+        assert is_valid == expected_valid, msg
+        status = "PASS"
         print(f"  {status}: Null byte present={chr(0) in text} -> Valid={is_valid}")
 
 def test_length_validation():
@@ -98,6 +100,7 @@ def test_length_validation():
 
     is_valid_short, _ = validate_input(short_text)
     is_valid_long, msg = validate_input(long_text)
+    assert is_valid_short and not is_valid_long
 
     print(f"  PASS: Short text (len={len(short_text)}) -> Valid={is_valid_short}")
     print(f"  PASS: Long text (len={len(long_text)}) -> Valid={is_valid_long}, Error={msg}")

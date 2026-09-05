@@ -9,6 +9,7 @@ best-matching incident or opens a new one.
 
 import math
 import logging
+from sqlalchemy import text
 import uuid
 from datetime import datetime, timezone
 from typing import Optional, List
@@ -16,7 +17,7 @@ from typing import Optional, List
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import (
+from services.correlation_engine.models import (
     CorrelationRequest,
     CorrelationResponse,
     TACTIC_TO_STAGE,
@@ -24,8 +25,8 @@ from models import (
     KillChainStage,
     SEVERITY_ORDER,
 )
-from database import IncidentModel, IncidentAlertModel
-from config import Settings
+from services.correlation_engine.database import IncidentModel, IncidentAlertModel
+from services.correlation_engine.config import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +63,7 @@ def _get_highest_stage(tactics: List[str]) -> Optional[KillChainStage]:
     best_index = -1
     best_stage: Optional[KillChainStage] = None
     for tactic in tactics:
-        tactic_lower = tactic.lower()
+        tactic_lower = tactic.lower().strip().replace(" ", "-").replace("_", "-")
         stage = TACTIC_TO_STAGE.get(tactic_lower)
         if stage is None:
             continue
@@ -120,6 +121,20 @@ class CorrelationEngine:
         Main entry point: score the incoming alert against all active
         incidents and either attach it or create a new incident.
         """
+        # Serialize the correlation transaction so retries and concurrent alert
+        # arrivals cannot create duplicate incidents or lose alert counts.
+        if self.db.bind.dialect.name == "postgresql":
+            await self.db.execute(text("SELECT pg_advisory_xact_lock(660748)"))
+        existing = (await self.db.execute(
+            select(IncidentAlertModel).where(IncidentAlertModel.alert_id == request.alert_id)
+        )).scalars().first()
+        if existing:
+            incident = (await self.db.execute(select(IncidentModel).where(
+                IncidentModel.incident_id == existing.incident_id))).scalar_one()
+            return CorrelationResponse(incident_id=incident.incident_id, is_new_incident=False,
+                correlation_score=1.0, kill_chain_stage=incident.kill_chain_stage,
+                incident_alert_count=incident.alert_count)
+
         # Resolve kill chain stage from tactics
         alert_stage: Optional[KillChainStage] = None
         if request.mitre_tactics:

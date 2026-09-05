@@ -19,8 +19,8 @@ from typing import Dict, List, Optional, Tuple
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database import IncidentModel, IncidentAlertModel
-from models import KillChainStage, KILL_CHAIN_ORDER
+from services.correlation_engine.database import IncidentModel, IncidentAlertModel
+from services.correlation_engine.models import KillChainStage, KILL_CHAIN_ORDER
 
 logger = logging.getLogger(__name__)
 

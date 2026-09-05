@@ -6,10 +6,11 @@ Handles communication with Alert Triage and RAG services.
 """
 
 import httpx
+from services.common.api_security import service_client
 import structlog
 from typing import Dict, Any, Optional
-from config import Settings
-from models import WazuhAlert
+from services.wazuh_integration.config import Settings
+from services.wazuh_integration.models import WazuhAlert
 
 logger = structlog.get_logger()
 
@@ -95,7 +96,7 @@ class AIClient:
         analyze_url = f"{self.triage_url}/analyze"
 
         try:
-            async with httpx.AsyncClient() as client:
+            async with service_client() as client:
                 response = await client.post(
                     analyze_url,
                     json=triage_payload,
@@ -150,7 +151,7 @@ class AIClient:
         rag_url = f"{self.rag_url}/retrieve"
 
         try:
-            async with httpx.AsyncClient() as client:
+            async with service_client() as client:
                 response = await client.post(
                     rag_url,
                     json={
@@ -204,7 +205,7 @@ class AIClient:
                 "rule_description": enriched_alert.wazuh_rule_description,
             }
 
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with service_client(timeout=30) as client:
                 response = await client.post(
                     f"{self.correlation_url}/correlate",
                     json=correlation_data,
@@ -234,7 +235,7 @@ class AIClient:
     async def health_check_triage(self) -> bool:
         """Check Alert Triage service health"""
         try:
-            async with httpx.AsyncClient() as client:
+            async with service_client() as client:
                 response = await client.get(
                     f"{self.triage_url}/health",
                     timeout=5
@@ -248,7 +249,7 @@ class AIClient:
     async def health_check_rag(self) -> bool:
         """Check RAG service health"""
         try:
-            async with httpx.AsyncClient() as client:
+            async with service_client() as client:
                 response = await client.get(
                     f"{self.rag_url}/health",
                     timeout=5

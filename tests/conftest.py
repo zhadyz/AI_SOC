@@ -17,11 +17,6 @@ from typing import AsyncGenerator, Generator
 # Add project root to Python path
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
-sys.path.insert(0, str(PROJECT_ROOT / "services" / "common"))
-sys.path.insert(0, str(PROJECT_ROOT / "services" / "alert-triage"))
-sys.path.insert(0, str(PROJECT_ROOT / "services" / "rag-service"))
-sys.path.insert(0, str(PROJECT_ROOT / "services" / "log-summarization"))
-sys.path.insert(0, str(PROJECT_ROOT / "ml_training"))
 
 
 # ============================================================================
@@ -39,14 +34,6 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "slow: Tests that take >5 seconds")
     config.addinivalue_line("markers", "requires_ollama: Tests requiring Ollama")
     config.addinivalue_line("markers", "requires_docker: Tests requiring Docker")
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create event loop for async tests"""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
 
 
 # ============================================================================
@@ -98,10 +85,10 @@ def sample_security_alert() -> dict:
         "rule_id": "100002",
         "rule_level": 10,
         "rule_description": "Multiple failed SSH login attempts detected",
-        "full_log": "Oct 22 10:30:00 server sshd[1234]: Failed password for root from 192.168.1.100",
+        "full_log": {"message": "Failed password for root from 192.168.1.100"},
         "agent_name": "web-server-01",
-        "mitre_tactic": "Credential Access",
-        "mitre_technique": "T1110.001"
+        "mitre_tactic": ["Credential Access"],
+        "mitre_technique": ["T1110.001"]
     }
 
 
@@ -109,7 +96,7 @@ def sample_security_alert() -> dict:
 def sample_network_flow() -> dict:
     """Sample network flow for ML inference testing"""
     return {
-        "features": [0.0] * 78,  # 78 features as expected by ML models
+        "features": [0.0] * 77,  # Trained model contract
         "model_name": "random_forest"
     }
 
@@ -176,7 +163,9 @@ def mock_ml_prediction() -> dict:
 async def http_client():
     """Async HTTP client for API testing"""
     import httpx
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    from dotenv import dotenv_values
+    key = os.getenv("AI_SOC_API_KEY") or dotenv_values(PROJECT_ROOT / ".env").get("AI_SOC_API_KEY", "")
+    async with httpx.AsyncClient(timeout=240.0, headers={"Authorization": f"Bearer {key}"}) as client:
         yield client
 
 
@@ -229,3 +218,20 @@ def setup_test_environment():
     yield
     # Cleanup
     os.environ.pop("TESTING", None)
+
+
+def pytest_addoption(parser):
+    parser.addoption("--live", action="store_true", help="Run tests against the configured local stack")
+
+
+def pytest_ignore_collect(collection_path, config):
+    if "browser" in collection_path.parts and not config.getoption("--live"):
+        return True
+
+
+def pytest_collection_modifyitems(config, items):
+    if config.getoption("--live"):
+        return
+    for item in items:
+        if "live" in item.keywords or "http_client" in item.fixturenames:
+            item.add_marker(pytest.mark.skip(reason="Explicit --live stack test; not part of offline verification"))

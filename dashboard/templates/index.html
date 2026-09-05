@@ -2067,6 +2067,7 @@ code, .mono { font-family: var(--font-mono); }
      MAIN CONTENT
      ============================================================ -->
 <main class="main-content">
+  <p class="text-muted">Local research workspace · response controls below create dry runs · topology and risk scores are simulated until a lab is connected.</p>
 
   <!-- ── PRIORITY QUEUE ─────────────────────────────────────── -->
   <section id="priority-queue">
@@ -2082,6 +2083,15 @@ code, .mono { font-family: var(--font-mono); }
     </div>
   </section>
 
+  <section>
+    <div class="section-header">
+      <div class="section-title">Defense Plans &amp; Audit</div>
+      <button class="btn btn-ghost btn-sm" onclick="loadDefensePlans()">Refresh plans</button>
+    </div>
+    <div id="defense-plans" class="sim-panel">Loading saved plans...</div>
+    <pre id="defense-plan-detail" style="white-space:pre-wrap;max-height:450px;overflow:auto;padding:16px;" hidden></pre>
+  </section>
+
   <!-- ── THREAT LANDSCAPE ───────────────────────────────────── -->
   <section>
     <div class="section-header">
@@ -2091,7 +2101,7 @@ code, .mono { font-family: var(--font-mono); }
 
       <!-- Network Map -->
       <div class="network-map-panel">
-        <div class="section-title" style="margin-bottom:14px;">Network Topology</div>
+        <div class="section-title" style="margin-bottom:14px;">Simulation Topology</div>
         <div id="network-topology-content">
           <div class="network-segment">
             <div class="segment-label">DMZ</div>
@@ -2156,7 +2166,7 @@ code, .mono { font-family: var(--font-mono); }
           </div>
           <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text-secondary);">
-              <input type="checkbox" id="sim-use-wazuh" checked style="accent-color:var(--accent);cursor:pointer;">
+              <input type="checkbox" id="sim-use-wazuh" style="accent-color:var(--accent);cursor:pointer;">
               <span>Use live Wazuh infrastructure</span>
             </label>
             <span id="sim-env-badge" style="font-size:10px;padding:2px 6px;border-radius:3px;background:rgba(88,166,255,0.15);color:var(--accent);display:none;"></span>
@@ -2185,7 +2195,7 @@ code, .mono { font-family: var(--font-mono); }
 
         <!-- Risk Scores -->
         <div class="risk-panel">
-          <div class="section-title" style="margin-bottom:12px;">Security Risk Scores</div>
+          <div class="section-title" style="margin-bottom:12px;">Simulation Risk Scores</div>
           <div class="risk-grade-display">
             <div class="risk-grade-big grade-B" id="risk-grade-big">--</div>
             <div class="risk-grade-meta">
@@ -2284,7 +2294,7 @@ code, .mono { font-family: var(--font-mono); }
 // ── CONSTANTS ────────────────────────────────────────────────
 const ANALYST_ID = 'analyst-1';
 const KILL_CHAIN_STAGES = ['RECON','ACCESS','EXEC','PERSIST','PRIV ESC','LATERAL','COLLECT','C2','EXFIL','IMPACT'];
-const KILL_CHAIN_KEYS = ['recon','initial_access','execution','persistence','privilege_escalation','lateral_movement','collection','command_and_control','exfiltration','impact'];
+const KILL_CHAIN_KEYS = ['reconnaissance','initial_access','execution','persistence','privilege_escalation','lateral_movement','collection','command_and_control','exfiltration','impact'];
 let refreshTimer = null;
 
 // ── UTILITY ──────────────────────────────────────────────────
@@ -2422,12 +2432,12 @@ async function refreshMissionBar() {
   if (riskRes.status === 'fulfilled' && riskRes.value.ok) {
     const d = riskRes.value.data;
     const grade = d.overall_security_posture_rating || d.grade || '--';
-    const score = d.overall_score || d.score || 0;
+    const score = d.average_risk_score ?? null;
     const gradeEl = document.getElementById('mb-grade');
     gradeEl.textContent = grade;
     gradeEl.className = `grade-chip ${gradeClass(grade)}`;
     document.getElementById('mb-score-bar').style.width = `${Math.min(score, 100)}%`;
-    document.getElementById('mb-score-num').textContent = `${Math.round(score)}/100`;
+    document.getElementById('mb-score-num').textContent = score == null ? 'N/A' : `${Math.round(score)}/100`;
   }
 
   // Workers
@@ -2547,14 +2557,14 @@ async function loadWorkspaceData(incidentId, alertId, wsEl) {
         html += `
           <div class="timeline-alert" onclick="toggleAlertExpand(this)">
             <div class="ta-header">
-              <span class="sev-badge ${sc}">${(a.severity||'INFO').toUpperCase()}</span>
-              <span class="ta-time">${timeAgo(a.timestamp)}</span>
-              <span class="ta-category">${a.category || a.alert_type || ''}</span>
+              <span class="sev-badge ${sc}">${escHtml((a.severity||'INFO').toUpperCase())}</span>
+              <span class="ta-time">${timeAgo(a.timestamp || a.added_at)}</span>
+              <span class="ta-category">${escHtml(a.category || a.alert_type || '')}</span>
             </div>
-            <div style="font-size:12px;color:var(--text-secondary);font-family:var(--font-mono);">${a.alert_id || a.id || 'alert-'+idx}</div>
+            <div style="font-size:12px;color:var(--text-secondary);font-family:var(--font-mono);">${escHtml(a.alert_id || a.id || 'alert-'+idx)}</div>
             <div class="ta-expand">
-              <div><strong>Rule:</strong> ${a.rule_description || 'N/A'}</div>
-              <div style="margin-top:4px;"><span class="ip-tag" style="font-size:10px;">${a.source_ip || '?'}</span> <span style="color:var(--text-muted)">&#8594;</span> <span class="ip-tag" style="font-size:10px;">${a.destination_ip || '?'}</span></div>
+              <div><strong>Rule:</strong> ${escHtml(a.rule_description || 'N/A')}</div>
+              <div style="margin-top:4px;"><span class="ip-tag" style="font-size:10px;">${escHtml(a.source_ip || '?')}</span> <span style="color:var(--text-muted)">&#8594;</span> <span class="ip-tag" style="font-size:10px;">${escHtml(a.dest_ip || '?')}</span></div>
               ${a.full_log ? `<div class="ta-logline">${escHtml(a.full_log)}</div>` : ''}
             </div>
           </div>`;
@@ -2573,8 +2583,8 @@ async function loadWorkspaceData(incidentId, alertId, wsEl) {
     const tactics = incident.mitre_tactics || [];
     if (techniques.length || tactics.length) {
       html += `<div class="subsection-title">MITRE ATT&CK</div><div style="margin-bottom:8px;">`;
-      tactics.forEach(t => { html += `<span class="mitre-tag" style="background:rgba(210,153,34,0.1);border-color:rgba(210,153,34,0.3);color:var(--high);">${t}</span>`; });
-      techniques.forEach(t => { html += `<span class="mitre-tag">${t}</span>`; });
+      tactics.forEach(t => { html += `<span class="mitre-tag" style="background:rgba(210,153,34,0.1);border-color:rgba(210,153,34,0.3);color:var(--high);">${escHtml(t)}</span>`; });
+      techniques.forEach(t => { html += `<span class="mitre-tag">${escHtml(t)}</span>`; });
       html += `</div>`;
     }
 
@@ -2582,10 +2592,10 @@ async function loadWorkspaceData(incidentId, alertId, wsEl) {
     html += `<div class="subsection-title">Threat Intelligence (RAG)</div><div id="rag-${incidentId}"><div class="loading-row"><div class="spinner" style="border-top-color:var(--accent);width:10px;height:10px;"></div> Querying...</div></div>`;
 
     // Historical context
-    const srcIPs = Array.from(new Set((incident.alerts||[]).map(a=>a.source_ip).filter(Boolean)));
+    const srcIPs = incident.source_ips || [];
     html += `<div class="subsection-title">Historical Context</div><div id="hist-${incidentId}">`;
     if (srcIPs.length) {
-      srcIPs.slice(0,2).forEach(ip => { html += `<div class="history-stat">Loading history for <strong>${ip}</strong>...</div>`; });
+      srcIPs.slice(0,2).forEach(ip => { html += `<div class="history-stat">Loading history for <strong>${escHtml(ip)}</strong>...</div>`; });
     } else {
       html += `<div class="text-muted" style="font-size:12px;">No source IPs identified.</div>`;
     }
@@ -2613,7 +2623,7 @@ async function loadRAGIntel(incidentId, incident) {
   const res = await apiFetch('/api/rag/retrieve', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, top_k: 3, n_results: 3 }),
+    body: JSON.stringify({ query, top_k: 3, min_similarity: 0.2 }),
   });
 
   if (!res.ok || !res.data) {
@@ -2631,7 +2641,7 @@ async function loadRAGIntel(incidentId, incident) {
   results.slice(0, 3).forEach(r => {
     const tid = r.technique_id || r.id || r.metadata?.technique_id || '';
     const desc = r.description || r.text || r.content || r.document || '';
-    html += `<div class="rag-result"><div class="rag-technique">${tid}</div><div class="rag-desc">${escHtml(desc).slice(0, 200)}${desc.length > 200 ? '...' : ''}</div></div>`;
+    html += `<div class="rag-result"><div class="rag-technique">${escHtml(tid)}</div><div class="rag-desc">${escHtml(desc).slice(0, 200)}${desc.length > 200 ? '...' : ''}</div></div>`;
   });
   el.innerHTML = html || '<div class="text-muted" style="font-size:12px;">No results.</div>';
 }
@@ -2643,7 +2653,7 @@ async function loadHistoricalContext(incidentId, ips) {
   for (const ip of ips) {
     const res = await apiFetch(`/api/alerts?source_ip=${encodeURIComponent(ip)}&limit=5`);
     const alerts = res.ok ? (Array.isArray(res.data) ? res.data : (res.data.alerts || [])) : [];
-    html += `<div class="history-stat"><strong>${alerts.length}</strong> previous alerts from <span class="ip-tag" style="font-size:10px;">${ip}</span> (last 5 fetched)</div>`;
+    html += `<div class="history-stat"><strong>${alerts.length}</strong> previous alerts from <span class="ip-tag" style="font-size:10px;">${escHtml(ip)}</span> (last 5 fetched)</div>`;
   }
   container.innerHTML = html || '<div class="text-muted" style="font-size:12px;">No history found.</div>';
 }
@@ -2651,14 +2661,12 @@ async function loadHistoricalContext(incidentId, ips) {
 function buildActionsPanel(alertId, incidentId) {
   return `
     <div class="iw-btn-row">
-      <button class="btn btn-danger btn-sm" onclick="postAction('${alertId}','block_ip','Block IP initiated',this)">Block IP</button>
-      <button class="btn btn-danger btn-sm" onclick="postAction('${alertId}','isolate_host','Host isolation initiated',this)">Isolate Host</button>
-      <button class="btn btn-ghost btn-sm" onclick="postAction('${alertId}','rotate_credentials','Credential rotation initiated',this)">Rotate Creds</button>
+      <button class="btn btn-ghost btn-sm" onclick="previewDefense(${jsArg(incidentId)},this)">Preview Defense Dry Run</button>
     </div>
     <div class="divider"></div>
     <div class="iw-form-row">
       <label>Severity Correction</label>
-      <select class="iw-select" id="iw-sev-${alertId}">
+      <select class="iw-select" id="iw-sev-${escHtml(alertId)}">
         <option value="">-- no change --</option>
         <option value="critical">Critical</option>
         <option value="high">High</option>
@@ -2669,7 +2677,7 @@ function buildActionsPanel(alertId, incidentId) {
     </div>
     <div class="iw-form-row">
       <label>Category Correction</label>
-      <select class="iw-select" id="iw-cat-${alertId}">
+      <select class="iw-select" id="iw-cat-${escHtml(alertId)}">
         <option value="">-- no change --</option>
         <option value="brute_force">Brute Force</option>
         <option value="lateral_movement">Lateral Movement</option>
@@ -2683,7 +2691,7 @@ function buildActionsPanel(alertId, incidentId) {
     </div>
     <div class="iw-form-row">
       <label>True Label</label>
-      <select class="iw-select" id="iw-label-${alertId}">
+      <select class="iw-select" id="iw-label-${escHtml(alertId)}">
         <option value="">-- no change --</option>
         <option value="ATTACK">ATTACK</option>
         <option value="BENIGN">BENIGN</option>
@@ -2691,15 +2699,15 @@ function buildActionsPanel(alertId, incidentId) {
     </div>
     <div class="iw-form-row">
       <label>Notes</label>
-      <textarea class="iw-textarea" id="iw-notes-${alertId}" placeholder="Analyst notes..."></textarea>
+      <textarea class="iw-textarea" id="iw-notes-${escHtml(alertId)}" placeholder="Analyst notes..."></textarea>
     </div>
-    <button class="btn btn-primary" onclick="submitFeedback('${alertId}', this)" style="width:100%;justify-content:center;">Submit Feedback</button>
+    <button class="btn btn-primary" onclick="submitFeedback(${jsArg(alertId)}, this)" style="width:100%;justify-content:center;">Submit Feedback</button>
     <div class="divider"></div>
     <div class="subsection-title">Detection Rule Generation</div>
-    <button class="btn btn-ghost btn-sm" onclick="generateRule('${alertId}', '${incidentId}', this)" style="width:100%;justify-content:center;margin-bottom:6px;">Generate Detection Rule</button>
-    <pre class="rule-output" id="rule-out-${alertId}"></pre>
-    <div id="rule-approve-${alertId}" class="hidden" style="margin-top:6px;">
-      <button class="btn btn-contain btn-sm" onclick="approveRule('${alertId}', this)" style="width:100%;justify-content:center;">Approve Rule</button>
+    <button class="btn btn-ghost btn-sm" onclick="generateRule(${jsArg(alertId)}, ${jsArg(incidentId)}, this)" style="width:100%;justify-content:center;margin-bottom:6px;">Generate Detection Rule</button>
+    <pre class="rule-output" id="rule-out-${escHtml(alertId)}"></pre>
+    <div id="rule-approve-${escHtml(alertId)}" class="hidden" style="margin-top:6px;">
+      <button class="btn btn-contain btn-sm" onclick="approveRule(${jsArg(alertId)}, this)" style="width:100%;justify-content:center;">Approve Rule</button>
     </div>
   `;
 }
@@ -2709,18 +2717,6 @@ function toggleAlertExpand(el) {
   if (exp) exp.classList.toggle('open');
 }
 
-async function postAction(alertId, action, msg, btn) {
-  setButtonLoading(btn, true);
-  const res = await apiFetch(`/api/feedback/${alertId}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ analyst_id: ANALYST_ID, notes: msg, action }),
-  });
-  setButtonLoading(btn, false);
-  if (res.ok) { toast(msg, 'success'); flashBtn(btn, true); }
-  else { toast(`Failed: ${res.data?.error || 'Unknown error'}`, 'error'); flashBtn(btn, false); }
-}
-
 async function submitFeedback(alertId, btn) {
   const sev = document.getElementById(`iw-sev-${alertId}`)?.value;
   const cat = document.getElementById(`iw-cat-${alertId}`)?.value;
@@ -2728,8 +2724,8 @@ async function submitFeedback(alertId, btn) {
   const notes = document.getElementById(`iw-notes-${alertId}`)?.value;
 
   const payload = { analyst_id: ANALYST_ID };
-  if (sev) payload.corrected_severity = sev;
-  if (cat) payload.corrected_category = cat;
+  if (sev) payload.true_severity = sev;
+  if (cat) payload.true_category = cat;
   if (label) { payload.true_label = label; payload.is_false_positive = (label === 'BENIGN'); }
   if (notes) payload.notes = notes;
 
@@ -2744,35 +2740,40 @@ async function submitFeedback(alertId, btn) {
   else { toast(`Feedback error: ${res.data?.error || 'Unknown'}`, 'error'); flashBtn(btn, false); }
 }
 
-let _pendingRuleId = null;
+const pendingRules = new Map();
 async function generateRule(alertId, incidentId, btn) {
   setButtonLoading(btn, true);
+  const [alertResponse, incidentResponse] = await Promise.all([
+    apiFetch(`/api/alerts/${encodeURIComponent(alertId)}`), apiFetch(`/api/incidents/${encodeURIComponent(incidentId)}`)]);
+  if (!alertResponse.ok || !incidentResponse.ok) { setButtonLoading(btn, false); toast('Alert context unavailable', 'error'); return; }
+  const alert = alertResponse.data, incident = incidentResponse.data;
   const res = await apiFetch('/api/generate-rule', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ alert_id: alertId, incident_id: incidentId }),
+    body: JSON.stringify({ alert_id: alertId, alert_description: alert.rule_description || incident.summary,
+      source_ip:alert.source_ip, dest_ip:alert.dest_ip, mitre_techniques:incident.mitre_techniques || [], severity:alert.ai_severity || 'high' }),
   });
   setButtonLoading(btn, false);
   const outEl = document.getElementById(`rule-out-${alertId}`);
   const approveEl = document.getElementById(`rule-approve-${alertId}`);
   if (res.ok && outEl) {
-    const rule = res.data.rule_content || res.data.rule || res.data.sigma_rule || JSON.stringify(res.data, null, 2);
-    _pendingRuleId = res.data.rule_id || res.data.id || alertId;
-    outEl.textContent = rule;
+    pendingRules.set(alertId, res.data.rule.rule_id);
+    outEl.textContent = res.data.rule.rule_text;
     outEl.classList.add('visible');
     if (approveEl) approveEl.classList.remove('hidden');
-    toast('Detection rule generated', 'success');
+    toast(res.data.rule.generation_method === 'evidence_fallback' ? 'Model draft rejected; exact sample-match fallback needs review' : 'Detection rule generated', 'success');
   } else {
     toast('Rule generation failed', 'error');
   }
 }
 
 async function approveRule(alertId, btn) {
-  if (!_pendingRuleId) { toast('No rule pending approval', 'warning'); return; }
+  const ruleId = pendingRules.get(alertId);
+  if (!ruleId) { toast('No rule pending approval', 'warning'); return; }
   setButtonLoading(btn, true);
-  const res = await apiFetch(`/api/rules/${_pendingRuleId}/approve`, { method: 'PUT' });
+  const res = await apiFetch(`/api/rules/${encodeURIComponent(ruleId)}/approve?analyst_id=${encodeURIComponent(ANALYST_ID)}`, { method: 'PUT' });
   setButtonLoading(btn, false);
-  if (res.ok) { toast('Rule approved and activated', 'success'); flashBtn(btn, true); }
+  if (res.ok) { toast('Rule approved for export', 'success'); flashBtn(btn, true); }
   else { toast(`Approve failed: ${res.data?.error || 'Unknown'}`, 'error'); }
 }
 
@@ -2818,7 +2819,11 @@ async function loadIncidents() {
   });
 
   container.innerHTML = '';
-  sorted.forEach(inc => {
+  const details = await Promise.all(sorted.map(async inc => {
+    const response = await apiFetch(`/api/incidents/${encodeURIComponent(inc.incident_id)}`);
+    return response.ok ? response.data : inc;
+  }));
+  details.forEach(inc => {
     const el = buildIncidentCard(inc);
     container.appendChild(el);
   });
@@ -2828,8 +2833,8 @@ function buildIncidentCard(inc) {
   const sc = sevClass(inc.severity);
   const alerts = inc.alerts || [];
   const firstAlertId = inc.first_alert_id || (alerts[0]?.alert_id) || (alerts[0]?.id) || inc.incident_id;
-  const srcIPs = [...new Set(alerts.map(a => a.source_ip).filter(Boolean))].slice(0, 3);
-  const dstIPs = [...new Set(alerts.map(a => a.destination_ip).filter(Boolean))].slice(0, 3);
+  const srcIPs = (inc.source_ips || [...new Set(alerts.map(a => a.source_ip).filter(Boolean))]).slice(0, 3);
+  const dstIPs = (inc.dest_ips || [...new Set(alerts.map(a => a.dest_ip).filter(Boolean))]).slice(0, 3);
   const stages = inc.kill_chain_stages_seen || inc.kill_chain_stages || [];
 
   const div = document.createElement('div');
@@ -2838,9 +2843,9 @@ function buildIncidentCard(inc) {
 
   const ipFlow = (srcIPs.length || dstIPs.length) ? `
     <div class="ic-flow">
-      ${srcIPs.map(ip => `<span class="ip-tag">${ip}</span>`).join(' ')}
+      ${srcIPs.map(ip => `<span class="ip-tag">${escHtml(ip)}</span>`).join(' ')}
       ${srcIPs.length && dstIPs.length ? '<span class="ic-flow-arrow">&#8594;</span>' : ''}
-      ${dstIPs.map(ip => `<span class="ip-tag">${ip}</span>`).join(' ')}
+      ${dstIPs.map(ip => `<span class="ip-tag">${escHtml(ip)}</span>`).join(' ')}
     </div>` : '';
 
   div.innerHTML = `
@@ -2858,10 +2863,15 @@ function buildIncidentCard(inc) {
     ${buildKillChain(stages, inc.severity)}
     ${ipFlow}
     <div class="ic-actions">
-      <button class="btn btn-contain" onclick="confirmContain('${firstAlertId}', this)">Confirm &amp; Contain</button>
-      <button class="btn btn-fp" onclick="markFalsePositive('${firstAlertId}', this)">False Positive</button>
-      <button class="btn btn-investigate" onclick="openInvestigation('${inc.incident_id || inc.id}', this.closest('.incident-card'), '${firstAlertId}')">Investigate</button>
+      <button class="btn btn-contain">Confirm Attack</button>
+      <button class="btn btn-fp">False Positive</button>
+      <button class="btn btn-investigate">Investigate</button>
+      <button class="btn btn-dry-run">Preview Defense</button>
     </div>`;
+  div.querySelector('.btn-contain').onclick = event => confirmContain(firstAlertId, event.currentTarget);
+  div.querySelector('.btn-fp').onclick = event => markFalsePositive(firstAlertId, event.currentTarget);
+  div.querySelector('.btn-investigate').onclick = () => openInvestigation(inc.incident_id, div, firstAlertId);
+  div.querySelector('.btn-dry-run').onclick = event => previewDefense(inc.incident_id, event.currentTarget);
 
   return div;
 }
@@ -2876,9 +2886,9 @@ async function confirmContain(alertId, btn) {
   });
   setButtonLoading(btn, false);
   if (res.ok) {
-    toast('Incident confirmed and contained', 'success');
+    toast('Attack label saved; incident remains open', 'success');
     card.classList.add('flash-contain');
-    setTimeout(() => { card.classList.add('action-contain'); setTimeout(() => card.remove(), 600); }, 600);
+    flashBtn(btn, true);
   } else {
     toast(`Error: ${res.data?.error || 'Feedback service unavailable'}`, 'error');
     flashBtn(btn, false);
@@ -2897,11 +2907,49 @@ async function markFalsePositive(alertId, btn) {
   if (res.ok) {
     toast('Marked as false positive', 'info');
     card.classList.add('flash-fp');
-    setTimeout(() => { card.classList.add('action-fp'); setTimeout(() => card.remove(), 600); }, 600);
+    flashBtn(btn, true);
   } else {
     toast(`Error: ${res.data?.error || 'Feedback service unavailable'}`, 'error');
     flashBtn(btn, false);
   }
+}
+
+async function previewDefense(incidentId, btn) {
+  setButtonLoading(btn, true);
+  const result = await apiFetch('/api/defend', {method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({incident_id:incidentId, dry_run:true, auto_execute:false, skip_simulation:true})});
+  setButtonLoading(btn, false);
+  if (!result.ok) { toast(result.data?.detail || result.data?.error || 'Defense preview failed', 'error'); return; }
+  toast('Defense dry run saved; review the proposed actions below', 'success');
+  await loadDefensePlans();
+  await showDefensePlan(result.data.plan_id);
+}
+
+async function showDefensePlan(planId) {
+  const [plan, events] = await Promise.all([
+    apiFetch(`/api/defense/plans/${encodeURIComponent(planId)}`),
+    apiFetch(`/api/defense/plans/${encodeURIComponent(planId)}/events`)]);
+  const detail = document.getElementById('defense-plan-detail');
+  detail.hidden = false;
+  detail.textContent = JSON.stringify({plan:plan.data, audit_events:events.data}, null, 2);
+}
+
+async function loadDefensePlans() {
+  const result = await apiFetch('/api/defense/plans');
+  const target = document.getElementById('defense-plans');
+  target.replaceChildren();
+  if (!result.ok || !Array.isArray(result.data)) { target.textContent = 'Defense plans unavailable'; return; }
+  if (!result.data.length) { target.textContent = 'No plans yet. Select Preview Defense on an incident.'; return; }
+  result.data.slice(0,10).forEach(plan => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px';
+    const label = document.createElement('span');
+    label.textContent = `${plan.incident_id} · ${plan.status} · ${plan.total_actions} actions`;
+    const button = document.createElement('button');
+    button.className = 'btn btn-ghost btn-sm'; button.textContent = 'View plan & audit';
+    button.onclick = () => showDefensePlan(plan.plan_id);
+    row.append(label, button); target.append(row);
+  });
 }
 
 // ── SIMULATION ───────────────────────────────────────────────
@@ -3212,8 +3260,8 @@ async function loadRiskScores() {
     const grade = d.overall_security_posture_rating || d.grade || '--';
     gradeEl.textContent = grade;
     gradeEl.className = `risk-grade-big ${gradeClass(grade)}`;
-    labelEl.textContent = gradeLabel(grade);
-    subEl.textContent = d.summary || d.description || '';
+    labelEl.textContent = grade === '--' ? 'No simulation evidence' : gradeLabel(grade);
+    subEl.textContent = d.message || 'Research estimates from simulated campaigns';
   } else {
     gradeEl.textContent = '--';
     labelEl.textContent = 'Risk summary unavailable';
@@ -3370,6 +3418,8 @@ function toggleFooter() {
     loadRAGCollections();
   }
 }
+
+function jsArg(value) { return escHtml(JSON.stringify(String(value))); }
 
 // ── ESCAPE HTML ──────────────────────────────────────────────
 function escHtml(s) {
@@ -5000,6 +5050,7 @@ async function init() {
   await Promise.allSettled([
     refreshMissionBar(),
     loadIncidents(),
+    loadDefensePlans(),
     loadRiskScores(),
   ]);
 

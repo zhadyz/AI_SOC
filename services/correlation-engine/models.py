@@ -58,6 +58,16 @@ TACTIC_TO_STAGE = {
     "impact": KillChainStage.IMPACT,
 }
 
+for tactic_id, tactic_name in {
+    "ta0043": "reconnaissance", "ta0042": "resource-development",
+    "ta0001": "initial-access", "ta0002": "execution", "ta0003": "persistence",
+    "ta0004": "privilege-escalation", "ta0005": "defense-evasion",
+    "ta0006": "credential-access", "ta0007": "discovery", "ta0008": "lateral-movement",
+    "ta0009": "collection", "ta0011": "command-and-control", "ta0010": "exfiltration",
+    "ta0040": "impact",
+}.items():
+    TACTIC_TO_STAGE[tactic_id] = TACTIC_TO_STAGE[tactic_name]
+
 # Severity ordering for comparison
 SEVERITY_ORDER = {
     "informational": 0,

@@ -1,3 +1,5 @@
+> Historical deployment material. For the supported recovered stack, use the [current README](../../README.md) and [operations guide](../development/operations.md). The verification limits are in [development status](../development/status.md).
+
 # AI-SOC Infrastructure Deployment Report
 
 **Scope:** Complete Infrastructure Deployment for Phases 1-2

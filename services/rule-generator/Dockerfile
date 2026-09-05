@@ -1,26 +1,26 @@
-# Rule Generator Service - Dockerfile
-# AI-Augmented SOC - LLM-Generated Detection Rules
-
+# Compatibility build: run docker build from the repository root with -f services/rule-generator/Dockerfile
 FROM python:3.11-slim
-
-LABEL version="1.0.0"
-LABEL description="LLM-powered Sigma detection rule generator"
-
+ARG SERVICE=rule-generator
 WORKDIR /app
-
-RUN apt-get update && apt-get install -y curl gcc && rm -rf /var/lib/apt/lists/*
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-RUN useradd -m -u 1000 ruleuser && chown -R ruleuser:ruleuser /app
-USER ruleuser
-
+RUN apt-get update && apt-get install -y --no-install-recommends curl libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+COPY requirements-runtime.txt ./
+COPY services/ ./services/
+COPY ml_training/ ./ml_training/
+COPY dashboard/ ./dashboard/
+COPY config/ ./config/
+RUN if [ "$SERVICE" = "ml-inference" ]; then \
+      pip install --no-cache-dir -r ml_training/requirements-inference.txt; \
+    elif [ "$SERVICE" = "dashboard" ]; then \
+      pip install --no-cache-dir -r dashboard/requirements.txt; \
+    else \
+      pip install --no-cache-dir -r "services/$SERVICE/requirements.txt"; \
+    fi
+RUN useradd --create-home --uid 1000 soc && mkdir -p /app/data && chown -R soc:soc /app
+USER soc
+ENV PYTHONUNBUFFERED=1
 EXPOSE 8000
+HEALTHCHECK --interval=15s --timeout=10s --start-period=60s --retries=5 \
+    CMD curl -fsS http://localhost:8000/health || exit 1
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "services.rule_generator.main:app", "--host", "0.0.0.0", "--port", "8000"]

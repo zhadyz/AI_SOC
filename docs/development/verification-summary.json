@@ -1,0 +1,22 @@
+{
+  "offline_tests": {
+    "passed": 160,
+    "skipped": 14,
+    "failures": 0
+  },
+  "live_report": "live-verification.json",
+  "compilation": "passed",
+  "fatal_lint": "passed",
+  "compose_validation": "passed",
+  "image_build": "unverified: base-image metadata retrieval timed out",
+  "github_ci": "not run",
+  "production_enforcement": "not exercised",
+  "models_promoted": 0,
+  "mitre_documents_ingested": 858,
+  "postgres_restart_plans_restored": 4,
+  "updated_at": "2026-09-05T01:11:45.167647+00:00",
+  "browser_feedback_correction": "verified: medium persisted",
+  "native_dashboard_server": "Waitress 3.0.2",
+  "browser_rule_generation_and_review": "verified: labeled grounded fallback displayed and export approval persisted",
+  "live_rule_generation_method": "local_llm"
+}

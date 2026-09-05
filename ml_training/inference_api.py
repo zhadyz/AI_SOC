@@ -1,43 +1,23 @@
-"""
-CICIDS2017 IDS - Real-Time Inference API
+"""Local IDS inference using a validated, atomically loaded model bundle."""
 
-FastAPI endpoint for real-time network intrusion detection using trained ML models.
-Provides prediction endpoint with confidence scores and model selection.
-
-Integration: Alert-Triage Service Architecture
-Endpoint: POST /predict
-Target Latency: <100ms per prediction
-
-Author: HOLLOWED_EYES
-Mission: OPERATION ML-BASELINE
-Date: 2025-10-13
-"""
-
+import logging
 import os
 import pickle
 import time
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Annotated, Dict, List
 
 import numpy as np
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
 import uvicorn
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field, FiniteFloat
 
-# Constants
-# Support both local and Docker paths
-MODEL_PATH_ENV = os.getenv("MODEL_PATH", "/app/models")
-MODEL_PATH = Path(MODEL_PATH_ENV)
-
-# Initialize FastAPI
-app = FastAPI(
-    title="CICIDS2017 Intrusion Detection API",
-    description="Real-time network intrusion detection using ML models",
-    version="1.0.0"
-)
-
-# Global model storage
+logger = logging.getLogger(__name__)
+MODEL_PATH = Path(os.getenv("MODEL_PATH", str(Path(__file__).resolve().parent.parent / "models")))
+FEATURE_COUNT = 77
+MODEL_NAMES = ("random_forest", "xgboost", "decision_tree")
 models = {}
 scaler = None
 label_encoder = None
@@ -45,313 +25,170 @@ feature_names = None
 
 
 class NetworkFlow(BaseModel):
-    """Network flow features for prediction"""
-    features: List[float] = Field(
-        ...,
-        description="List of 77 network flow features (after dropping non-predictive columns)",
-        min_length=77,
-        max_length=77
-    )
-    model_name: Optional[str] = Field(
-        default="random_forest",
-        description="Model to use for prediction: random_forest, xgboost, or decision_tree"
-    )
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "features": [0.0] * 77,  # Example placeholder
-                "model_name": "random_forest"
-            }
-        }
+    features: List[FiniteFloat] = Field(min_length=FEATURE_COUNT, max_length=FEATURE_COUNT)
+    model_name: str = "random_forest"
 
 
 class NetworkFlowDict(BaseModel):
-    """Network flow features as dictionary (feature_name: value)"""
-    flow_duration: float = 0.0
-    total_fwd_packet: float = 0.0
-    total_bwd_packets: float = 0.0
-    # Add more fields as needed - this is a simplified example
-    model_name: Optional[str] = "random_forest"
+    features: Dict[str, FiniteFloat]
+    model_name: str = "random_forest"
 
 
 class PredictionResponse(BaseModel):
-    """Prediction response with confidence and metadata"""
-    prediction: str = Field(..., description="Predicted class: BENIGN or ATTACK")
-    confidence: float = Field(..., description="Confidence score (0-1)")
-    probabilities: Dict[str, float] = Field(..., description="Class probabilities")
-    model_used: str = Field(..., description="Model used for prediction")
-    inference_time_ms: float = Field(..., description="Inference time in milliseconds")
-    timestamp: str = Field(..., description="Prediction timestamp")
+    prediction: str
+    confidence: float = Field(ge=0, le=1)
+    probabilities: Dict[str, float]
+    model_used: str
+    inference_time_ms: float
+    timestamp: str
 
 
 def load_models():
-    """Load all trained models and preprocessing objects"""
+    """Validate the entire bundle before replacing the last working snapshot.
+
+    Pickle files must come from a trusted local training pipeline. Never accept
+    serialized model uploads from API callers.
+    """
     global models, scaler, label_encoder, feature_names
-
-    print("Loading models and artifacts...")
-
-    artifacts = {
-        'random_forest': MODEL_PATH / 'random_forest_ids.pkl',
-        'xgboost': MODEL_PATH / 'xgboost_ids.pkl',
-        'decision_tree': MODEL_PATH / 'decision_tree_ids.pkl',
-        'scaler': MODEL_PATH / 'scaler.pkl',
-        'label_encoder': MODEL_PATH / 'label_encoder.pkl',
-        'feature_names': MODEL_PATH / 'feature_names.pkl'
-    }
-
-    for name, path in artifacts.items():
-        if not path.exists():
-            print(f"WARNING: {name} not found at {path}")
-            continue
-
-        try:
-            with open(path, 'rb') as f:
-                obj = pickle.load(f)
-
-            if name in ['random_forest', 'xgboost', 'decision_tree']:
-                models[name] = obj
-                print(f"  Loaded model: {name}")
-            elif name == 'scaler':
-                scaler = obj
-                print(f"  Loaded scaler")
-            elif name == 'label_encoder':
-                label_encoder = obj
-                print(f"  Loaded label encoder: {label_encoder.classes_}")
-            elif name == 'feature_names':
-                feature_names = obj
-                print(f"  Loaded feature names: {len(obj)} features")
-
-        except Exception as e:
-            print(f"ERROR loading {name}: {e}")
-
-    if not models:
-        raise RuntimeError("No models loaded successfully")
-
-    print(f"Models loaded: {list(models.keys())}")
+    # A promoted bundle is selected atomically by a small pointer file.
+    bundle_dir = MODEL_PATH
+    pointer = MODEL_PATH / "active.json"
+    if pointer.exists():
+        import json
+        bundle_dir = (MODEL_PATH / json.loads(pointer.read_text())["bundle"]).resolve()
+        if not bundle_dir.is_relative_to(MODEL_PATH.resolve()):
+            raise ValueError("Model bundle must be inside MODEL_PATH")
+    objects = {}
+    for name in (*MODEL_NAMES, "scaler", "label_encoder", "feature_names"):
+        filename = f"{name}_ids.pkl" if name in MODEL_NAMES else f"{name}.pkl"
+        with (bundle_dir / filename).open("rb") as stream:
+            objects[name] = pickle.load(stream)
+    names = list(objects["feature_names"])
+    if len(names) != FEATURE_COUNT or len(set(names)) != FEATURE_COUNT:
+        raise ValueError(f"Bundle must contain {FEATURE_COUNT} unique feature names")
+    new_scaler = objects["scaler"]
+    encoder = objects["label_encoder"]
+    if new_scaler.n_features_in_ != FEATURE_COUNT:
+        raise ValueError("Scaler feature count differs from the API contract")
+    # Smoke each model with the scaler mean (a finite, valid input), checking
+    # output dimensions and encoded class order before publishing any of them.
+    probe = new_scaler.transform(np.asarray(new_scaler.mean_).reshape(1, -1))
+    expected_classes = np.arange(len(encoder.classes_))
+    for name in MODEL_NAMES:
+        model = objects[name]
+        if model.n_features_in_ != FEATURE_COUNT:
+            raise ValueError(f"{name}: incompatible feature count")
+        if not np.array_equal(model.classes_, expected_classes):
+            raise ValueError(f"{name}: incompatible class encoding")
+        probabilities = model.predict_proba(probe)
+        if probabilities.shape != (1, len(expected_classes)) or not np.isfinite(probabilities).all():
+            raise ValueError(f"{name}: invalid prediction output")
+    # This function has no await points; requests cannot see a partial update.
+    models = {name: objects[name] for name in MODEL_NAMES}
+    scaler, label_encoder, feature_names = new_scaler, encoder, names
+    logger.info("Loaded validated model bundle: %s", bundle_dir)
     return True
 
 
-@app.on_event("startup")
-async def startup_event():
-    """Load models on startup"""
+@asynccontextmanager
+async def lifespan(app):
     load_models()
+    yield
 
+
+app = FastAPI(title="CICIDS2017 Intrusion Detection API", version="1.1.0", lifespan=lifespan)
+
+
+from services.common.api_security import protect_app
+protect_app(app)
 
 @app.get("/")
 async def root():
-    """API root endpoint"""
-    return {
-        "service": "CICIDS2017 Intrusion Detection API",
-        "version": "1.0.0",
-        "status": "operational",
-        "models_loaded": list(models.keys()),
-        "endpoints": {
-            "predict": "/predict",
-            "health": "/health",
-            "models": "/models"
-        }
-    }
+    return {"service": app.title, "version": app.version, "models_loaded": list(models),
+            "endpoints": {"predict": "/predict", "named_features": "/predict/named",
+                          "health": "/health", "models": "/models"}}
 
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "models_loaded": len(models),
-        "available_models": list(models.keys())
-    }
+    if len(models) != len(MODEL_NAMES) or scaler is None or label_encoder is None:
+        raise HTTPException(503, "Model bundle unavailable")
+    return {"status": "healthy", "models_loaded": len(models), "available_models": list(models)}
 
 
 @app.get("/models")
 async def list_models():
-    """List available models and their info"""
-    model_info = {}
-
-    for name, model in models.items():
-        try:
-            model_bytes = len(pickle.dumps(model))
-            size_mb = model_bytes / (1024 * 1024)
-        except:
-            size_mb = None
-
-        model_info[name] = {
-            "name": name,
-            "type": type(model).__name__,
-            "size_mb": round(size_mb, 2) if size_mb else "unknown",
-            "loaded": True
-        }
-
-    return {
-        "total_models": len(models),
-        "models": model_info,
-        "feature_count": len(feature_names) if feature_names else "unknown",
-        "label_classes": label_encoder.classes_.tolist() if label_encoder else []
-    }
+    return {"total_models": len(models),
+            "models": {name: {"name": name, "type": type(model).__name__, "loaded": True}
+                       for name, model in models.items()},
+            "feature_count": len(feature_names or []), "feature_names": feature_names or [],
+            "label_classes": label_encoder.classes_.tolist() if label_encoder is not None else []}
 
 
 @app.post("/models/reload")
 async def reload_models():
-    """
-    Hot-reload models from disk without restart.
-
-    Called by the retraining pipeline after promoting new models.
-    """
     try:
         load_models()
-        return {
-            "status": "success",
-            "models_loaded": list(models.keys()),
-            "message": "Models reloaded successfully"
-        }
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to reload models: {str(e)}"
-        )
+    except Exception:
+        logger.exception("Rejected invalid model bundle; keeping current models")
+        raise HTTPException(503, "Invalid model bundle; previous models remain active")
+    return {"status": "success", "models_loaded": list(models)}
 
 
 @app.post("/predict", response_model=PredictionResponse)
 async def predict(flow: NetworkFlow):
-    """
-    Predict intrusion detection for a network flow
-
-    Args:
-        flow: NetworkFlow object with 78 features and optional model selection
-
-    Returns:
-        PredictionResponse with prediction, confidence, and metadata
-    """
-    from datetime import datetime
-
-    start_time = time.time()
-
-    # Validate model selection
-    model_name = flow.model_name.lower()
-    if model_name not in models:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Model '{model_name}' not available. Choose from: {list(models.keys())}"
-        )
-
-    # Validate feature count
-    if len(flow.features) != len(feature_names):
-        raise HTTPException(
-            status_code=400,
-            detail=f"Expected {len(feature_names)} features, got {len(flow.features)}"
-        )
-
+    await health_check()
+    start = time.perf_counter()
+    name = flow.model_name.lower()
+    if name not in models:
+        raise HTTPException(400, f"Unknown model. Choose from: {list(models)}")
     try:
-        # Prepare features
-        X = np.array(flow.features).reshape(1, -1)
-
-        # Scale features
-        if scaler:
-            X_scaled = scaler.transform(X)
-        else:
-            X_scaled = X
-
-        # Get model
-        model = models[model_name]
-
-        # Make prediction
-        y_pred = model.predict(X_scaled)[0]
-        y_pred_proba = model.predict_proba(X_scaled)[0]
-
-        # Decode prediction
-        predicted_class = label_encoder.inverse_transform([y_pred])[0]
-        confidence = float(np.max(y_pred_proba))
-
-        # Build probability dictionary
-        probabilities = {
-            label_encoder.classes_[i]: float(y_pred_proba[i])
-            for i in range(len(label_encoder.classes_))
-        }
-
-        inference_time_ms = (time.time() - start_time) * 1000
-
+        scaled = scaler.transform(np.asarray(flow.features).reshape(1, -1))
+        if not np.isfinite(scaled).all():
+            raise HTTPException(422, "Feature values exceed the scaler's numeric range")
+        model = models[name]
+        encoded = model.predict(scaled)[0]
+        probabilities = model.predict_proba(scaled)[0]
         return PredictionResponse(
-            prediction=predicted_class,
-            confidence=confidence,
-            probabilities=probabilities,
-            model_used=model_name,
-            inference_time_ms=round(inference_time_ms, 4),
-            timestamp=datetime.now().isoformat()
+            prediction=str(label_encoder.inverse_transform([encoded])[0]),
+            confidence=float(np.max(probabilities)),
+            probabilities={str(label_encoder.classes_[int(c)]): float(p)
+                           for c, p in zip(model.classes_, probabilities)},
+            model_used=name, inference_time_ms=round((time.perf_counter() - start) * 1000, 4),
+            timestamp=datetime.now(timezone.utc).isoformat(),
         )
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Prediction failed")
+        raise HTTPException(500, "Prediction failed")
 
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Prediction error: {str(e)}"
-        )
+
+@app.post("/predict/named", response_model=PredictionResponse)
+async def predict_named(flow: NetworkFlowDict):
+    await health_check()
+    missing = set(feature_names) - flow.features.keys()
+    extra = flow.features.keys() - set(feature_names)
+    if missing or extra:
+        raise HTTPException(422, {"missing_features": sorted(missing), "unknown_features": sorted(extra)})
+    return await predict(NetworkFlow(features=[flow.features[n] for n in feature_names], model_name=flow.model_name))
 
 
 @app.post("/predict/batch")
-async def predict_batch(flows: List[NetworkFlow]):
-    """
-    Batch prediction for multiple network flows
-
-    Args:
-        flows: List of NetworkFlow objects
-
-    Returns:
-        List of PredictionResponse objects
-    """
-    from datetime import datetime
-
-    if len(flows) > 1000:
-        raise HTTPException(
-            status_code=400,
-            detail="Batch size limited to 1000 flows"
-        )
-
-    start_time = time.time()
+async def predict_batch(flows: Annotated[List[NetworkFlow], Field(min_length=1, max_length=1000)]):
+    start = time.perf_counter()
     results = []
-
-    for i, flow in enumerate(flows):
+    for index, flow in enumerate(flows):
         try:
-            # Use the single prediction endpoint
-            result = await predict(flow)
-            results.append(result.dict())
-        except Exception as e:
-            results.append({
-                "error": str(e),
-                "flow_index": i
-            })
-
-    total_time_ms = (time.time() - start_time) * 1000
-    avg_time_ms = total_time_ms / len(flows)
-
-    return {
-        "total_predictions": len(results),
-        "total_time_ms": round(total_time_ms, 2),
-        "avg_time_per_prediction_ms": round(avg_time_ms, 4),
-        "results": results
-    }
+            results.append((await predict(flow)).model_dump())
+        except HTTPException as exc:
+            results.append({"error": exc.detail, "status_code": exc.status_code, "flow_index": index})
+    elapsed = (time.perf_counter() - start) * 1000
+    return {"total_predictions": len(results), "total_time_ms": round(elapsed, 2),
+            "avg_time_per_prediction_ms": round(elapsed / len(flows), 4), "results": results}
 
 
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    """Global exception handler"""
-    return JSONResponse(
-        status_code=500,
-        content={
-            "error": "Internal server error",
-            "detail": str(exc),
-            "path": str(request.url)
-        }
-    )
-
-
-def run_server(host: str = "0.0.0.0", port: int = 8000):
-    """Run the FastAPI server"""
-    print(f"\nStarting CICIDS2017 IDS Inference API...")
-    print(f"Host: {host}")
-    print(f"Port: {port}")
-    print(f"Docs: http://{host}:{port}/docs")
-    print(f"Redoc: http://{host}:{port}/redoc")
-
+def run_server(host="0.0.0.0", port=8000):
     uvicorn.run(app, host=host, port=port)
 
 

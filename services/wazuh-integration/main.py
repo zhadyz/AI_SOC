@@ -11,10 +11,10 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-from config import get_settings
-from models import WazuhAlert, EnrichedAlert
-from wazuh_client import WazuhClient
-from ai_client import AIClient
+from services.wazuh_integration.config import get_settings
+from services.wazuh_integration.models import WazuhAlert, EnrichedAlert
+from services.wazuh_integration.wazuh_client import WazuhClient
+from services.wazuh_integration.ai_client import AIClient
 
 # Configure structured logging
 structlog.configure(
@@ -59,6 +59,9 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+
+from services.common.api_security import protect_app
+protect_app(app)
 
 @app.post(
     "/webhook",

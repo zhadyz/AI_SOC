@@ -19,7 +19,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set
 
-from models import ActionType, AdapterType, BlastRadius
+from services.response_orchestrator.models import ActionType, AdapterType, BlastRadius
 
 logger = logging.getLogger(__name__)
 

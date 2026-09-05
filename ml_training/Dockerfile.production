@@ -1,79 +1,26 @@
-# CICIDS2017 ML Inference Service - Production Dockerfile
-# Mission: OPERATION ML-BASELINE
-# Agent: HOLLOWED_EYES
-# Features: Multi-stage build, security hardening, model baking option
-
-# Build stage
-FROM python:3.11-slim AS builder
-
-WORKDIR /build
-
-# Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy and install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
-
-# Runtime stage
+# Build from the repository root. Models must be mounted at /app/models.
 FROM python:3.11-slim
-
-# Metadata
-LABEL maintainer="HOLLOWED_EYES <z@onyxlab.ai>"
-LABEL description="CICIDS2017 ML Inference Service - Production Grade"
-LABEL version="1.0.0"
-
+ARG SERVICE=ml-inference
 WORKDIR /app
-
-# Install only runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    tini \
+RUN apt-get update && apt-get install -y --no-install-recommends curl libgomp1 \
     && rm -rf /var/lib/apt/lists/*
-
-# Copy Python packages from builder
-COPY --from=builder /root/.local /root/.local
-ENV PATH=/root/.local/bin:$PATH
-
-# Copy application code
-COPY inference_api.py .
-
-# Optional: Copy models into image for self-contained deployment
-# Uncomment the next line to bake models into the image
-# COPY models/ /app/models/
-
-# Create models directory (for volume mount approach)
-RUN mkdir -p /app/models
-
-# Security: Create non-root user
-RUN groupadd -g 1000 mlgroup && \
-    useradd -m -u 1000 -g mlgroup mluser && \
-    chown -R mluser:mlgroup /app
-
-USER mluser
-
-# Environment variables
-ENV MODEL_PATH=/app/models
-ENV LOG_LEVEL=INFO
+COPY requirements-runtime.txt ./
+COPY services/ ./services/
+COPY ml_training/ ./ml_training/
+COPY dashboard/ ./dashboard/
+COPY config/ ./config/
+RUN if [ "$SERVICE" = "ml-inference" ]; then \
+      pip install --no-cache-dir -r ml_training/requirements-inference.txt; \
+    elif [ "$SERVICE" = "dashboard" ]; then \
+      pip install --no-cache-dir -r dashboard/requirements.txt; \
+    else \
+      pip install --no-cache-dir -r "services/$SERVICE/requirements.txt"; \
+    fi
+RUN useradd --create-home --uid 1000 soc && mkdir -p /app/data && chown -R soc:soc /app
+USER soc
 ENV PYTHONUNBUFFERED=1
-
-# Expose port
 EXPOSE 8000
+HEALTHCHECK --interval=15s --timeout=10s --start-period=60s --retries=5 \
+    CMD curl -fsS http://localhost:8000/health || exit 1
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
-
-# Use tini as init system (proper signal handling)
-ENTRYPOINT ["/usr/bin/tini", "--"]
-
-# Run uvicorn with production settings
-CMD ["uvicorn", "inference_api:app", \
-     "--host", "0.0.0.0", \
-     "--port", "8000", \
-     "--workers", "1", \
-     "--log-level", "info", \
-     "--no-access-log"]
+CMD ["uvicorn", "ml_training.inference_api:app", "--host", "0.0.0.0", "--port", "8000"]

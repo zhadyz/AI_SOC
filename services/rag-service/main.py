@@ -7,6 +7,7 @@ Provides semantic search over security knowledge base.
 """
 
 import logging
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import List, Dict, Any, Optional
@@ -14,9 +15,9 @@ from typing import List, Dict, Any, Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from vector_store import VectorStore
-from embeddings import EmbeddingEngine
-from knowledge_base import KnowledgeBaseManager
+from services.rag_service.vector_store import VectorStore
+from services.rag_service.embeddings import EmbeddingEngine
+from services.rag_service.knowledge_base import KnowledgeBaseManager
 
 # Default runbooks directory (relative to this file)
 RUNBOOKS_DIR = str(Path(__file__).parent / "runbooks")
@@ -44,7 +45,8 @@ async def lifespan(app: FastAPI):
     try:
         # Initialize components
         embedding_engine = EmbeddingEngine()
-        vector_store = VectorStore(embedding_engine)
+        vector_store = VectorStore(embedding_engine, host=os.getenv("RAG_CHROMADB_HOST", "chromadb"),
+                                   port=int(os.getenv("RAG_CHROMADB_PORT", "8000")))
         kb_manager = KnowledgeBaseManager(vector_store)
 
         # Initialize ChromaDB collections
@@ -53,6 +55,10 @@ async def lifespan(app: FastAPI):
         for collection in collections:
             vector_store.create_collection(collection)
 
+        if os.getenv("RAG_INGEST_RUNBOOKS", "true").lower() == "true":
+            ingestion = await kb_manager.ingest_security_runbooks(RUNBOOKS_DIR)
+            if ingestion.get("status") == "error":
+                raise RuntimeError("Runbook ingestion failed")
         logger.info("RAG Service initialization complete")
 
     except Exception as e:
@@ -95,9 +101,14 @@ class RetrievalResponse(BaseModel):
     total_results: int
 
 
+from services.common.api_security import protect_app
+protect_app(app)
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
+    if not vector_store or not vector_store.is_connected() or not embedding_engine.model:
+        raise HTTPException(503, "RAG dependencies unavailable")
     return {
         "status": "healthy",
         "service": "rag-service",
@@ -248,6 +259,8 @@ async def ingest_mitre():
     try:
         logger.info("Starting MITRE ATT&CK ingestion")
         result = await kb_manager.ingest_mitre_attack()
+        if result.get("status") != "success":
+            raise RuntimeError(result.get("message", "MITRE ingestion failed"))
         return result
     except Exception as e:
         logger.error(f"MITRE ingestion failed: {e}")

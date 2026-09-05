@@ -39,7 +39,7 @@ class EmbeddingEngine:
             logger.info(f"Successfully loaded embedding model: {model_name}")
         except Exception as e:
             logger.error(f"Failed to load embedding model {model_name}: {e}")
-            self.model = None
+            raise RuntimeError(f"Embedding model {model_name} is unavailable") from e
 
         logger.info(f"EmbeddingEngine initialized (model: {model_name})")
 
@@ -55,14 +55,14 @@ class EmbeddingEngine:
         """
         if not self.model:
             logger.warning("Embedding model not loaded, returning zero vector")
-            return [0.0] * 384  # Fallback vector
+            raise RuntimeError("Embedding model unavailable")
 
         try:
             embedding = self.model.encode(text, convert_to_numpy=True, normalize_embeddings=True)
             return embedding.tolist()
         except Exception as e:
             logger.error(f"Failed to generate embedding: {e}")
-            return [0.0] * 384
+            raise RuntimeError("Embedding failed") from e
 
     def embed_batch(self, texts: List[str], batch_size: int = 32) -> np.ndarray:
         """
@@ -79,7 +79,7 @@ class EmbeddingEngine:
         """
         if not self.model:
             logger.warning("Embedding model not loaded, returning zero vectors")
-            return np.zeros((len(texts), 384))
+            raise RuntimeError("Embedding model unavailable")
 
         try:
             embeddings = self.model.encode(
@@ -92,7 +92,7 @@ class EmbeddingEngine:
             return embeddings
         except Exception as e:
             logger.error(f"Failed to generate batch embeddings: {e}")
-            return np.zeros((len(texts), 384))
+            raise RuntimeError("Embedding model unavailable")
 
     def get_embedding_function(self):
         """
@@ -103,13 +103,11 @@ class EmbeddingEngine:
 
         TODO: Week 5 - Return ChromaDB-compatible function
         """
-        # TODO: Week 5 - Return embedding function
-        # from chromadb.utils import embedding_functions
-        # return embedding_functions.SentenceTransformerEmbeddingFunction(
-        #     model_name=self.model_name
-        # )
-
-        return None
+        engine = self
+        class EmbeddingFunction:
+            def __call__(self, input):
+                return engine.embed_batch(input).tolist()
+        return EmbeddingFunction()
 
     def compute_similarity(self, text1: str, text2: str) -> float:
         """

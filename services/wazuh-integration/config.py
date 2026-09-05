@@ -6,6 +6,7 @@ Environment-based configuration for Wazuh API and AI service integration.
 """
 
 from pydantic_settings import BaseSettings
+from pydantic import Field, AliasChoices
 from functools import lru_cache
 
 
@@ -19,8 +20,8 @@ class Settings(BaseSettings):
     # Wazuh Manager Configuration
     wazuh_manager_url: str = "https://wazuh-manager:55000"
     wazuh_username: str = "wazuh-wui"
-    wazuh_password: str  # Loaded from API_PASSWORD in .env
-    wazuh_verify_ssl: bool = False  # Self-signed cert
+    wazuh_password: str = Field("", validation_alias=AliasChoices("WAZUH_PASSWORD", "API_PASSWORD"))
+    wazuh_verify_ssl: bool = True
 
     # Wazuh Alert Filtering
     min_severity: int = 7  # Minimum rule_level to process (7-15 = high priority)
@@ -44,12 +45,11 @@ class Settings(BaseSettings):
     ai_service_timeout: int = 60
 
     class Config:
+        hide_input_in_errors = True
         env_file = ".env"
         env_file_encoding = "utf-8"
-        # Map API_PASSWORD to wazuh_password
-        fields = {
-            'wazuh_password': {'env': 'API_PASSWORD'}
-        }
+        extra = "ignore"
+
 
 
 @lru_cache()

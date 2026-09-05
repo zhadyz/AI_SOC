@@ -20,14 +20,16 @@ from fastapi.responses import JSONResponse
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 from starlette.responses import Response
 
-from config import get_settings
-from database import create_db_pool, close_db_pool, check_db_health
-from models import (
+from services.response_orchestrator.config import get_settings
+from services.response_orchestrator.database import create_db_pool, close_db_pool, check_db_health
+from services.response_orchestrator.models import (
     DefensePlan, PlanSummary, PlannedAction, PlanStatus,
     HealthResponse, TriggerPlanRequest, ApproveActionRequest,
     VerificationResult,
 )
-from orchestrator import ResponseOrchestrator
+from services.response_orchestrator.orchestrator import ResponseOrchestrator
+from services.response_orchestrator.store import PlanStore
+from pydantic import BaseModel, Field
 
 import httpx
 
@@ -92,7 +94,10 @@ async def lifespan(app: FastAPI):
     )
 
     await create_db_pool(settings.database_url)
-    orchestrator = ResponseOrchestrator(settings)
+    store = PlanStore(settings.database_url)
+    await store.initialize()
+    orchestrator = ResponseOrchestrator(settings, store=store)
+    await orchestrator.restore()
 
     logger.info(
         "Response Orchestrator ready — dry_run=%s, auto_execute_min=%.2f",
@@ -102,6 +107,8 @@ async def lifespan(app: FastAPI):
 
     yield
 
+    await orchestrator.close()
+    await store.close()
     await close_db_pool()
     logger.info("Response Orchestrator shut down")
 
@@ -126,6 +133,9 @@ app = FastAPI(
 # ---------------------------------------------------------------------------
 # Health & Info
 # ---------------------------------------------------------------------------
+
+from services.common.api_security import protect_app
+protect_app(app)
 
 @app.get("/", tags=["Info"])
 async def root():
@@ -152,6 +162,9 @@ async def root():
 async def health_check():
     """Comprehensive service health check."""
     db_ok = await check_db_health()
+
+    if not db_ok:
+        raise HTTPException(503, "Database unavailable")
 
     # Check upstream services
     correlation_ok = False
@@ -187,7 +200,7 @@ async def health_check():
     if orchestrator:
         active_plans = len([
             p for p in orchestrator.get_all_plans()
-            if p.status not in (PlanStatus.COMPLETED, PlanStatus.FAILED, PlanStatus.ROLLED_BACK)
+            if p.status not in (PlanStatus.COMPLETED, PlanStatus.FAILED, PlanStatus.ROLLED_BACK, PlanStatus.DRY_RUN, PlanStatus.CANCELLED)
         ])
 
     overall = "healthy" if db_ok else "degraded"
@@ -362,7 +375,43 @@ async def approve_action(
         return action
 
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=409, detail=str(e))
+
+
+class PlanDecision(BaseModel):
+    analyst_id: str = Field(min_length=1, max_length=255)
+    notes: Optional[str] = Field(None, max_length=2000)
+
+
+class VerificationRequest(PlanDecision):
+    environment_json: dict
+
+
+@app.get("/plans/{plan_id}/events", tags=["Defense"])
+async def plan_events(plan_id: str):
+    if not orchestrator or not orchestrator.get_plan(plan_id):
+        raise HTTPException(404, "Plan not found")
+    return await orchestrator.store.events(plan_id)
+
+
+@app.post("/plans/{plan_id}/cancel", response_model=DefensePlan, tags=["Defense"])
+async def cancel_plan(plan_id: str, request: PlanDecision):
+    if not orchestrator:
+        raise HTTPException(503, "Orchestrator not initialized")
+    try:
+        return await orchestrator.cancel_plan(plan_id, request.analyst_id, request.notes)
+    except ValueError as exc:
+        raise HTTPException(409, str(exc))
+
+
+@app.post("/plans/{plan_id}/verify", response_model=DefensePlan, tags=["Defense"])
+async def verify_plan(plan_id: str, request: VerificationRequest):
+    if not orchestrator:
+        raise HTTPException(503, "Orchestrator not initialized")
+    try:
+        return await orchestrator.request_verification(plan_id, request.environment_json, request.analyst_id)
+    except ValueError as exc:
+        raise HTTPException(409, str(exc))
 
 
 # ---------------------------------------------------------------------------
@@ -379,7 +428,7 @@ async def d3fend_lookup(technique_id: str):
     Given a MITRE ATT&CK technique ID, return the D3FEND countermeasures
     and their mapped concrete defense actions.
     """
-    from d3fend import get_countermeasures
+    from services.response_orchestrator.d3fend import get_countermeasures
     countermeasures = get_countermeasures(technique_id)
 
     if not countermeasures:
@@ -414,7 +463,7 @@ async def d3fend_lookup(technique_id: str):
 )
 async def d3fend_supported_techniques():
     """Return all ATT&CK technique IDs that have D3FEND countermeasure mappings."""
-    from d3fend import get_supported_attack_techniques
+    from services.response_orchestrator.d3fend import get_supported_attack_techniques
     techniques = get_supported_attack_techniques()
     return {"total": len(techniques), "techniques": techniques}
 

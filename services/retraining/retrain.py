@@ -1,25 +1,16 @@
-"""
-Continuous Retraining Pipeline - AI-Augmented SOC
-Phase 5: Self-improving ML models from analyst feedback.
+"""Train candidates from independently reviewed, complete flow records.
 
-Reads analyst-labeled feedback from PostgreSQL, combines with original
-CICIDS2017 training data, retrains models, evaluates champion/challenger,
-and promotes better models.
-
-Usage:
-    python retrain.py                    # Check if retraining needed and run
-    python retrain.py --force            # Force retrain regardless of threshold
-    python retrain.py --evaluate-only    # Evaluate current models without retraining
+Exploratory training never replaces serving artifacts. Promotion additionally
+requires an independent labeled holdout CSV and an explicit --promote flag.
 """
 
 import argparse
+import hashlib
 import json
 import logging
 import os
 import pickle
-import sys
-import time
-from datetime import datetime
+import uuid
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -29,143 +20,108 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.metrics import (
-    accuracy_score, precision_score, recall_score, f1_score,
-    confusion_matrix, classification_report
-)
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
 logger = logging.getLogger("retraining")
-
-# Paths
-MODEL_DIR = Path(os.getenv("MODEL_DIR", "/app/models"))
-CURRENT_DIR = MODEL_DIR / "current"
-CANDIDATE_DIR = MODEL_DIR / "candidate"
-HISTORY_DIR = MODEL_DIR / "history"
-
-# Retraining config
-RETRAIN_THRESHOLD = int(os.getenv("RETRAIN_THRESHOLD", "100"))
-MIN_IMPROVEMENT = float(os.getenv("MIN_IMPROVEMENT", "0.005"))  # 0.5% accuracy improvement
-DATABASE_URL = os.getenv(
-    "FEEDBACK_DATABASE_URL",
-    "postgresql://ai_soc:ai_soc_password@postgres:5432/ai_soc",
+MODEL_DIR = Path(
+    os.getenv("MODEL_DIR", str(Path(__file__).resolve().parents[2] / "models"))
 )
-ML_INFERENCE_URL = os.getenv("ML_INFERENCE_URL", "http://ml-inference:8000")
+DATABASE_URL = os.getenv(
+    "FEEDBACK_DATABASE_URL", "postgresql://ai_soc:ai_soc_password@localhost:5435/ai_soc"
+)
+ML_INFERENCE_URL = os.getenv("ML_INFERENCE_URL", "http://localhost:8500")
+RETRAIN_THRESHOLD = int(os.getenv("RETRAIN_THRESHOLD", "100"))
+MIN_IMPROVEMENT = float(os.getenv("MIN_IMPROVEMENT", "0.005"))
+MODEL_NAMES = ("random_forest", "xgboost", "decision_tree")
 
 
-def load_feedback_data() -> Optional[pd.DataFrame]:
+def active_directory():
+    pointer = MODEL_DIR / "active.json"
+    directory = MODEL_DIR
+    if pointer.exists():
+        directory = (MODEL_DIR / json.loads(pointer.read_text())["bundle"]).resolve()
+        if not directory.is_relative_to(MODEL_DIR.resolve()):
+            raise ValueError("Invalid model bundle pointer")
+    return directory
+
+
+def load_feature_names():
+    with (active_directory() / "feature_names.pkl").open("rb") as stream:
+        return list(pickle.load(stream))
+
+
+def load_current_models():
+    return {
+        name: pickle.loads((active_directory() / f"{name}_ids.pkl").read_bytes())
+        for name in MODEL_NAMES
+    }
+
+
+def load_feedback_data():
+    import psycopg2
+
+    query = """
+        WITH reviewed AS (
+            SELECT f.*, r.approved AS review_approved, r.reviewer_id
+            FROM feedback f JOIN feedback_reviews r ON r.feedback_id = f.id
+            WHERE r.approved AND r.reviewer_id <> f.analyst_id
+              AND f.true_label IN ('BENIGN', 'ATTACK')
+        ), unambiguous AS (
+            SELECT alert_id FROM reviewed GROUP BY alert_id HAVING count(DISTINCT true_label) = 1
+        )
+        SELECT DISTINCT ON (a.alert_id) a.alert_id, a.raw_alert_json,
+            f.true_label, f.is_false_positive, f.analyst_id, f.review_approved, f.reviewer_id
+        FROM alerts a JOIN reviewed f ON f.alert_id = a.alert_id
+        JOIN unambiguous u ON u.alert_id = a.alert_id
+        ORDER BY a.alert_id, f.created_at DESC
     """
-    Load analyst-labeled feedback from PostgreSQL.
-    Returns DataFrame with features and true labels.
-    """
-    try:
-        import psycopg2
-    except ImportError:
-        logger.error("psycopg2 not installed. Run: pip install psycopg2-binary")
-        return None
-
-    sync_url = DATABASE_URL.replace("+asyncpg", "").replace("postgresql+asyncpg", "postgresql")
-
-    try:
-        conn = psycopg2.connect(sync_url)
-        query = """
-            SELECT
-                a.alert_id,
-                a.raw_alert_json,
-                a.triage_result_json,
-                a.ml_prediction,
-                a.ml_confidence,
-                f.true_label,
-                f.is_false_positive,
-                f.true_severity,
-                f.true_category,
-                f.created_at as feedback_time
-            FROM alerts a
-            JOIN feedback f ON a.alert_id = f.alert_id
-            WHERE f.true_label IS NOT NULL
-            ORDER BY f.created_at DESC
-        """
-        df = pd.read_sql(query, conn)
-        conn.close()
-        logger.info(f"Loaded {len(df)} labeled feedback entries from database")
-        return df
-    except Exception as e:
-        logger.error(f"Failed to load feedback data: {e}")
-        return None
+    with psycopg2.connect(DATABASE_URL.replace("+asyncpg", "")) as connection:
+        return pd.read_sql_query(query, connection)
 
 
-def extract_features_from_feedback(df: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Extract ML features from stored alert data.
-    Returns (X, y) arrays for training.
-    """
-    features_list = []
-    labels = []
-
-    for _, row in df.iterrows():
-        raw_alert = row.get("raw_alert_json") or {}
-        full_log = raw_alert.get("full_log") or {}
-
-        # Try to extract network flow features
-        network_flow = None
-        if isinstance(full_log, dict):
-            network_flow = full_log.get("network_flow")
-            if not network_flow and full_log.get("Flow Duration") is not None:
-                network_flow = full_log
-
-        if network_flow and len(network_flow) >= 10:
-            # Real network flow data available
-            feature_names = load_feature_names()
-            features = []
-            for name in feature_names:
-                val = network_flow.get(name, 0.0)
-                try:
-                    features.append(float(val))
-                except (ValueError, TypeError):
-                    features.append(0.0)
-            features_list.append(features)
-        else:
-            # Use alert metadata as approximate features
-            features = [0.0] * 77
-            features[0] = 6.0  # Protocol (TCP default)
-            features[1] = 1000000.0  # Flow duration (1s)
-            if raw_alert.get("dest_port"):
-                features[35] = float(raw_alert["dest_port"])
-            if raw_alert.get("rule_level"):
-                level = float(raw_alert["rule_level"])
-                features[44] = 1.0 if level >= 8 else 0.0
-            features_list.append(features)
-
-        labels.append(row["true_label"])
-
-    X = np.array(features_list)
-    y = np.array(labels)
-    logger.info(f"Extracted features: X shape={X.shape}, labels={np.unique(y, return_counts=True)}")
-    return X, y
-
-
-def load_feature_names() -> List[str]:
-    """Load CICIDS2017 feature names."""
-    path = MODEL_DIR / "feature_names.pkl"
-    if path.exists():
-        with open(path, "rb") as f:
-            return pickle.load(f)
-    # Fallback: return generic names
-    return [f"feature_{i}" for i in range(77)]
-
-
-def load_current_models() -> Dict:
-    """Load currently deployed models for comparison."""
-    models = {}
-    for name in ["random_forest_ids.pkl", "xgboost_ids.pkl", "decision_tree_ids.pkl"]:
-        path = MODEL_DIR / name
-        if path.exists():
-            with open(path, "rb") as f:
-                models[name.replace("_ids.pkl", "")] = pickle.load(f)
-    return models
+def extract_features_from_feedback(frame):
+    names = load_feature_names()
+    samples, ambiguous = {}, set()
+    if len(names) != 77:
+        raise ValueError("Incompatible feature contract")
+    for _, row in frame.iterrows():
+        if (
+            row.get("review_approved") != True
+            or not row.get("reviewer_id")
+            or row.get("reviewer_id") == row.get("analyst_id")
+        ):
+            continue
+        label = row.get("true_label")
+        if label not in {"BENIGN", "ATTACK"} or (
+            row.get("is_false_positive") and label == "ATTACK"
+        ):
+            continue
+        raw = row.get("raw_alert_json")
+        if isinstance(raw, str):
+            try:
+                raw = json.loads(raw)
+            except ValueError:
+                continue
+        if not isinstance(raw, dict):
+            continue
+        log = raw.get("full_log", {})
+        flow = log.get("network_flow", log) if isinstance(log, dict) else {}
+        if not isinstance(flow, dict) or not set(names).issubset(flow):
+            continue
+        try:
+            values = np.asarray([flow[name] for name in names], dtype=float)
+        except (ValueError, TypeError):
+            continue
+        if not np.isfinite(values).all():
+            continue
+        fingerprint = hashlib.sha256(values.tobytes()).hexdigest()
+        if fingerprint in samples and samples[fingerprint][1] != label:
+            ambiguous.add(fingerprint)
+        samples[fingerprint] = (values, label)
+    accepted = [sample for key, sample in samples.items() if key not in ambiguous]
+    features = [sample[0] for sample in accepted]
+    labels = [sample[1] for sample in accepted]
+    return np.asarray(features, dtype=float).reshape(-1, 77), np.asarray(labels)
 
 
 def train_models(
@@ -246,8 +202,12 @@ def evaluate_models(
         y_pred = model.predict(X_scaled)
         results[name] = {
             "accuracy": accuracy_score(y_encoded, y_pred),
-            "precision": precision_score(y_encoded, y_pred, average="weighted", zero_division=0),
-            "recall": recall_score(y_encoded, y_pred, average="weighted", zero_division=0),
+            "precision": precision_score(
+                y_encoded, y_pred, average="weighted", zero_division=0
+            ),
+            "recall": recall_score(
+                y_encoded, y_pred, average="weighted", zero_division=0
+            ),
             "f1": f1_score(y_encoded, y_pred, average="weighted", zero_division=0),
         }
         logger.info(
@@ -258,193 +218,162 @@ def evaluate_models(
     return results
 
 
-def champion_challenger(
-    current_results: Dict[str, Dict],
-    candidate_results: Dict[str, Dict],
-) -> Dict[str, str]:
-    """
-    Compare current (champion) vs new (challenger) models.
-    Returns dict of model_name -> "promote" or "keep".
-    """
+def champion_challenger(current_results, candidate_results):
     decisions = {}
-    for name in candidate_results:
-        if name not in current_results:
-            decisions[name] = "promote"
-            continue
-
-        current_acc = current_results[name]["accuracy"]
-        candidate_acc = candidate_results[name]["accuracy"]
-        improvement = candidate_acc - current_acc
-
-        if improvement >= MIN_IMPROVEMENT:
-            decisions[name] = "promote"
-            logger.info(
-                f"  {name}: PROMOTE (improvement={improvement:+.4f}, "
-                f"{current_acc:.4f} -> {candidate_acc:.4f})"
-            )
-        else:
-            decisions[name] = "keep"
-            logger.info(
-                f"  {name}: KEEP (improvement={improvement:+.4f} < "
-                f"threshold={MIN_IMPROVEMENT})"
-            )
-
+    for name, candidate in candidate_results.items():
+        current = current_results[name]
+        improved = (
+            candidate["accuracy"] - current["accuracy"] >= MIN_IMPROVEMENT
+            and candidate["f1"] >= current["f1"]
+            and candidate["recall"] >= current["recall"]
+        )
+        decisions[name] = "promote" if improved else "keep"
     return decisions
 
 
-def save_models(models: Dict, scaler: StandardScaler, label_encoder: LabelEncoder):
-    """Save promoted models to the models directory."""
-    # Archive current models
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    archive_dir = HISTORY_DIR / timestamp
-    archive_dir.mkdir(parents=True, exist_ok=True)
-
-    for name in ["random_forest_ids.pkl", "xgboost_ids.pkl", "decision_tree_ids.pkl"]:
-        src = MODEL_DIR / name
-        if src.exists():
-            dest = archive_dir / name
-            with open(src, "rb") as f:
-                data = f.read()
-            with open(dest, "wb") as f:
-                f.write(data)
-
-    # Save new models
+def save_models(models, scaler, label_encoder, *, activate=False, metadata=None):
+    """Write a complete immutable bundle; publish its pointer only when requested."""
+    if set(models) != set(MODEL_NAMES):
+        raise ValueError("Promotion requires a complete model bundle")
+    names = load_feature_names()
+    if scaler.n_features_in_ != len(names):
+        raise ValueError("Scaler and feature contract disagree")
+    probe = scaler.transform(np.asarray(scaler.mean_).reshape(1, -1))
     for name, model in models.items():
-        path = MODEL_DIR / f"{name}_ids.pkl"
-        with open(path, "wb") as f:
-            pickle.dump(model, f)
-        logger.info(f"Saved model: {path}")
-
-    # Save updated scaler and encoder
-    with open(MODEL_DIR / "scaler.pkl", "wb") as f:
-        pickle.dump(scaler, f)
-    with open(MODEL_DIR / "label_encoder.pkl", "wb") as f:
-        pickle.dump(label_encoder, f)
-
-    # Save metadata
-    metadata = {
-        "retrained_at": datetime.now().isoformat(),
-        "models": list(models.keys()),
-        "feedback_samples": "from_database",
-        "archived_to": str(archive_dir),
-    }
-    with open(MODEL_DIR / "retrain_metadata.json", "w") as f:
-        json.dump(metadata, f, indent=2)
-
-    logger.info(f"Models archived to {archive_dir}")
+        if model.n_features_in_ != len(names) or not np.array_equal(
+            model.classes_, np.arange(len(label_encoder.classes_))
+        ):
+            raise ValueError(f"Incompatible candidate: {name}")
+        if not np.isfinite(model.predict_proba(probe)).all():
+            raise ValueError(f"Invalid candidate output: {name}")
+    directory = MODEL_DIR / "bundles" / uuid.uuid4().hex
+    directory.mkdir(parents=True)
+    objects = {f"{name}_ids": model for name, model in models.items()}
+    objects.update(scaler=scaler, label_encoder=label_encoder, feature_names=names)
+    for name, obj in objects.items():
+        with (directory / f"{name}.pkl").open("wb") as stream:
+            pickle.dump(obj, stream)
+            stream.flush()
+            os.fsync(stream.fileno())
+    (directory / "evaluation.json").write_text(json.dumps(metadata or {}, indent=2))
+    if activate:
+        pointer = {"bundle": str(directory.relative_to(MODEL_DIR))}
+        temporary = MODEL_DIR / f".active-{uuid.uuid4().hex}.json"
+        with temporary.open("w") as stream:
+            json.dump(pointer, stream)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, MODEL_DIR / "active.json")
+    return directory
 
 
 def trigger_reload():
-    """Tell ml-inference to reload models."""
-    try:
-        import requests
+    import requests
 
-        response = requests.post(f"{ML_INFERENCE_URL}/models/reload", timeout=10)
-        if response.status_code == 200:
-            logger.info("ML inference service reloaded successfully")
-        else:
-            logger.warning(f"ML inference reload returned {response.status_code}")
-    except Exception as e:
-        logger.warning(f"Failed to trigger ML reload: {e}")
+    key = os.getenv("AI_SOC_API_KEY", "")
+    response = requests.post(
+        f"{ML_INFERENCE_URL}/models/reload",
+        timeout=30,
+        headers={"Authorization": f"Bearer {key}"} if key else {},
+    )
+    response.raise_for_status()
+
+
+def load_holdout(path, training_features):
+    frame = pd.read_csv(path)
+    names = load_feature_names()
+    if not set(names + ["Label"]).issubset(frame.columns):
+        raise ValueError("Holdout needs all 77 named features and a Label column")
+    values = frame[names].to_numpy(dtype=float)
+    labels = frame["Label"].to_numpy()
+    if (
+        not len(values)
+        or not np.isfinite(values).all()
+        or set(labels) != {"BENIGN", "ATTACK"}
+    ):
+        raise ValueError("Holdout must be finite and contain both binary classes")
+    training_hashes = {
+        hashlib.sha256(row.tobytes()).digest() for row in training_features
+    }
+    if any(hashlib.sha256(row.tobytes()).digest() in training_hashes for row in values):
+        raise ValueError("Holdout overlaps training data")
+    return values, labels
 
 
 def main():
-    parser = argparse.ArgumentParser(description="AI-SOC Continuous Retraining Pipeline")
-    parser.add_argument("--force", action="store_true", help="Force retrain")
-    parser.add_argument("--evaluate-only", action="store_true", help="Evaluate only")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Allow exploratory training below the usual sample threshold",
+    )
+    parser.add_argument("--evaluate-only", action="store_true")
+    parser.add_argument(
+        "--holdout", type=Path, help="Independent 77-feature + Label CSV"
+    )
+    parser.add_argument(
+        "--promote",
+        action="store_true",
+        help="Explicitly activate winners evaluated on --holdout",
+    )
     args = parser.parse_args()
-
-    logger.info("=" * 60)
-    logger.info("AI-SOC Continuous Retraining Pipeline")
-    logger.info("=" * 60)
-
-    # Step 1: Load feedback data
-    feedback_df = load_feedback_data()
-    if feedback_df is None or len(feedback_df) == 0:
-        logger.info("No labeled feedback data available")
-        return
-
-    logger.info(f"Found {len(feedback_df)} labeled feedback entries")
-
-    if not args.force and len(feedback_df) < RETRAIN_THRESHOLD:
+    if args.promote and not args.holdout:
+        parser.error("--promote requires an independent --holdout CSV")
+    frame = load_feedback_data()
+    X, y = extract_features_from_feedback(frame)
+    if len(X) < RETRAIN_THRESHOLD and not args.force:
         logger.info(
-            f"Below threshold ({len(feedback_df)}/{RETRAIN_THRESHOLD}). "
-            f"Skipping retraining. Use --force to override."
+            "Only %d eligible complete reviewed flows; need %d",
+            len(X),
+            RETRAIN_THRESHOLD,
         )
         return
-
-    # Step 2: Extract features
-    X_feedback, y_feedback = extract_features_from_feedback(feedback_df)
-
-    if len(X_feedback) == 0:
-        logger.warning("No valid features extracted")
-        return
-
-    # Step 3: Prepare data
-    # Load existing scaler and encoder
-    scaler_path = MODEL_DIR / "scaler.pkl"
-    encoder_path = MODEL_DIR / "label_encoder.pkl"
-
-    if scaler_path.exists() and encoder_path.exists():
-        with open(scaler_path, "rb") as f:
-            scaler = pickle.load(f)
-        with open(encoder_path, "rb") as f:
-            label_encoder = pickle.load(f)
+    _, counts = np.unique(y, return_counts=True)
+    if len(counts) != 2 or min(counts) < 5:
+        raise ValueError(
+            "At least five reviewed, unique flow samples per class are required"
+        )
+    directory = active_directory()
+    scaler = pickle.loads((directory / "scaler.pkl").read_bytes())
+    encoder = pickle.loads((directory / "label_encoder.pkl").read_bytes())
+    # Freeze serving preprocessing so all candidate/champion comparisons use the
+    # exact same representation. Never refit a scaler underneath old models.
+    if args.holdout:
+        X_train, y_train = X, y
+        X_test, y_test = load_holdout(args.holdout, X_train)
     else:
-        scaler = StandardScaler()
-        label_encoder = LabelEncoder()
-
-    # Ensure label encoder knows all classes
-    all_labels = np.unique(y_feedback)
-    known_classes = set(label_encoder.classes_) if hasattr(label_encoder, 'classes_') else set()
-    new_classes = set(all_labels) - known_classes
-    if new_classes:
-        all_classes = sorted(known_classes | set(all_labels))
-        label_encoder.fit(all_classes)
-
-    # Train/test split
-    X_train, X_test, y_train, y_test = train_test_split(
-        X_feedback, y_feedback, test_size=0.2, random_state=42, stratify=y_feedback
-    )
-
-    # Fit scaler on new data
-    scaler.fit(X_train)
-
-    # Step 4: Evaluate current models
-    logger.info("\n--- Current Model Performance ---")
-    current_models = load_current_models()
-    current_results = evaluate_models(current_models, X_test, y_test, scaler, label_encoder)
-
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, stratify=y, test_size=0.2, random_state=42
+        )
+    current = load_current_models()
+    baseline = evaluate_models(current, X_test, y_test, scaler, encoder)
     if args.evaluate_only:
-        logger.info("Evaluate-only mode. Done.")
+        print(json.dumps(baseline, indent=2))
         return
-
-    # Step 5: Train candidates
-    logger.info("\n--- Training Candidate Models ---")
-    candidate_models = train_models(X_train, y_train, scaler, label_encoder)
-
-    # Step 6: Evaluate candidates
-    logger.info("\n--- Candidate Model Performance ---")
-    candidate_results = evaluate_models(candidate_models, X_test, y_test, scaler, label_encoder)
-
-    # Step 7: Champion/Challenger
-    logger.info("\n--- Champion/Challenger Comparison ---")
-    decisions = champion_challenger(current_results, candidate_results)
-
-    # Step 8: Promote winners
-    promoted = {name: model for name, model in candidate_models.items() if decisions.get(name) == "promote"}
-
-    if promoted:
-        logger.info(f"\nPromoting {len(promoted)} model(s): {list(promoted.keys())}")
-        save_models(promoted, scaler, label_encoder)
+    candidates = train_models(X_train, y_train, scaler, encoder)
+    candidate_scores = evaluate_models(candidates, X_test, y_test, scaler, encoder)
+    decisions = champion_challenger(baseline, candidate_scores)
+    selected = {
+        name: candidates[name] if decisions.get(name) == "promote" else current[name]
+        for name in MODEL_NAMES
+    }
+    metadata = {
+        "baseline": baseline,
+        "candidate": candidate_scores,
+        "decisions": decisions,
+        "training_samples": len(X_train),
+        "holdout_samples": len(X_test),
+        "independent_holdout": str(args.holdout) if args.holdout else None,
+    }
+    activate = args.promote and "promote" in decisions.values()
+    bundle = save_models(
+        selected, scaler, encoder, activate=activate, metadata=metadata
+    )
+    logger.info("Saved %s; activated=%s", bundle, activate)
+    if activate:
         trigger_reload()
-    else:
-        logger.info("\nNo models improved. Keeping current models.")
-
-    logger.info("\n" + "=" * 60)
-    logger.info("Retraining pipeline complete")
-    logger.info("=" * 60)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     main()

@@ -38,7 +38,7 @@ def validate_input(
     """
     # Length check
     if len(text) > max_length:
-        return False, f"Input exceeds maximum length of {max_length} characters"
+        return False, f"Input is too long; maximum length is {max_length} characters"
 
     # Empty input
     if not text.strip():
@@ -48,6 +48,10 @@ def validate_input(
     if '\x00' in text:
         logger.warning("Null byte detected in input")
         return False, "Invalid characters in input"
+
+    # Heuristic only; callers must still use parameterized queries and scoped paths.
+    if re.search(r"\.\.[\\/]", text):
+        return False, "Path traversal pattern detected"
 
     # Detect SQL injection patterns (basic)
     sql_patterns = [
@@ -99,7 +103,7 @@ def sanitize_log(log_text: str, preserve_context: bool = True) -> str:
     # Redact passwords
     text = re.sub(
         r'(password|passwd|pwd)\s*[:=]\s*\S+',
-        r'\1=***REDACTED***',
+        r'\1=[REDACTED]',
         text,
         flags=re.IGNORECASE
     )
@@ -107,7 +111,7 @@ def sanitize_log(log_text: str, preserve_context: bool = True) -> str:
     # Redact API keys
     text = re.sub(
         r'(api[_-]?key|token|secret)\s*[:=]\s*[\w\-]+',
-        r'\1=***REDACTED***',
+        r'\1=[REDACTED]',
         text,
         flags=re.IGNORECASE
     )
@@ -115,7 +119,7 @@ def sanitize_log(log_text: str, preserve_context: bool = True) -> str:
     # Redact authentication tokens
     text = re.sub(
         r'(Bearer|Authorization:\s*Bearer)\s+[\w\-\.]+',
-        r'\1 ***REDACTED***',
+        r'\1 [REDACTED]',
         text,
         flags=re.IGNORECASE
     )
@@ -152,6 +156,9 @@ def detect_prompt_injection(text: str) -> tuple[bool, Optional[str]]:
         # System prompt override
         (r'ignore\s+(previous|all)\s+(instructions|prompts)', 'system_override'),
         (r'disregard\s+(previous|all)\s+(instructions|prompts)', 'system_override'),
+
+        (r'ignore\s+your\s+(training|rules|instructions)', 'system_override'),
+        (r'(reveal|tell\s+me|print)\s+(me\s+)?your\s+(system\s+)?prompt', 'output_manipulation'),
 
         # Role switching
         (r'you\s+are\s+now', 'role_switch'),

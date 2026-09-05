@@ -12,7 +12,7 @@ from typing import Dict, List, Optional, Tuple
 
 import httpx
 
-from defender_actions import (
+from services.correlation_engine.defender_actions import (
     DefenderState,
     DefenderActionOutcome,
     get_available_defender_actions,

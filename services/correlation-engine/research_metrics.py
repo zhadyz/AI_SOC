@@ -20,7 +20,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from history_store import HistoryStore
+from services.correlation_engine.history_store import HistoryStore
 
 logger = logging.getLogger(__name__)
 

@@ -9,7 +9,7 @@ import httpx
 import structlog
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
-from config import Settings
+from services.wazuh_integration.config import Settings
 
 logger = structlog.get_logger()
 

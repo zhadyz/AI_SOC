@@ -19,4 +19,5 @@ class Settings(BaseSettings):
     max_page_size: int = 200
 
     class Config:
+        hide_input_in_errors = True
         env_prefix = "FEEDBACK_"

@@ -7,6 +7,7 @@ Manages collections, embeddings, and similarity search.
 """
 
 import logging
+import hashlib
 from typing import List, Dict, Any, Optional
 import chromadb
 from chromadb.config import Settings
@@ -47,7 +48,7 @@ class VectorStore:
             logger.info(f"Connected to ChromaDB at {host}:{port}")
         except Exception as e:
             logger.error(f"Failed to connect to ChromaDB: {e}")
-            self.client = None
+            raise RuntimeError("ChromaDB connection unavailable") from e
 
         logger.info("VectorStore initialized")
 
@@ -85,7 +86,7 @@ class VectorStore:
         try:
             if not self.client:
                 logger.error("ChromaDB client not initialized")
-                return False
+                raise RuntimeError("ChromaDB client unavailable")
 
             logger.info(f"Creating collection: {name}")
 
@@ -98,14 +99,14 @@ class VectorStore:
                 # Collection doesn't exist, create it
                 self.client.create_collection(
                     name=name,
-                    metadata=metadata or {}
+                    metadata=metadata or {"hnsw:space": "l2"}
                 )
                 logger.info(f"Successfully created collection: {name}")
                 return True
 
         except Exception as e:
             logger.error(f"Failed to create collection {name}: {e}")
-            return False
+            raise RuntimeError("Collection creation failed") from e
 
     async def add_documents(
         self,
@@ -131,7 +132,7 @@ class VectorStore:
         try:
             if not self.client:
                 logger.error("ChromaDB client not initialized")
-                return False
+                raise RuntimeError("ChromaDB client unavailable")
 
             logger.info(f"Adding {len(documents)} documents to {collection_name}")
 
@@ -140,7 +141,7 @@ class VectorStore:
 
             # Generate IDs if not provided
             if ids is None:
-                ids = [f"doc_{i}_{hash(doc[:50])}" for i, doc in enumerate(documents)]
+                ids = [hashlib.sha256(doc.encode()).hexdigest() for doc in documents]
 
             # Generate embeddings if not provided
             if embeddings is None:
@@ -152,10 +153,10 @@ class VectorStore:
                     embeddings = embeddings.tolist()
 
             # Add documents to collection
-            collection.add(
+            collection.upsert(
                 documents=documents,
                 embeddings=embeddings,
-                metadatas=metadatas or [{} for _ in documents],
+                metadatas=metadatas or [{"source": "unspecified"} for _ in documents],
                 ids=ids
             )
 
@@ -165,7 +166,7 @@ class VectorStore:
         except Exception as e:
             logger.error(f"Failed to add documents: {e}")
             logger.exception(e)
-            return False
+            raise RuntimeError("Document ingestion failed") from e
 
     async def query(
         self,
@@ -191,7 +192,7 @@ class VectorStore:
         try:
             if not self.client:
                 logger.error("ChromaDB client not initialized")
-                return []
+                raise RuntimeError("ChromaDB client unavailable")
 
             logger.info(f"Querying {collection_name}: '{query_text[:50]}...'")
 
@@ -238,7 +239,7 @@ class VectorStore:
         except Exception as e:
             logger.error(f"Query failed: {e}")
             logger.exception(e)
-            return []
+            raise RuntimeError("Retrieval failed") from e
 
     def get_collection_stats(self, collection_name: str) -> Dict[str, Any]:
         """
@@ -275,7 +276,7 @@ class VectorStore:
         try:
             if not self.client:
                 logger.error("ChromaDB client not initialized")
-                return False
+                raise RuntimeError("ChromaDB client unavailable")
 
             logger.warning(f"Deleting collection: {collection_name}")
             self.client.delete_collection(collection_name)

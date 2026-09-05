@@ -7,14 +7,14 @@ import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 import json
 
-from llm_client import OllamaClient
-from models import SecurityAlert, SeverityLevel, AlertCategory
+from services.alert_triage.llm_client import OllamaClient
+from services.alert_triage.models import SecurityAlert, SeverityLevel, AlertCategory
 
 
 @pytest.fixture
 def llm_client():
     """Create LLM client for testing"""
-    with patch("llm_client.MLInferenceClient"):
+    with patch("services.alert_triage.llm_client.MLInferenceClient"):
         return OllamaClient()
 
 
@@ -226,7 +226,7 @@ async def test_analyze_alert_success(llm_client, sample_alert):
 @pytest.mark.asyncio
 async def test_analyze_alert_with_ml(llm_client, sample_alert):
     """Test alert analysis with ML prediction enrichment"""
-    from ml_client import MLPrediction
+    from services.alert_triage.ml_client import MLPrediction
 
     mock_ml_prediction = MLPrediction(
         prediction="DoS",

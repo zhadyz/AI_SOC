@@ -9,7 +9,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, List, Dict, Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+from typing import Literal
 
 
 class SeverityLevel(str, Enum):
@@ -62,11 +63,24 @@ class FeedbackSubmission(BaseModel):
     true_severity: Optional[SeverityLevel] = Field(None, description="Corrected severity")
     true_category: Optional[AlertCategory] = Field(None, description="Corrected category")
     is_false_positive: bool = Field(False, description="Mark as false positive")
-    true_label: Optional[str] = Field(
+    true_label: Optional[Literal["BENIGN", "ATTACK"]] = Field(
         None,
         description="Ground truth label for ML retraining (BENIGN or attack type)"
     )
     notes: Optional[str] = Field(None, max_length=2000, description="Analyst notes")
+
+
+    @model_validator(mode="after")
+    def consistent_label(self):
+        if self.is_false_positive and self.true_label == "ATTACK":
+            raise ValueError("A false positive cannot have an ATTACK ground-truth label")
+        return self
+
+
+class FeedbackReview(BaseModel):
+    reviewer_id: str = Field(min_length=1, max_length=100)
+    approved: bool
+    notes: Optional[str] = Field(None, max_length=2000)
 
 
 class AlertQuery(BaseModel):

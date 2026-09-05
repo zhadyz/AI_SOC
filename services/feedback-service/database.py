@@ -15,7 +15,7 @@ from sqlalchemy import (
     Column, String, Integer, Float, Boolean, Text, DateTime, ForeignKey, Index,
     select, func, case, and_, desc
 )
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import UUID, JSONB, insert
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
@@ -71,6 +71,16 @@ class FeedbackRecord(Base):
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
 
 
+class FeedbackReviewRecord(Base):
+    """Independent review required before a feedback label enters retraining."""
+    __tablename__ = "feedback_reviews"
+    feedback_id = Column(UUID(as_uuid=True), ForeignKey("feedback.id", ondelete="CASCADE"), primary_key=True)
+    reviewer_id = Column(String(100), nullable=False)
+    approved = Column(Boolean, nullable=False)
+    notes = Column(Text)
+    reviewed_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+
 # Additional indexes
 Index("idx_alerts_created", AlertRecord.created_at)
 Index("idx_feedback_fp", FeedbackRecord.is_false_positive)
@@ -109,42 +119,19 @@ class DatabaseManager:
 
     async def store_alert(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Persist an alert and its triage result. Upsert on alert_id."""
+        values = {key: value for key, value in data.items() if value is not None}
+        if "raw_alert" in values:
+            values["raw_alert_json"] = values.pop("raw_alert")
+        if "triage_result" in values:
+            values["triage_result_json"] = values.pop("triage_result")
         async with self.session() as session:
-            # Check if alert already exists
-            result = await session.execute(
-                select(AlertRecord).where(AlertRecord.alert_id == data["alert_id"])
-            )
-            existing = result.scalar_one_or_none()
-
-            if existing:
-                # Update triage result if alert already stored
-                for key, value in data.items():
-                    if key != "alert_id" and value is not None:
-                        setattr(existing, key, value)
-                await session.commit()
-                return {"alert_id": existing.alert_id, "action": "updated"}
-
-            record = AlertRecord(
-                alert_id=data["alert_id"],
-                wazuh_alert_id=data.get("wazuh_alert_id"),
-                timestamp=data.get("timestamp", datetime.utcnow()),
-                source_ip=data.get("source_ip"),
-                dest_ip=data.get("dest_ip"),
-                rule_id=data.get("rule_id"),
-                rule_description=data.get("rule_description"),
-                rule_level=data.get("rule_level"),
-                raw_alert_json=data.get("raw_alert"),
-                triage_result_json=data.get("triage_result"),
-                ai_severity=data.get("ai_severity"),
-                ai_category=data.get("ai_category"),
-                ai_confidence=data.get("ai_confidence"),
-                ai_is_true_positive=data.get("ai_is_true_positive"),
-                ml_prediction=data.get("ml_prediction"),
-                ml_confidence=data.get("ml_confidence"),
-            )
-            session.add(record)
+            statement = insert(AlertRecord).values(**values)
+            statement = statement.on_conflict_do_update(index_elements=["alert_id"], set_={
+                key: getattr(statement.excluded, key) for key in values if key != "alert_id"
+            })
+            await session.execute(statement)
             await session.commit()
-            return {"alert_id": record.alert_id, "action": "created"}
+            return {"alert_id": data["alert_id"], "action": "upserted"}
 
     async def get_alert(self, alert_id: str) -> Optional[Dict[str, Any]]:
         """Get a single alert with its feedback."""
@@ -301,6 +288,20 @@ class DatabaseManager:
                 "is_false_positive": feedback.is_false_positive,
                 "created_at": feedback.created_at.isoformat() if feedback.created_at else None,
             }
+
+    async def review_feedback(self, feedback_id, reviewer_id, approved, notes=None):
+        async with self.session() as session:
+            feedback = await session.get(FeedbackRecord, uuid.UUID(feedback_id))
+            if not feedback:
+                return None
+            if feedback.analyst_id == reviewer_id:
+                raise ValueError("A different analyst must review the label")
+            if approved and feedback.true_label not in {"BENIGN", "ATTACK"}:
+                raise ValueError("Only validated binary labels are eligible for this model bundle")
+            await session.merge(FeedbackReviewRecord(feedback_id=feedback.id, reviewer_id=reviewer_id,
+                                approved=approved, notes=notes, reviewed_at=datetime.utcnow()))
+            await session.commit()
+            return {"feedback_id": feedback_id, "approved": approved, "reviewer_id": reviewer_id}
 
     async def get_feedback_stats(self) -> Dict[str, Any]:
         """Compute aggregated feedback statistics."""

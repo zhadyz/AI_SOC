@@ -27,6 +27,9 @@ class PlanStatus(str, Enum):
     COMPLETED = "completed"
     ROLLED_BACK = "rolled_back"
     FAILED = "failed"
+    DRY_RUN = "dry_run_completed"
+    RECOVERY_REQUIRED = "recovery_required"
+    CANCELLED = "cancelled"
 
 
 class ActionStatus(str, Enum):
@@ -39,6 +42,7 @@ class ActionStatus(str, Enum):
     ROLLED_BACK = "rolled_back"
     SKIPPED = "skipped"
     VETOED = "vetoed"
+    SIMULATED = "simulated"
 
 
 class ApprovalTier(int, Enum):
@@ -120,6 +124,11 @@ class PlannedAction(BaseModel):
     rolled_back_at: Optional[datetime] = None
     adapter_response: Optional[Dict[str, Any]] = None
     error_message: Optional[str] = None
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+    approved_by: Optional[str] = None
+    approval_notes: Optional[str] = None
+    approved_at: Optional[datetime] = None
+    veto_deadline: Optional[datetime] = None
 
     class Config:
         json_schema_extra = {
@@ -167,6 +176,9 @@ class VerificationResult(BaseModel):
     # Verdict
     verification_passed: bool = Field(..., description="Whether the defense is considered effective")
     verdict_reason: str = Field("", description="Why the verification passed or failed")
+    evidence_available: bool = False
+    simulation_available: bool = False
+    monitoring_available: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -208,7 +220,7 @@ class DefensePlan(BaseModel):
     total_actions: int = Field(0)
     auto_executed_count: int = Field(0)
     human_approved_count: int = Field(0)
-    dry_run: bool = Field(False, description="If true, no actions were actually executed")
+    dry_run: bool = Field(True, description="If true, no actions were actually executed")
 
     class Config:
         json_schema_extra = {
@@ -237,16 +249,16 @@ class TriggerPlanRequest(BaseModel):
     environment_json: Optional[Dict[str, Any]] = Field(
         None, description="Custom environment (uses default if omitted)"
     )
-    auto_execute: bool = Field(True, description="Allow auto-execution of safe actions")
-    dry_run: bool = Field(False, description="Simulate without executing")
+    auto_execute: bool = Field(False, description="Allow auto-execution of safe actions")
+    dry_run: bool = Field(True, description="Simulate without executing")
     skip_simulation: bool = Field(False, description="Skip simulation, plan from incident data only")
 
 
 class ApproveActionRequest(BaseModel):
     """Request to approve or reject a pending action."""
     approved: bool = Field(..., description="True to approve, False to reject")
-    analyst_id: Optional[str] = Field(None, description="Analyst who made the decision")
-    notes: Optional[str] = Field(None, description="Analyst notes")
+    analyst_id: str = Field(..., min_length=1, max_length=255, description="Analyst who made the decision")
+    notes: Optional[str] = Field(None, max_length=2000, description="Analyst notes")
 
 
 class PlanSummary(BaseModel):

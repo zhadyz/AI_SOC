@@ -1,3 +1,5 @@
+> Historical deployment material. For the supported recovered stack, use the [current README](../../README.md) and [operations guide](../development/operations.md). The verification limits are in [development status](../development/status.md).
+
 # Docker Architecture Deep-Dive for AI-SOC
 
 ## Executive Summary

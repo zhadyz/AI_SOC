@@ -10,7 +10,9 @@ Author: HOLLOWED_EYES + MENDICANT_BIAS (Opus 4.6 completion)
 """
 
 import logging
+import math
 import httpx
+from services.common.api_security import service_client
 from typing import Optional, Dict, Any, List
 from pydantic import BaseModel
 
@@ -109,6 +111,7 @@ for _i, _name in enumerate(CICIDS2017_FEATURES):
 
 class MLPrediction(BaseModel):
     """ML prediction response"""
+
     prediction: str
     confidence: float
     probabilities: Dict[str, float]
@@ -133,7 +136,7 @@ class MLInferenceClient:
         self,
         ml_api_url: str = "http://ml-inference:8001",
         timeout: int = 10,
-        enabled: bool = True
+        enabled: bool = True,
     ):
         self.ml_api_url = ml_api_url
         self.timeout = timeout
@@ -146,7 +149,7 @@ class MLInferenceClient:
             return False
 
         try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
+            async with service_client(timeout=5.0) as client:
                 response = await client.get(f"{self.ml_api_url}/health")
                 return response.status_code == 200
         except Exception as e:
@@ -154,120 +157,37 @@ class MLInferenceClient:
             return False
 
     def _extract_network_features(self, alert: Any) -> Optional[Dict[str, Any]]:
-        """
-        Extract CICIDS2017 network flow features from a security alert.
-
-        Returns a dict with:
-          - features: List[float] of exactly 77 values
-          - source: "network_flow" | "alert_metadata" | None
-          - populated: int count of non-zero features extracted
-
-        The ML models were trained on CICIDS2017 network flow data. When real
-        network flow data is present (from Suricata/Zeek/CICFlowMeter), all 77
-        features can be populated for high-confidence prediction.
-
-        When only Wazuh alert metadata is available (IPs, ports, rule levels),
-        we can populate a small subset of features. The prediction will still
-        run, but the caller should treat the result as low-confidence since
-        most features will be zero.
-        """
-        try:
-            features = [0.0] * 77
-            populated = 0
-
-            # Path 1: Full network flow data (from Suricata/Zeek/CICFlowMeter)
-            if alert.full_log and isinstance(alert.full_log, dict):
-                flow = alert.full_log.get("network_flow", {})
-                if not flow and alert.full_log.get("Flow Duration") is not None:
-                    # full_log IS the flow data directly
-                    flow = alert.full_log
-
-                if flow:
-                    for key, value in flow.items():
-                        idx = _FEATURE_INDEX.get(key) or _FEATURE_INDEX.get(key.lower())
-                        if idx is not None:
-                            try:
-                                features[idx] = float(value)
-                                populated += 1
-                            except (ValueError, TypeError):
-                                pass
-
-                    if populated >= 10:
-                        logger.info(
-                            f"Extracted {populated}/77 network flow features from full_log"
-                        )
-                        return {
-                            "features": features,
-                            "source": "network_flow",
-                            "populated": populated,
-                        }
-
-            # Path 2: Partial features from alert metadata
-            # These map loosely to CICIDS features but are NOT equivalent to
-            # real network flow data. Predictions from this path should be
-            # treated as supplementary context, not authoritative classification.
-            if alert.source_ip or alert.dest_ip or alert.rule_level:
-                # Protocol: TCP=6, UDP=17, ICMP=1
-                if alert.dest_port:
-                    port = alert.dest_port
-                    if port in (80, 443, 8080, 8443):
-                        features[0] = 6.0  # TCP
-                    elif port == 53:
-                        features[0] = 17.0  # UDP
-                    else:
-                        features[0] = 6.0  # Default TCP
-                    populated += 1
-
-                # Source and dest ports map to packet length heuristics
-                if alert.source_port:
-                    features[34] = float(alert.source_port)  # Fwd Header Length (proxy)
-                    populated += 1
-                if alert.dest_port:
-                    features[35] = float(alert.dest_port)  # Bwd Header Length (proxy)
-                    populated += 1
-
-                # Rule level as a severity indicator mapped to flag counts
-                if alert.rule_level:
-                    level = float(alert.rule_level)
-                    if level >= 12:
-                        features[44] = 1.0  # SYN Flag Count
-                        features[45] = 1.0  # RST Flag Count
-                        populated += 2
-                    elif level >= 8:
-                        features[44] = 1.0  # SYN Flag Count
-                        populated += 1
-
-                # Flow duration estimate from timestamp (default 1 second)
-                features[1] = 1000000.0  # 1 second in microseconds
-                populated += 1
-
-                logger.debug(
-                    f"Generated {populated} partial features from alert metadata"
-                )
-                return {
-                    "features": features,
-                    "source": "alert_metadata",
-                    "populated": populated,
-                }
-
-            logger.debug("Insufficient data for feature extraction")
+        """Require all actual training features; alert metadata is not flow data."""
+        log = getattr(alert, "full_log", None)
+        if not isinstance(log, dict):
             return None
-
-        except Exception as e:
-            logger.error(f"Feature extraction failed: {e}")
+        flow = log.get("network_flow", log)
+        if not isinstance(flow, dict):
             return None
+        features = [None] * 77
+        for key, value in flow.items():
+            if not isinstance(key, str):
+                continue
+            index = _FEATURE_INDEX.get(key)
+            if index is None:
+                index = _FEATURE_INDEX.get(key.lower())
+            if index is not None:
+                try:
+                    features[index] = float(value)
+                except (TypeError, ValueError):
+                    return None
+        if any(value is None or not math.isfinite(value) for value in features):
+            return None
+        return {"features": features, "source": "network_flow", "populated": 77}
 
     async def predict_attack_type(
-        self,
-        alert: Any,
-        model_name: str = "random_forest"
+        self, alert: Any, model_name: str = "random_forest"
     ) -> Optional[MLPrediction]:
         """
         Predict attack type using ML inference API.
 
         Returns prediction with honest confidence based on data quality.
-        Predictions from alert_metadata source are capped at 0.5 confidence
-        to reflect that the features are heuristic approximations.
+        Incomplete flows return no prediction; no measurements are fabricated.
         """
         if not self.enabled:
             logger.debug("ML predictions disabled")
@@ -283,33 +203,20 @@ class MLInferenceClient:
         populated = extraction["populated"]
 
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                payload = {
-                    "features": features,
-                    "model_name": model_name
-                }
+            async with service_client(timeout=self.timeout) as client:
+                payload = {"features": features, "model_name": model_name}
 
                 logger.debug(
                     f"Calling ML API: model={model_name}, "
                     f"source={source}, features_populated={populated}/77"
                 )
-                response = await client.post(
-                    f"{self.ml_api_url}/predict",
-                    json=payload
-                )
+                response = await client.post(f"{self.ml_api_url}/predict", json=payload)
 
                 if response.status_code == 200:
                     result = response.json()
                     raw_confidence = result["confidence"]
 
-                    # Cap confidence for alert_metadata source since the features
-                    # are heuristic approximations, not real network flow data
-                    if source == "alert_metadata":
-                        adjusted_confidence = min(raw_confidence, 0.50)
-                    else:
-                        # Scale confidence by feature completeness
-                        completeness = populated / 77.0
-                        adjusted_confidence = raw_confidence * max(completeness, 0.5)
+                    adjusted_confidence = raw_confidence
 
                     prediction = MLPrediction(
                         prediction=result["prediction"],
@@ -358,8 +265,7 @@ class MLInferenceClient:
 
 
 def enrich_llm_prompt_with_ml(
-    base_prompt: str,
-    ml_prediction: Optional[MLPrediction]
+    base_prompt: str, ml_prediction: Optional[MLPrediction]
 ) -> str:
     """
     Enhance LLM prompt with ML prediction context.
@@ -396,7 +302,7 @@ def enrich_llm_prompt_with_ml(
 **Data Quality:** {quality_note}
 
 **Attack Type Probabilities:**
-{chr(10).join(f'  - {attack}: {prob:.2%}' for attack, prob in ml_prediction.probabilities.items())}
+{chr(10).join(f"  - {attack}: {prob:.2%}" for attack, prob in ml_prediction.probabilities.items())}
 
 ---
 

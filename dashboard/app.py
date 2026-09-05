@@ -13,6 +13,9 @@ from flask import Flask, render_template, jsonify, request, Response
 import subprocess
 import json
 import requests
+import os
+from urllib.parse import urlparse
+from services.common.api_security import service_headers
 from datetime import datetime
 
 app = Flask(__name__)
@@ -63,6 +66,35 @@ AI_SERVICES = {
     },
 }
 
+_PORT_SERVICE = {8500: "ml-inference", 8100: "alert-triage", 8300: "rag-service",
+                 8002: "wazuh-integration", 8400: "feedback-service", 8600: "correlation-engine",
+                 8700: "rule-generator", 8800: "response-orchestrator"}
+for _port, _name in _PORT_SERVICE.items():
+    _default = f"http://{_name}:8000" if os.getenv("DASHBOARD_CONTAINER_NETWORK") == "true" else f"http://127.0.0.1:{_port}"
+    AI_SERVICES[_name]["url"] = os.getenv(_name.upper().replace("-", "_") + "_URL", _default)
+
+
+def _service_url(url):
+    parsed = urlparse(url)
+    if parsed.hostname in {"localhost", "127.0.0.1"} and parsed.port in _PORT_SERVICE:
+        return AI_SERVICES[_PORT_SERVICE[parsed.port]]["url"] + parsed.path
+    return url
+
+
+@app.before_request
+def local_browser_boundary():
+    if request.host.split(":")[0] not in {"localhost", "127.0.0.1"}:
+        return jsonify({"error": "Use the local dashboard address"}), 403
+    origin = request.headers.get("Origin")
+    if request.path.startswith("/api/") and (request.headers.get("Sec-Fetch-Site") == "cross-site"
+            or (origin and origin.rstrip("/") != request.host_url.rstrip("/"))):
+        return jsonify({"error": "Cross-origin API access is disabled"}), 403
+
+
+@app.route("/health")
+def dashboard_health():
+    return jsonify({"status": "healthy", "service": "dashboard"})
+
 QUICK_LINKS = [
     {"name": "Grafana", "url": "http://localhost:3001", "description": "Metrics and dashboards"},
     {"name": "Wazuh Dashboard", "url": "https://localhost:443", "description": "SIEM alerts and agents"},
@@ -85,18 +117,18 @@ def _proxy(upstream_url, method="GET", timeout=TIMEOUT_STD):
     On any downstream failure returns {error: ...} with HTTP 502.
     """
     try:
-        headers = {}
+        headers = service_headers()
         if request.content_type:
             headers["Content-Type"] = request.content_type
 
         resp = requests.request(
             method=method,
-            url=upstream_url,
+            url=_service_url(upstream_url),
             headers=headers,
             data=request.get_data(),
             params=request.args,
             timeout=timeout,
-            verify=False,
+            verify=True,
         )
         try:
             body = resp.json()
@@ -128,7 +160,7 @@ def get_status():
     """Docker container status."""
     try:
         result = subprocess.run(
-            ["docker", "ps", "--format", "{{json .}}"],
+            ["docker", "ps", "--filter", "label=com.docker.compose.project=ai-soc", "--format", "{{json .}}"],
             capture_output=True, text=True, timeout=5,
         )
         containers = []
@@ -180,7 +212,7 @@ def get_services():
             "details": {},
         }
         try:
-            resp = requests.get(f"{cfg['url']}/health", timeout=3, verify=False)
+            resp = requests.get(f"{cfg['url']}/health", timeout=3, verify=True)
             if resp.status_code == 200:
                 result["status"] = "healthy"
                 try:
@@ -214,7 +246,7 @@ def get_services():
 def get_ml_stats():
     """ML model info."""
     try:
-        resp = requests.get("http://localhost:8500/models", timeout=5)
+        resp = requests.get(_service_url("http://localhost:8500/models"), headers=service_headers(), timeout=5)
         if resp.status_code == 200:
             return jsonify(resp.json())
     except Exception:
@@ -232,18 +264,18 @@ def test_alert():
     payload = {
         "alert_id": f"test-{int(datetime.now().timestamp())}",
         "timestamp": datetime.now().isoformat(),
-        "source_ip": "192.168.1.200",
-        "destination_ip": "10.0.0.1",
+        "source_ip": "203.0.113.42",
+        "dest_ip": "10.0.0.1",
         "rule_id": "5710",
         "rule_level": 10,
         "rule_description": "Multiple failed SSH login attempts (Dashboard Test)",
-        "full_log": "Oct 01 12:00:00 server sshd[1234]: Failed password for invalid user admin from 192.168.1.200 port 54321 ssh2",
+        "full_log": {"message": "Oct 01 12:00:00 server sshd[1234]: Failed password for invalid user admin from 203.0.113.42 port 54321 ssh2"},
         "agent_name": "test-agent",
-        "mitre_tactic": "Credential Access",
-        "mitre_technique": "T1110.001",
+        "mitre_tactic": ["Credential Access"],
+        "mitre_technique": ["T1110.001"],
     }
     try:
-        resp = requests.post("http://localhost:8100/analyze", json=payload, timeout=TIMEOUT_LONG)
+        resp = requests.post(_service_url("http://localhost:8100/analyze"), headers=service_headers(), json=payload, timeout=TIMEOUT_LONG)
         result = resp.json()
         result["test_mode"] = True
         result["input_alert"] = payload
@@ -256,7 +288,7 @@ def test_alert():
             "demo_result": {
                 "severity": "HIGH",
                 "confidence": 0.91,
-                "mitre_tactic": "Credential Access",
+                "mitre_tactic": ["Credential Access"],
                 "mitre_technique": "T1110.001 - Password Guessing",
                 "summary": "SSH brute force attack detected from 192.168.1.200.",
                 "recommended_actions": [
@@ -463,6 +495,26 @@ def defense_plan_detail(plan_id):
     return _proxy(f"http://localhost:8800/plans/{plan_id}", timeout=TIMEOUT_STD)
 
 
+@app.route("/api/defense/plans/<plan_id>/events")
+def defense_plan_events(plan_id):
+    return _proxy(f"http://localhost:8800/plans/{plan_id}/events", timeout=TIMEOUT_STD)
+
+
+@app.route("/api/defense/plans/<plan_id>/cancel", methods=["POST"])
+def defense_cancel_plan(plan_id):
+    return _proxy(f"http://localhost:8800/plans/{plan_id}/cancel", method="POST", timeout=TIMEOUT_STD)
+
+
+@app.route("/api/defense/plans/<plan_id>/verify", methods=["POST"])
+def defense_verify_plan(plan_id):
+    return _proxy(f"http://localhost:8800/plans/{plan_id}/verify", method="POST", timeout=TIMEOUT_LONG)
+
+
+@app.route("/api/rules/<rule_id>/backtest", methods=["POST"])
+def rule_backtest(rule_id):
+    return _proxy(f"http://localhost:8700/rules/{rule_id}/backtest", method="POST", timeout=TIMEOUT_STD)
+
+
 @app.route("/api/defense/approvals")
 def defense_approvals():
     return _proxy("http://localhost:8800/approvals", timeout=TIMEOUT_STD)
@@ -491,7 +543,7 @@ def d3fend_techniques():
 # ---------------------------------------------------------------------------
 @app.route("/api/webhook", methods=["POST"])
 def webhook():
-    return _proxy("http://localhost:8002/webhook", method="POST", timeout=TIMEOUT_STD)
+    return _proxy("http://localhost:8002/webhook", method="POST", timeout=TIMEOUT_LONG)
 
 
 # ---------------------------------------------------------------------------
@@ -516,4 +568,4 @@ if __name__ == "__main__":
     print("Access at: http://localhost:5050")
     print("Press Ctrl+C to stop")
     print("=" * 60)
-    app.run(host="0.0.0.0", port=5050, debug=False, threaded=True)
+    app.run(host="127.0.0.1", port=5050, debug=False, threaded=True)
