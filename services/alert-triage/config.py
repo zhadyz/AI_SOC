@@ -83,6 +83,7 @@ class Settings(BaseSettings):
         env_prefix = "TRIAGE_"
         env_file = ".env"
         case_sensitive = False
+        extra = "ignore"
 
 
 # Global settings instance

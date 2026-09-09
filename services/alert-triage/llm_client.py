@@ -8,12 +8,19 @@ Includes prompt engineering, fallback logic, and structured output parsing.
 
 import json
 import logging
+import os
 from typing import Optional, Dict, Any
+from dotenv import load_dotenv
+from google import genai
 import httpx
+
 from config import settings
 from models import SecurityAlert, TriageResponse, SeverityLevel, AlertCategory, IOC, TriageRecommendation
 from ml_client import MLInferenceClient, MLPrediction, enrich_llm_prompt_with_ml
 from context_manager import ContextManager
+
+# Nạp các biến từ file .env vào os.environ
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -83,14 +90,17 @@ class OllamaClient:
             history_limit=settings.context_history_limit,
             environment_context=settings.environment_context,
         )
+        # Gemini Client Init
+        api_key = os.getenv("GEMINI_API_KEY")
+        self.gemini_client = genai.Client(api_key=api_key) if api_key else None
+        if self.gemini_client:
+            logger.info("Gemini client initialized successfully.")
 
     async def check_health(self) -> bool:
-        """
-        Check if Ollama service is reachable.
+        """Check if LLM service is reachable."""
+        if self.gemini_client:
+            return True
 
-        Returns:
-            bool: True if Ollama is available
-        """
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 response = await client.get(f"{self.base_url}/api/tags")
@@ -191,17 +201,21 @@ Begin your analysis now:"""
         model: str,
         temperature: float = 0.1
     ) -> Optional[str]:
-        """
-        Make API call to Ollama.
+        """Make API call to Gemini (fallback to Ollama if no key)."""
+        # 1. Ưu tiên gọi Gemini API nếu đã cấu hình key
+        if self.gemini_client:
+            try:
+                logger.info("Calling Gemini API...")
+                response = await self.gemini_client.aio.models.generate_content(
+                    model="gemini-3.6-flash",
+                    contents=prompt,
+                )
+                return response.text
+            except Exception as e:
+                logger.error(f"Gemini API call failed: {e}")
+                return None
 
-        Args:
-            prompt: Text prompt
-            model: Model identifier
-            temperature: Sampling temperature
-
-        Returns:
-            Optional[str]: Model response or None on error
-        """
+        # 2. Fallback sang Ollama local nếu không có Gemini Client
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 payload = {
@@ -212,7 +226,7 @@ Begin your analysis now:"""
                         "temperature": temperature,
                         "num_predict": settings.max_tokens,
                     },
-                    "format": "json"  # Request JSON output
+                    "format": "json"
                 }
 
                 logger.info(f"Calling Ollama model: {model}")
