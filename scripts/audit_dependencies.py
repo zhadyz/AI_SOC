@@ -27,7 +27,9 @@ def main():
         exception = exceptions.get(dependency["name"], {})
         for vuln in dependency.get("vulns", []):
             item = {"package": dependency["name"], "version": dependency["version"], "id": vuln["id"], "fix_versions": vuln.get("fix_versions", [])}
-            if (dependency["version"] == exception.get("version") and vuln["id"] in exception.get("ids", [])
+            # Audit feeds can change the primary ID while retaining the same CVE.
+            advisory_ids = {vuln["id"], *vuln.get("aliases", [])}
+            if (dependency["version"] == exception.get("version") and advisory_ids.intersection(exception.get("ids", []))
                     and date.today() <= date.fromisoformat(exception["review_by"])):
                 item["mitigation"] = exception["reason"]
                 mitigated.append(item)
