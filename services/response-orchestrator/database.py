@@ -221,7 +221,7 @@ async def create_db_pool(database_url: str) -> None:
     async with _engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    logger.info("database_pool_created", extra={"database_url": database_url})
+    logger.info("database_pool_created")
 
 
 async def close_db_pool() -> None:

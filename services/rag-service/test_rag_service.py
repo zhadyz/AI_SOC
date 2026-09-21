@@ -12,9 +12,9 @@ Tests the complete RAG service implementation:
 
 import logging
 import asyncio
-from embeddings import EmbeddingEngine
-from vector_store import VectorStore
-from knowledge_base import KnowledgeBaseManager
+from services.rag_service.embeddings import EmbeddingEngine
+from services.rag_service.vector_store import VectorStore
+from services.rag_service.knowledge_base import KnowledgeBaseManager
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

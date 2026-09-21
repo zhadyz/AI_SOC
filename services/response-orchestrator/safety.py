@@ -21,11 +21,11 @@ Tiers:
 import logging
 from typing import List, Optional, Tuple
 
-from models import (
+from services.response_orchestrator.models import (
     ActionType, AdapterType, ApprovalTier, BlastRadius,
     PlannedAction, ActionStatus,
 )
-from d3fend import D3FENDTechnique
+from services.response_orchestrator.d3fend import D3FENDTechnique
 
 logger = logging.getLogger(__name__)
 

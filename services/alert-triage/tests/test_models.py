@@ -5,7 +5,7 @@ Alert Triage Service
 
 import pytest
 from datetime import datetime
-from models import (
+from services.alert_triage.models import (
     SecurityAlert,
     TriageResponse,
     SeverityLevel,

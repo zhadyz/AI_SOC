@@ -1,0 +1,2 @@
+# Install alongside the native application's requirements for strict lab acceptance.
+paramiko==5.0.0

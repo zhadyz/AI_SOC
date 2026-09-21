@@ -1,0 +1,93 @@
+{
+  "updated_at": "2026-09-05T04:12:13.320312+00:00",
+  "upstream_baseline": "60902fa",
+  "branch": "codex/complete-research-platform",
+  "native_runtime": "operational",
+  "offline_tests": {
+    "passed": 193,
+    "skipped": 1,
+    "failures": 0,
+    "skip_reason": "Explicit live opt-in case; equivalent full workflow exercised separately"
+  },
+  "live_workflow": {
+    "passed_checks": 12,
+    "report": "live-verification.json"
+  },
+  "live_security": {
+    "passed_checks": 6,
+    "report": "security-live-verification.json"
+  },
+  "durable_async_restart": "async-verification.json",
+  "restore_drill": "restore-verification.json",
+  "multiclass_evaluation": "multiclass-evaluation.json",
+  "multiclass_serving": "multiclass-serving-verification.json",
+  "dependency_audit": {
+    "packages": 151,
+    "unresolved": 0,
+    "documented_mitigations": 4,
+    "report": "dependency-audit.json",
+    "review_by": "2026-10-04"
+  },
+  "compilation": "passed",
+  "fatal_lint": "passed",
+  "compose_validation": "root, both compatibility includes and lab passed",
+  "rendered_javascript": "all four authenticated/login pages passed node --check",
+  "new_pages_visual_review": "passed: five headless Chromium UI workflows, screenshots inspected",
+  "image_build": {
+    "application_images": 9,
+    "maintenance_images": 1,
+    "lab_target_images": 1,
+    "status": "passed",
+    "image_ids": {
+      "ml-inference": "sha256:61065e1fd7013aac8da58733cbea268a076c7bd22d019fb780b540704beb67d7",
+      "feedback-service": "sha256:f50c56163833a26ba2599b9fe32aedc344aa8c467909cbca634779a8c3e5150f",
+      "rag-service": "sha256:fe3c92600157fdd117228686d80edc2a3b4941fe814aa9bbdc8c9ce27caf5b77",
+      "correlation-engine": "sha256:0a123e2c2748431487de8a3afaa5585f9358d335cf46c2f6926f674201c8e489",
+      "alert-triage": "sha256:caca22165ba4c2590754ef5d7a1413765936abb63ad28d0eac6799481306b736",
+      "rule-generator": "sha256:a1206ce2fb945c8b4cac287b76dcf293e7550b179fbb638b87f022c2f07294f6",
+      "response-orchestrator": "sha256:2576d382eb7b041291cf6985fd8fceea274c98e72f376faab0f1b154dbdfe83d",
+      "wazuh-integration": "sha256:2ab1fed11e7be501f24c1d61f6b0a8144737db17ee449b6295f1fd3bf32a36c5",
+      "dashboard": "sha256:dd19137f671f1d579cf1cc4bfe2881c6cd5d891c586ef263a808d4d1123c596a",
+      "retraining": "sha256:693651c9abb2127091e40e5ac725ca13317256dfae3c119a22e3dd47061c654f",
+      "lab-target": "sha256:524540fac9480f25c487bc7e55bc4235e049a02b3128db36932401a22d643c33"
+    }
+  },
+  "compose_runtime": "accepted: full 12-check workflow, persisted-volume resume and final core checks; stopped after acceptance, native is the default runtime",
+  "lab_enforcement_runtime": {
+    "passed_checks": 8,
+    "report": "lab-verification.json"
+  },
+  "github_ci": "not run remotely",
+  "remote_publication": false,
+  "production_enforcement": "not exercised",
+  "models_promoted": 0,
+  "mitre_documents_ingested": 858,
+  "native_dashboard_server": "Waitress 3.0.2",
+  "research_limits": [
+    "Within-dataset multiclass holdout; no independent deployment captures",
+    "No genuine eligible analyst feedback for improvement measurement",
+    "Simulation validity and system-scale throughput not established"
+  ],
+  "browser_acceptance": {
+    "passed_checks": 5,
+    "report": "browser-verification.json",
+    "container_report": "container-browser-verification.json"
+  },
+  "container_runtime_report": "container-runtime-verification.json",
+  "lab_response_recovery": {
+    "passed_checks": 4,
+    "report": "lab-plan-verification.json"
+  },
+  "docker_host_recovery": {
+    "backend": "Docker VMM (installed libkrun backend)",
+    "original_disk_and_settings_preserved": true,
+    "unrelated_running_containers_restored": true,
+    "native_mode_ports_released_after_desktop_restart": true
+  },
+  "retraining": {
+    "native_evaluation": "passed",
+    "container_evaluation": "passed",
+    "eligible_complete_reviewed_flows": 0,
+    "promoted_models": 0
+  }
+}

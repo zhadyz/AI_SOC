@@ -36,7 +36,8 @@ class Settings(BaseSettings):
     wazuh_api_url: str = "https://wazuh-manager:55000"
     wazuh_api_username: str = "wazuh-wui"
     wazuh_api_password: str = ""
-    wazuh_api_verify_ssl: bool = False
+    wazuh_api_verify_ssl: bool = True
+    wazuh_api_ca_bundle: str = ""
 
     # Simulation Integration
     simulation_swarm_size: int = 50
@@ -61,7 +62,13 @@ class Settings(BaseSettings):
     # Safety Limits
     max_concurrent_plans: int = 3
     critical_asset_always_requires_approval: bool = True
-    dry_run_mode: bool = False  # When true, no actions are actually executed
+    dry_run_mode: bool = True  # Explicit opt-in required for real response
+    lab_url: str = ""  # Optional isolated lab controller; never a vendor API
+    wazuh_block_command: str = ""
+    wazuh_agent_ids: list[str] = []  # Never default to all agents
+    wazuh_indexer_url: str = ""
+    wazuh_indexer_username: str = ""
+    wazuh_indexer_password: str = ""
 
     # Logging / Server
     log_level: str = "INFO"
@@ -69,6 +76,7 @@ class Settings(BaseSettings):
     port: int = 8000
 
     class Config:
+        hide_input_in_errors = True
         env_prefix = "ORCHESTRATOR_"
 
 

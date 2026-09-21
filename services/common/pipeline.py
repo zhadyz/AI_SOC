@@ -16,7 +16,7 @@ from datetime import datetime
 from enum import Enum
 import json
 
-from integration import (
+from services.common.integration import (
     MLInferenceClient,
     AlertTriageClient,
     RAGServiceClient,

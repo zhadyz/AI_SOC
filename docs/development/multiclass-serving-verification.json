@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "models": [
+    "random_forest",
+    "decision_tree",
+    "xgboost"
+  ],
+  "probability_classes": 15,
+  "features": 77,
+  "signed_bundle_loaded": true,
+  "serving_bundle_changed": false,
+  "input": "Synthetic complete flow for API contract only; empirical scores are in multiclass-evaluation.json"
+}

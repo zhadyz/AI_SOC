@@ -11,7 +11,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set
 
-from actions import ActionResult
+from services.correlation_engine.actions import ActionResult
 
 logger = logging.getLogger(__name__)
 

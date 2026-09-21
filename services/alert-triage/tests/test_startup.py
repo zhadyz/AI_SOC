@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient
 def test_import_main():
     """Test that main module can be imported without errors"""
     try:
-        import main
+        from services.alert_triage import main
         assert main.app is not None
     except Exception as e:
         pytest.fail(f"Failed to import main module: {e}")
@@ -22,7 +22,7 @@ def test_import_main():
 def test_import_models():
     """Test that models module can be imported"""
     try:
-        import models
+        from services.alert_triage import models
         assert models.SecurityAlert is not None
         assert models.TriageResponse is not None
     except Exception as e:
@@ -32,7 +32,7 @@ def test_import_models():
 def test_import_llm_client():
     """Test that llm_client module can be imported"""
     try:
-        import llm_client
+        from services.alert_triage import llm_client
         assert llm_client.OllamaClient is not None
     except Exception as e:
         pytest.fail(f"Failed to import llm_client module: {e}")
@@ -41,7 +41,7 @@ def test_import_llm_client():
 def test_import_ml_client():
     """Test that ml_client module can be imported"""
     try:
-        import ml_client
+        from services.alert_triage import ml_client
         assert ml_client.MLInferenceClient is not None
     except Exception as e:
         pytest.fail(f"Failed to import ml_client module: {e}")
@@ -50,7 +50,7 @@ def test_import_ml_client():
 def test_import_config():
     """Test that config module can be imported"""
     try:
-        import config
+        from services.alert_triage import config
         assert config.settings is not None
         assert config.settings.service_name == "alert-triage"
     except Exception as e:
@@ -59,7 +59,7 @@ def test_import_config():
 
 def test_fastapi_app_creation():
     """Test that FastAPI app is created successfully"""
-    from main import app
+    from services.alert_triage.main import app
 
     assert app is not None
     assert app.title == "Alert Triage Service"
@@ -67,7 +67,7 @@ def test_fastapi_app_creation():
 
 def test_openapi_schema():
     """Test that OpenAPI schema is generated"""
-    from main import app
+    from services.alert_triage.main import app
 
     schema = app.openapi()
 
@@ -81,7 +81,7 @@ def test_openapi_schema():
 
 def test_service_routes():
     """Test that all expected routes are registered"""
-    from main import app
+    from services.alert_triage.main import app
 
     routes = [route.path for route in app.routes]
 

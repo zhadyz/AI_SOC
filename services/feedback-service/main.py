@@ -19,9 +19,9 @@ from fastapi import FastAPI, HTTPException, Query
 from prometheus_client import Counter, Histogram, generate_latest
 from starlette.responses import Response
 
-from config import Settings
-from database import DatabaseManager
-from models import (
+from services.feedback_service.config import Settings
+from services.feedback_service.database import DatabaseManager
+from services.feedback_service.models import (
     StoreAlertRequest,
     FeedbackSubmission,
     FeedbackResponse,
@@ -92,10 +92,16 @@ app = FastAPI(
 # --- Health Check ---
 
 
+from services.common.api_security import protect_app, actor_id
+protect_app(app)
+
 @app.get("/health")
 async def health_check():
     """Health check with database connectivity status."""
     db_healthy = await db.check_health() if db else False
+    if not db_healthy:
+        raise HTTPException(503, "Database unavailable")
+
     status = "healthy" if db_healthy else "degraded"
 
     return {
@@ -104,6 +110,25 @@ async def health_check():
         "version": settings.service_version,
         "database_connected": db_healthy,
     }
+
+
+from services.feedback_service.models import FeedbackReview
+
+
+@app.get("/feedback/reviews/pending")
+async def pending_feedback_reviews():
+    return await db.pending_reviews()
+
+
+@app.post("/feedback/reviews/{feedback_id}")
+async def review_feedback(feedback_id: str, request: FeedbackReview):
+    try:
+        result = await db.review_feedback(feedback_id, actor_id(request.reviewer_id), request.approved, request.notes)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc))
+    if result is None:
+        raise HTTPException(404, "Feedback not found")
+    return result
 
 
 # --- Alert Persistence ---
@@ -205,6 +230,7 @@ async def submit_feedback(alert_id: str, submission: FeedbackSubmission):
     - Notes capture institutional knowledge
     """
     with REQUEST_DURATION.labels(endpoint="submit_feedback").time():
+        submission.analyst_id = actor_id(submission.analyst_id)
         result = await db.store_feedback(alert_id, submission.model_dump())
         if not result:
             raise HTTPException(

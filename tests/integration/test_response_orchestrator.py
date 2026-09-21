@@ -36,7 +36,7 @@ class TestD3FENDMapping:
     """Test ATT&CK → D3FEND → concrete action mapping."""
 
     def test_brute_force_returns_countermeasures(self):
-        from d3fend import get_countermeasures
+        from services.response_orchestrator.d3fend import get_countermeasures
         results = get_countermeasures("T1110")
         assert len(results) >= 3
         action_types = [r.action_type.value for r in results]
@@ -45,7 +45,7 @@ class TestD3FENDMapping:
         assert "block_ip" in action_types          # InboundTrafficFiltering
 
     def test_exploit_public_facing_returns_countermeasures(self):
-        from d3fend import get_countermeasures
+        from services.response_orchestrator.d3fend import get_countermeasures
         results = get_countermeasures("T1190")
         assert len(results) >= 3
         action_types = [r.action_type.value for r in results]
@@ -53,14 +53,14 @@ class TestD3FENDMapping:
         assert "isolate_host" in action_types
 
     def test_ransomware_returns_isolation_and_restore(self):
-        from d3fend import get_countermeasures
+        from services.response_orchestrator.d3fend import get_countermeasures
         results = get_countermeasures("T1486")
         action_types = [r.action_type.value for r in results]
         assert "isolate_host" in action_types
         assert "restore_backup" in action_types
 
     def test_subtechnique_falls_back_to_parent(self):
-        from d3fend import get_countermeasures
+        from services.response_orchestrator.d3fend import get_countermeasures
         results = get_countermeasures("T1110.001")  # Password Guessing
         assert len(results) >= 2
         # Should match T1110.001 directly (we have it mapped)
@@ -68,31 +68,31 @@ class TestD3FENDMapping:
         assert "disable_account" in action_types
 
     def test_unknown_technique_returns_empty(self):
-        from d3fend import get_countermeasures
+        from services.response_orchestrator.d3fend import get_countermeasures
         results = get_countermeasures("T9999")
         assert results == []
 
     def test_unique_actions_deduplicates(self):
-        from d3fend import get_unique_actions_for_incident
+        from services.response_orchestrator.d3fend import get_unique_actions_for_incident
         # T1110 and T1078 both map to MFA — should appear only once
         results = get_unique_actions_for_incident(["T1110", "T1078"])
         technique_ids = [r.technique_id for r in results]
         assert len(technique_ids) == len(set(technique_ids))
 
     def test_all_supported_techniques_have_mappings(self):
-        from d3fend import get_supported_attack_techniques, get_countermeasures
+        from services.response_orchestrator.d3fend import get_supported_attack_techniques, get_countermeasures
         for tid in get_supported_attack_techniques():
             results = get_countermeasures(tid)
             assert len(results) > 0, f"Technique {tid} has no countermeasures"
 
     def test_credential_dump_includes_credential_hardening(self):
-        from d3fend import get_countermeasures
+        from services.response_orchestrator.d3fend import get_countermeasures
         results = get_countermeasures("T1003")
         d3fend_ids = [r.technique_id for r in results]
         assert "d3f:CredentialHardening" in d3fend_ids
 
     def test_lateral_movement_includes_network_isolation(self):
-        from d3fend import get_countermeasures
+        from services.response_orchestrator.d3fend import get_countermeasures
         results = get_countermeasures("T1210")
         d3fend_ids = [r.technique_id for r in results]
         assert "d3f:NetworkIsolation" in d3fend_ids
@@ -106,28 +106,28 @@ class TestSafetyModel:
     """Test graduated autonomy, blast radius, and approval routing."""
 
     def test_observe_only_actions_always_auto(self):
-        from safety import classify_blast_radius, determine_approval_tier
-        from models import ActionType, BlastRadius, ApprovalTier
+        from services.response_orchestrator.safety import classify_blast_radius, determine_approval_tier
+        from services.response_orchestrator.models import ActionType, BlastRadius, ApprovalTier
         blast = classify_blast_radius(ActionType.ADD_MONITORING, "critical")
         assert blast == BlastRadius.NONE
         tier = determine_approval_tier(0.50, blast, "critical")
         assert tier == ApprovalTier.AUTO_SAFE
 
     def test_block_ip_on_low_target_is_low_blast(self):
-        from safety import classify_blast_radius
-        from models import ActionType, BlastRadius
+        from services.response_orchestrator.safety import classify_blast_radius
+        from services.response_orchestrator.models import ActionType, BlastRadius
         blast = classify_blast_radius(ActionType.BLOCK_IP, "low")
         assert blast == BlastRadius.LOW
 
     def test_isolate_host_on_critical_escalates_to_high(self):
-        from safety import classify_blast_radius
-        from models import ActionType, BlastRadius
+        from services.response_orchestrator.safety import classify_blast_radius
+        from services.response_orchestrator.models import ActionType, BlastRadius
         blast = classify_blast_radius(ActionType.ISOLATE_HOST, "critical")
         assert blast == BlastRadius.HIGH
 
     def test_critical_high_blast_always_requires_human(self):
-        from safety import determine_approval_tier
-        from models import BlastRadius, ApprovalTier
+        from services.response_orchestrator.safety import determine_approval_tier
+        from services.response_orchestrator.models import BlastRadius, ApprovalTier
         tier = determine_approval_tier(
             confidence=0.99,  # Max confidence
             blast_radius=BlastRadius.HIGH,
@@ -136,8 +136,8 @@ class TestSafetyModel:
         assert tier == ApprovalTier.HUMAN_REQUIRED
 
     def test_high_confidence_low_blast_auto_executes(self):
-        from safety import determine_approval_tier
-        from models import BlastRadius, ApprovalTier
+        from services.response_orchestrator.safety import determine_approval_tier
+        from services.response_orchestrator.models import BlastRadius, ApprovalTier
         tier = determine_approval_tier(
             confidence=0.85,
             blast_radius=BlastRadius.LOW,
@@ -146,8 +146,8 @@ class TestSafetyModel:
         assert tier == ApprovalTier.AUTO_SAFE
 
     def test_low_confidence_falls_to_recommend(self):
-        from safety import determine_approval_tier
-        from models import BlastRadius, ApprovalTier
+        from services.response_orchestrator.safety import determine_approval_tier
+        from services.response_orchestrator.models import BlastRadius, ApprovalTier
         tier = determine_approval_tier(
             confidence=0.50,
             blast_radius=BlastRadius.LOW,
@@ -156,7 +156,7 @@ class TestSafetyModel:
         assert tier == ApprovalTier.RECOMMEND
 
     def test_composite_score_weights(self):
-        from safety import compute_composite_score
+        from services.response_orchestrator.safety import compute_composite_score
         score = compute_composite_score(
             impact_score=1.0, safety_score=1.0, confidence=1.0
         )
@@ -172,8 +172,8 @@ class TestSafetyModel:
         assert score_low_impact < score_low_safety
 
     def test_plan_safety_warns_on_multiple_isolations(self):
-        from safety import check_plan_safety
-        from models import PlannedAction, ActionType, AdapterType, BlastRadius, ApprovalTier, ActionStatus
+        from services.response_orchestrator.safety import check_plan_safety
+        from services.response_orchestrator.models import PlannedAction, ActionType, AdapterType, BlastRadius, ApprovalTier, ActionStatus
         actions = [
             PlannedAction(
                 action_id=f"ACT-{i}", action_type=ActionType.ISOLATE_HOST,
@@ -189,9 +189,9 @@ class TestSafetyModel:
         assert "multiple_isolations" in rules
 
     def test_build_planned_action_classifies_correctly(self):
-        from safety import build_planned_action
-        from d3fend import get_countermeasures
-        from models import ApprovalTier
+        from services.response_orchestrator.safety import build_planned_action
+        from services.response_orchestrator.d3fend import get_countermeasures
+        from services.response_orchestrator.models import ApprovalTier
 
         technique = get_countermeasures("T1110")[0]  # First countermeasure for brute force
         action = build_planned_action(
@@ -220,16 +220,16 @@ class TestAdapters:
 
     @pytest.mark.asyncio
     async def test_firewall_adapter_block_ip(self):
-        from adapters.firewall import FirewallAdapter
+        from services.response_orchestrator.adapters.firewall import FirewallAdapter
         adapter = FirewallAdapter(firewall_type="test")
         result = await adapter.execute("block_ip", "203.0.113.42")
-        assert result.success
+        assert not result.success
         assert result.action_type == "block_ip"
-        assert "203.0.113.42" in result.detail
+        assert result.target == "203.0.113.42"
 
     @pytest.mark.asyncio
     async def test_firewall_adapter_dry_run(self):
-        from adapters.firewall import FirewallAdapter
+        from services.response_orchestrator.adapters.firewall import FirewallAdapter
         adapter = FirewallAdapter()
         result = await adapter.dry_run("block_ip", "203.0.113.42")
         assert result.success
@@ -237,47 +237,47 @@ class TestAdapters:
 
     @pytest.mark.asyncio
     async def test_edr_adapter_deploy(self):
-        from adapters.edr import EDRAdapter
+        from services.response_orchestrator.adapters.edr import EDRAdapter
         adapter = EDRAdapter(platform="test")
         result = await adapter.execute("deploy_edr", "10.0.0.10")
-        assert result.success
-        assert "deployment" in result.detail.lower()
+        assert not result.success
+        assert result.error == "adapter_unavailable"
 
     @pytest.mark.asyncio
     async def test_edr_adapter_isolate(self):
-        from adapters.edr import EDRAdapter
+        from services.response_orchestrator.adapters.edr import EDRAdapter
         adapter = EDRAdapter(platform="test")
         result = await adapter.execute("isolate_host", "10.0.0.10")
-        assert result.success
-        assert "isolated" in result.detail.lower()
+        assert not result.success
+        assert result.error == "adapter_unavailable"
 
     @pytest.mark.asyncio
     async def test_edr_adapter_rollback_isolation(self):
-        from adapters.edr import EDRAdapter
+        from services.response_orchestrator.adapters.edr import EDRAdapter
         adapter = EDRAdapter(platform="test")
         result = await adapter.rollback("isolate_host", "10.0.0.10")
-        assert result.success
-        assert "released" in result.detail.lower()
+        assert not result.success
+        assert result.error == "adapter_unavailable"
 
     @pytest.mark.asyncio
     async def test_identity_adapter_revoke(self):
-        from adapters.identity import IdentityAdapter
+        from services.response_orchestrator.adapters.identity import IdentityAdapter
         adapter = IdentityAdapter(provider="test")
         result = await adapter.execute("revoke_credentials", "10.0.0.10")
-        assert result.success
-        assert "revoked" in result.detail.lower()
+        assert not result.success
+        assert result.error == "adapter_unavailable"
 
     @pytest.mark.asyncio
     async def test_identity_adapter_enable_mfa(self):
-        from adapters.identity import IdentityAdapter
+        from services.response_orchestrator.adapters.identity import IdentityAdapter
         adapter = IdentityAdapter(provider="test")
         result = await adapter.execute("enable_mfa", "10.0.0.10")
-        assert result.success
-        assert "mfa" in result.detail.lower()
+        assert not result.success
+        assert result.error == "adapter_unavailable"
 
     @pytest.mark.asyncio
     async def test_unsupported_action_returns_failure(self):
-        from adapters.firewall import FirewallAdapter
+        from services.response_orchestrator.adapters.firewall import FirewallAdapter
         adapter = FirewallAdapter()
         result = await adapter.execute("nonexistent_action", "10.0.0.10")
         assert not result.success
@@ -285,7 +285,7 @@ class TestAdapters:
 
     @pytest.mark.asyncio
     async def test_adapter_result_to_dict(self):
-        from adapters.base import AdapterResult
+        from services.response_orchestrator.adapters.base import AdapterResult
         result = AdapterResult(
             success=True, action_type="block_ip", target="1.2.3.4",
             adapter="test", detail="Blocked",
@@ -305,7 +305,7 @@ class TestPlanner:
 
     @pytest.mark.asyncio
     async def test_planner_generates_plan_for_brute_force(self):
-        from planner import DefensePlanner
+        from services.response_orchestrator.planner import DefensePlanner
         planner = DefensePlanner(ollama_host="http://fake:11434")
 
         with patch.object(planner, "_generate_rationale", new_callable=AsyncMock) as mock_llm:
@@ -328,7 +328,7 @@ class TestPlanner:
 
     @pytest.mark.asyncio
     async def test_planner_deduplicates_actions(self):
-        from planner import DefensePlanner
+        from services.response_orchestrator.planner import DefensePlanner
         planner = DefensePlanner(ollama_host="http://fake:11434")
 
         with patch.object(planner, "_generate_rationale", new_callable=AsyncMock) as mock_llm:
@@ -352,7 +352,7 @@ class TestPlanner:
 
     @pytest.mark.asyncio
     async def test_planner_uses_simulation_results_for_scoring(self):
-        from planner import DefensePlanner
+        from services.response_orchestrator.planner import DefensePlanner
         planner = DefensePlanner(ollama_host="http://fake:11434")
 
         sim_results = {
@@ -392,7 +392,7 @@ class TestPlanner:
 
     @pytest.mark.asyncio
     async def test_planner_actions_sorted_by_composite_score(self):
-        from planner import DefensePlanner
+        from services.response_orchestrator.planner import DefensePlanner
         planner = DefensePlanner(ollama_host="http://fake:11434")
 
         with patch.object(planner, "_generate_rationale", new_callable=AsyncMock) as mock_llm:
@@ -419,7 +419,7 @@ class TestOrchestratorE2E:
     """Test the full orchestrator loop with mocked services."""
 
     def _make_settings(self):
-        from config import Settings
+        from services.response_orchestrator.config import Settings
         return Settings(
             database_url="postgresql+asyncpg://test:test@localhost/test",
             correlation_engine_url="http://fake-correlation:8000",
@@ -434,7 +434,7 @@ class TestOrchestratorE2E:
 
     @pytest.mark.asyncio
     async def test_full_loop_dry_run(self):
-        from orchestrator import ResponseOrchestrator
+        from services.response_orchestrator.orchestrator import ResponseOrchestrator
 
         settings = self._make_settings()
         orch = ResponseOrchestrator(settings)
@@ -475,7 +475,7 @@ class TestOrchestratorE2E:
 
     @pytest.mark.asyncio
     async def test_auto_actions_execute_in_dry_run(self):
-        from orchestrator import ResponseOrchestrator
+        from services.response_orchestrator.orchestrator import ResponseOrchestrator
 
         settings = self._make_settings()
         orch = ResponseOrchestrator(settings)
@@ -508,17 +508,14 @@ class TestOrchestratorE2E:
                 skip_simulation=True,
             )
 
-            # Some actions should have been auto-executed OR are pending approval
-            # (depends on blast radius and confidence for each action)
-            completed = [a for a in plan.actions if a.status.value == "completed"]
-            pending = [a for a in plan.actions if a.status.value == "pending"]
-            assert len(completed) + len(pending) == len(plan.actions), \
-                "All actions should be either completed or pending"
-            assert len(plan.actions) > 0, "Expected at least one action in the plan"
+            assert plan.status.value == "dry_run_completed"
+            assert all(a.status.value in {"simulated", "failed"} for a in plan.actions)
+            assert all(a.executed_at is None for a in plan.actions)
+            assert plan.actions
 
     @pytest.mark.asyncio
     async def test_plan_not_found_raises(self):
-        from orchestrator import ResponseOrchestrator
+        from services.response_orchestrator.orchestrator import ResponseOrchestrator
 
         settings = self._make_settings()
         orch = ResponseOrchestrator(settings)
@@ -531,8 +528,8 @@ class TestOrchestratorE2E:
 
     @pytest.mark.asyncio
     async def test_approval_workflow(self):
-        from orchestrator import ResponseOrchestrator
-        from models import ActionStatus
+        from services.response_orchestrator.orchestrator import ResponseOrchestrator
+        from services.response_orchestrator.models import ActionStatus
 
         settings = self._make_settings()
         orch = ResponseOrchestrator(settings)
@@ -591,8 +588,8 @@ class TestOrchestratorE2E:
 
     @pytest.mark.asyncio
     async def test_get_pending_approvals(self):
-        from orchestrator import ResponseOrchestrator
-        from models import PlanStatus
+        from services.response_orchestrator.orchestrator import ResponseOrchestrator
+        from services.response_orchestrator.models import PlanStatus
 
         settings = self._make_settings()
         orch = ResponseOrchestrator(settings)

@@ -36,11 +36,11 @@ class Settings(BaseSettings):
     wazuh_api_url: str = "https://wazuh-manager:55000"
     wazuh_api_username: str = "wazuh-wui"
     wazuh_api_password: str = ""  # From CORRELATION_WAZUH_API_PASSWORD
-    wazuh_api_verify_ssl: bool = False
+    wazuh_api_verify_ssl: bool = True
 
     # Response Orchestrator Integration
     response_orchestrator_url: str = "http://response-orchestrator:8000"
-    auto_defend_enabled: bool = True
+    auto_defend_enabled: bool = False
     auto_defend_min_severity: str = "high"  # Minimum severity to trigger defense
 
     # Logging / Server
@@ -49,6 +49,7 @@ class Settings(BaseSettings):
     port: int = 8000
 
     class Config:
+        hide_input_in_errors = True
         env_prefix = "CORRELATION_"
 
 

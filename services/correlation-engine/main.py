@@ -20,8 +20,8 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
 
-from config import get_settings
-from database import (
+from services.correlation_engine.config import get_settings
+from services.correlation_engine.database import (
     create_db_pool,
     close_db_pool,
     check_db_health,
@@ -29,7 +29,7 @@ from database import (
     IncidentModel,
     IncidentAlertModel,
 )
-from models import (
+from services.correlation_engine.models import (
     CorrelationRequest,
     CorrelationResponse,
     Incident,
@@ -38,21 +38,22 @@ from models import (
     StatusUpdate,
     HealthResponse,
 )
-from correlator import CorrelationEngine
-from predictor import AttackPredictor
-from simulator import CampaignSimulator, SimulationConfig
-from environment import Environment
-from dataset_generator import DatasetGenerator
-from wazuh_environment import WazuhEnvironmentBuilder
-from risk_scorer import RiskScorer
+from services.correlation_engine.correlator import CorrelationEngine
+from services.correlation_engine.predictor import AttackPredictor
+from services.correlation_engine.simulator import CampaignSimulator, SimulationConfig
+from services.correlation_engine.environment import Environment
+from services.correlation_engine.dataset_generator import DatasetGenerator
+from services.correlation_engine.wazuh_environment import WazuhEnvironmentBuilder
+from services.correlation_engine.risk_scorer import RiskScorer
 from collections import OrderedDict
 import httpx
+from services.common.api_security import service_client
 from pydantic import BaseModel
-from archetypes import ARCHETYPE_PROMPTS
-from defender_archetypes import DEFENDER_ARCHETYPE_PROMPTS
-from swarm import SwarmSimulator, SwarmConfig
-from history_store import HistoryStore
-from research_metrics import compute_all_metrics, export_for_paper, prediction_accuracy
+from services.correlation_engine.archetypes import ARCHETYPE_PROMPTS
+from services.correlation_engine.defender_archetypes import DEFENDER_ARCHETYPE_PROMPTS
+from services.correlation_engine.swarm import SwarmSimulator, SwarmConfig
+from services.correlation_engine.history_store import HistoryStore
+from services.correlation_engine.research_metrics import compute_all_metrics, export_for_paper, prediction_accuracy
 import asyncio
 
 # ---------------------------------------------------------------------------
@@ -191,16 +192,16 @@ async def _trigger_defense(incident_id: str, severity: str, is_new: bool):
     )
 
     try:
-        async with httpx.AsyncClient() as client:
+        async with service_client() as client:
             resp = await client.post(
                 f"{settings.response_orchestrator_url}/defend",
                 json={
                     "incident_id": incident_id,
-                    "auto_execute": True,
-                    "dry_run": False,
+                    "auto_execute": False,
+                    "dry_run": True,
                     "skip_simulation": False,
                 },
-                timeout=10.0,  # Just the trigger — orchestrator runs async
+                timeout=300.0,  # Planning completes before the response is returned
             )
             if resp.status_code == 201:
                 plan = resp.json()
@@ -281,6 +282,9 @@ def _incident_model_to_full(
 # Endpoints
 # ---------------------------------------------------------------------------
 
+
+from services.common.api_security import protect_app
+protect_app(app)
 
 @app.post(
     "/correlate",
@@ -682,7 +686,7 @@ async def chat_with_attacker(simulation_id: str, body: ChatMessage):
 
     # Call Ollama /api/chat
     try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with service_client(timeout=60.0) as client:
             resp = await client.post(
                 f"{settings.simulator_ollama_host}/api/chat",
                 json={
@@ -1300,6 +1304,9 @@ async def health_check():
     Status is 'healthy' if DB is reachable, 'degraded' otherwise.
     """
     db_ok = await check_db_health()
+    if not db_ok:
+        raise HTTPException(503, "Database unavailable")
+
     svc_status = "healthy" if db_ok else "degraded"
 
     return HealthResponse(

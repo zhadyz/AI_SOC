@@ -16,14 +16,14 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set
 
-from environment import Environment
-from actions import (
+from services.correlation_engine.environment import Environment
+from services.correlation_engine.actions import (
     ActionResult,
     AgentState,
     execute_action,
     get_available_actions,
 )
-from defender_actions import (
+from services.correlation_engine.defender_actions import (
     DefenderState,
     execute_defender_action,
     get_available_defender_actions,

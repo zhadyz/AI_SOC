@@ -13,7 +13,7 @@ from typing import Dict, List, Optional, Tuple
 
 import httpx
 
-from actions import AgentState, ActionOutcome, get_available_actions, format_actions_for_prompt
+from services.correlation_engine.actions import AgentState, ActionOutcome, get_available_actions, format_actions_for_prompt
 
 logger = logging.getLogger(__name__)
 

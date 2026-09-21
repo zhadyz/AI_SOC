@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class AdapterResult:
     """Standardized result from any adapter operation."""
+
     success: bool
     action_type: str
     target: str
@@ -38,6 +39,7 @@ class AdapterResult:
             "timestamp": self.timestamp.isoformat(),
             "error": self.error,
             "rollback_capable": self.rollback_capable,
+            "raw_response": self.raw_response,
         }
 
 
@@ -108,9 +110,66 @@ class BaseAdapter(ABC):
             target=target,
             adapter=self.name,
             detail=f"[DRY RUN] Would execute {action_type} on {target}",
-            rollback_capable=True,
+            rollback_capable=False,
         )
 
     async def health_check(self) -> bool:
         """Check if the adapter's backend is reachable. Override in subclass."""
-        return True
+        return False
+
+
+class UnavailableAdapter(BaseAdapter):
+    """Honest boundary for a vendor integration that is not implemented."""
+
+    supported_actions: tuple[str, ...] = ()
+
+    async def execute(self, action_type, target, params=None):
+        if action_type not in self.supported_actions:
+            return AdapterResult(
+                False,
+                action_type,
+                target,
+                self.name,
+                "Unsupported action",
+                error="unsupported_action",
+                rollback_capable=False,
+            )
+        return AdapterResult(
+            False,
+            action_type,
+            target,
+            self.name,
+            "Vendor integration is not configured or implemented",
+            error="adapter_unavailable",
+            rollback_capable=False,
+        )
+
+    async def verify(self, action_type, target, params=None):
+        return await self.execute(action_type, target, params)
+
+    async def rollback(self, action_type, target, params=None):
+        return await self.execute(action_type, target, params)
+
+    async def dry_run(self, action_type, target, params=None):
+        if action_type not in self.supported_actions:
+            return AdapterResult(
+                False,
+                action_type,
+                target,
+                self.name,
+                "Unsupported action",
+                error="unsupported_action",
+                rollback_capable=False,
+            )
+        return AdapterResult(
+            True,
+            action_type,
+            target,
+            self.name,
+            f"[DRY RUN] Proposed {action_type} on {target}; vendor adapter unavailable",
+            raw_response={"simulated": True, "parameters": params or {}},
+            rollback_capable=False,
+        )
+
+    async def health_check(self):
+        return False

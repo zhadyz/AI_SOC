@@ -28,11 +28,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from environment import Environment
-from swarm import SwarmSimulator, SwarmConfig
-from simulator import CampaignSimulator, SimulationConfig
-from history_store import HistoryStore
-from research_metrics import prediction_accuracy
+from services.correlation_engine.environment import Environment
+from services.correlation_engine.swarm import SwarmSimulator, SwarmConfig
+from services.correlation_engine.simulator import CampaignSimulator, SimulationConfig
+from services.correlation_engine.history_store import HistoryStore
+from services.correlation_engine.research_metrics import prediction_accuracy
 
 logging.basicConfig(
     level=logging.INFO,

@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "checks": [
+    "Persistent accounts sign in with distinct viewer, analyst and reviewer roles",
+    "Anonymous access, viewer writes, privilege escalation and missing CSRF are rejected",
+    "Services bind audit authors to verified identities and enforce independent review",
+    "Authenticated review pages render and approved rules download as YAML",
+    "Direct service tokens preserve roles; 100 concurrent-workload inference requests succeed",
+    "Disabling test accounts revokes their browser sessions"
+  ],
+  "inference_load": {
+    "requests": 100,
+    "concurrency": 10,
+    "failed": 0,
+    "elapsed_seconds": 3.333,
+    "p50_ms": 326.72,
+    "p95_ms": 377.83,
+    "input": "Synthetic zero-valued complete flows; throughput test only"
+  },
+  "test_accounts_disabled": [
+    "check-viewer-3c47a202",
+    "check-analyst-3c47a202",
+    "check-reviewer-3c47a202"
+  ],
+  "browser_visual_review": "Requires an unlocked desktop"
+}

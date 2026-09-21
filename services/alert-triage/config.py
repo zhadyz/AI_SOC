@@ -60,6 +60,9 @@ class Settings(BaseSettings):
     feedback_enabled: bool = True
     feedback_service_url: str = "http://feedback-service:8000"
 
+    correlation_enabled: bool = True
+    correlation_engine_url: str = "http://correlation-engine:8000"
+
     # Contextual Memory (Phase 4)
     context_enabled: bool = True
     context_history_limit: int = 5   # Max recent alerts to include per source IP
@@ -68,6 +71,8 @@ class Settings(BaseSettings):
 
     # Async Worker Pool (Phase 3)
     worker_count: int = 3
+    job_store_path: str = "work/triage-jobs.sqlite"
+    queue_capacity: int = 1000
     queue_threshold: int = 50  # Circuit breaker activates above this queue depth
     circuit_breaker_enabled: bool = True
 
@@ -80,9 +85,11 @@ class Settings(BaseSettings):
     api_key: Optional[str] = None
 
     class Config:
+        hide_input_in_errors = True
         env_prefix = "TRIAGE_"
         env_file = ".env"
         case_sensitive = False
+        extra = "ignore"
 
 
 # Global settings instance

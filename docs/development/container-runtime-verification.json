@@ -1,0 +1,119 @@
+{
+  "status": "passed",
+  "verified_at": "2026-09-05T03:59:56.314614+00:00",
+  "checks": [
+    "Full Compose runtime started with seeded named volumes",
+    "12-check live workflow passed against container services",
+    "Browser acceptance passed against container services",
+    "Repeating up preserved existing volume contents and returned all services to health",
+    "Container maintenance retraining connected to persisted feedback and found zero eligible complete reviewed flows; no promotion performed"
+  ],
+  "containers": [
+    {
+      "service": "response-orchestrator",
+      "status": "running",
+      "health": "healthy",
+      "exit_code": 0,
+      "image_id": "sha256:2576d382eb7b041291cf6985fd8fceea274c98e72f376faab0f1b154dbdfe83d"
+    },
+    {
+      "service": "alert-triage",
+      "status": "running",
+      "health": "healthy",
+      "exit_code": 0,
+      "image_id": "sha256:caca22165ba4c2590754ef5d7a1413765936abb63ad28d0eac6799481306b736"
+    },
+    {
+      "service": "dashboard",
+      "status": "running",
+      "health": "healthy",
+      "exit_code": 0,
+      "image_id": "sha256:dd19137f671f1d579cf1cc4bfe2881c6cd5d891c586ef263a808d4d1123c596a"
+    },
+    {
+      "service": "ml-inference",
+      "status": "running",
+      "health": "healthy",
+      "exit_code": 0,
+      "image_id": "sha256:61065e1fd7013aac8da58733cbea268a076c7bd22d019fb780b540704beb67d7"
+    },
+    {
+      "service": "rule-generator",
+      "status": "running",
+      "health": "healthy",
+      "exit_code": 0,
+      "image_id": "sha256:a1206ce2fb945c8b4cac287b76dcf293e7550b179fbb638b87f022c2f07294f6"
+    },
+    {
+      "service": "rag-service",
+      "status": "running",
+      "health": "healthy",
+      "exit_code": 0,
+      "image_id": "sha256:fe3c92600157fdd117228686d80edc2a3b4941fe814aa9bbdc8c9ce27caf5b77"
+    },
+    {
+      "service": "correlation-engine",
+      "status": "running",
+      "health": "healthy",
+      "exit_code": 0,
+      "image_id": "sha256:0a123e2c2748431487de8a3afaa5585f9358d335cf46c2f6926f674201c8e489"
+    },
+    {
+      "service": "wazuh-integration",
+      "status": "running",
+      "health": "healthy",
+      "exit_code": 0,
+      "image_id": "sha256:2ab1fed11e7be501f24c1d61f6b0a8144737db17ee449b6295f1fd3bf32a36c5"
+    },
+    {
+      "service": "feedback-service",
+      "status": "running",
+      "health": "healthy",
+      "exit_code": 0,
+      "image_id": "sha256:f50c56163833a26ba2599b9fe32aedc344aa8c467909cbca634779a8c3e5150f"
+    },
+    {
+      "service": "model-init",
+      "status": "exited",
+      "health": null,
+      "exit_code": 0,
+      "image_id": "sha256:a5409cb903d30f9cd67e9f430dd336ddc9274e16fd78f75b675c42065991b4fd"
+    },
+    {
+      "service": "ollama",
+      "status": "running",
+      "health": "healthy",
+      "exit_code": 0,
+      "image_id": "sha256:a5409cb903d30f9cd67e9f430dd336ddc9274e16fd78f75b675c42065991b4fd"
+    },
+    {
+      "service": "postgres",
+      "status": "running",
+      "health": "healthy",
+      "exit_code": 0,
+      "image_id": "sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    }
+  ],
+  "built_images": {
+    "ml-inference": "sha256:61065e1fd7013aac8da58733cbea268a076c7bd22d019fb780b540704beb67d7",
+    "feedback-service": "sha256:f50c56163833a26ba2599b9fe32aedc344aa8c467909cbca634779a8c3e5150f",
+    "rag-service": "sha256:fe3c92600157fdd117228686d80edc2a3b4941fe814aa9bbdc8c9ce27caf5b77",
+    "correlation-engine": "sha256:0a123e2c2748431487de8a3afaa5585f9358d335cf46c2f6926f674201c8e489",
+    "alert-triage": "sha256:caca22165ba4c2590754ef5d7a1413765936abb63ad28d0eac6799481306b736",
+    "rule-generator": "sha256:a1206ce2fb945c8b4cac287b76dcf293e7550b179fbb638b87f022c2f07294f6",
+    "response-orchestrator": "sha256:2576d382eb7b041291cf6985fd8fceea274c98e72f376faab0f1b154dbdfe83d",
+    "wazuh-integration": "sha256:2ab1fed11e7be501f24c1d61f6b0a8144737db17ee449b6295f1fd3bf32a36c5",
+    "dashboard": "sha256:dd19137f671f1d579cf1cc4bfe2881c6cd5d891c586ef263a808d4d1123c596a",
+    "retraining": "sha256:693651c9abb2127091e40e5ac725ca13317256dfae3c119a22e3dd47061c654f",
+    "lab-target": "sha256:524540fac9480f25c487bc7e55bc4235e049a02b3128db36932401a22d643c33"
+  },
+  "workflow_report": "container-live-verification.json",
+  "resume_report": "container-resume-verification.json",
+  "browser_report": "container-browser-verification.json",
+  "native_state_import": "One-time seed into empty volumes; existing volume contents preserved",
+  "limitations": [
+    "Native and container file state are separate after import",
+    "Wazuh API polling remains unconfigured; webhook processing and lab forwarding were exercised",
+    "CPU-only Ollama inside Docker is slower than native Metal acceleration"
+  ]
+}

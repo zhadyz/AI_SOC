@@ -78,12 +78,20 @@ class WorkerPool:
         worker_count: int = 3,
         queue_threshold: int = 50,
         circuit_breaker_enabled: bool = True,
+        store_path: Optional[str] = None,
+        queue_capacity: int = 1000,
     ):
         self.analyze_fn = analyze_fn
         self.ml_only_fn = ml_only_fn
         self.worker_count = worker_count
         self.queue_threshold = queue_threshold
         self.circuit_breaker_enabled = circuit_breaker_enabled
+        if worker_count < 1 or queue_capacity < 1:
+            raise ValueError("Worker count and queue capacity must be positive")
+        from services.alert_triage.job_store import JobStore
+        self.store = JobStore(store_path) if store_path else None
+        self.queue_capacity = queue_capacity
+        self._jobs_recovered = 0
 
         self._queue: asyncio.PriorityQueue = asyncio.PriorityQueue()
         self._results: Dict[str, JobResult] = {}
@@ -96,6 +104,17 @@ class WorkerPool:
         """Start worker tasks."""
         if self._running:
             return
+        if self.store:
+            self._queue = asyncio.PriorityQueue()
+            self._results = {}
+            for saved_job, saved_result in self.store.load():
+                job = PriorityJob(**saved_job)
+                result = JobResult(**saved_result)
+                result.status = JobStatus.QUEUED
+                self._results[job.job_id] = result
+                self.store.save(job, result)
+                self._queue.put_nowait(job)
+                self._jobs_recovered += 1
         self._running = True
         for i in range(self.worker_count):
             task = asyncio.create_task(self._worker(f"worker-{i}"))
@@ -118,7 +137,11 @@ class WorkerPool:
 
         High-severity alerts are processed first via priority queue.
         """
-        job_id = f"job-{uuid.uuid4().hex[:8]}"
+        if callback_url:
+            raise ValueError("Callbacks are disabled; poll the job endpoint")
+        if self._queue.qsize() >= self.queue_capacity:
+            raise asyncio.QueueFull("Triage queue capacity reached")
+        job_id = f"job-{uuid.uuid4().hex}"
         alert_id = alert_data.get("alert_id", "unknown")
 
         # Determine priority from rule_level or explicit severity
@@ -139,13 +162,15 @@ class WorkerPool:
             callback_url=callback_url,
         )
 
-        self._results[job_id] = JobResult(
+        result = JobResult(
             job_id=job_id,
             status=JobStatus.QUEUED,
             alert_id=alert_id,
             created_at=datetime.utcnow().isoformat(),
         )
-
+        if self.store:
+            self.store.save(job, result)  # Commit before acknowledging acceptance.
+        self._results[job_id] = result
         self._queue.put_nowait(job)
         logger.info(
             f"Job {job_id} queued: alert={alert_id}, priority={priority}, "
@@ -155,7 +180,11 @@ class WorkerPool:
 
     def get_job(self, job_id: str) -> Optional[JobResult]:
         """Get the status/result of a job."""
-        return self._results.get(job_id)
+        current = self._results.get(job_id)
+        if current is None and self.store:
+            saved = self.store.get(job_id)
+            current = JobResult(**saved) if saved else None
+        return current
 
     @property
     def queue_depth(self) -> int:
@@ -168,8 +197,12 @@ class WorkerPool:
             "workers": self.worker_count,
             "jobs_processed": self._jobs_processed,
             "jobs_circuit_broken": self._jobs_circuit_broken,
+            "jobs_recovered": self._jobs_recovered,
+            "durable_queue": self.store is not None,
+            "queue_capacity": self.queue_capacity,
             "circuit_breaker_active": (
                 self.circuit_breaker_enabled
+                and self.ml_only_fn is not None
                 and self._queue.qsize() > self.queue_threshold
             ),
         }
@@ -192,6 +225,8 @@ class WorkerPool:
                 continue
 
             job_result.status = JobStatus.PROCESSING
+            if self.store:
+                self.store.save(job, job_result)
             start_time = time.time()
 
             try:
@@ -240,6 +275,12 @@ class WorkerPool:
                 logger.error(f"{name}: {job.job_id} failed: {e}")
 
             finally:
+                if self.store:
+                    self.store.save(job, job_result)
+                    # Job results remain queryable from SQLite without retaining
+                    # every full alert/result in the service's memory forever.
+                    if job_result.status in {JobStatus.COMPLETED, JobStatus.FAILED}:
+                        self._results.pop(job.job_id, None)
                 self._queue.task_done()
 
         logger.debug(f"{name} stopped")

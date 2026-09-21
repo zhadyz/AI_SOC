@@ -1,0 +1,24 @@
+{
+  "checks": [
+    "All eight service health endpoints and dashboard respond",
+    "Unauthenticated model API access is rejected",
+    "All three bundled models produce real predictions",
+    "Runbook retrieval returns embedded security knowledge",
+    "Local LLM triage persists the alert and creates a correlated incident",
+    "Concurrent retries do not duplicate incident alerts",
+    "Independent feedback review is recorded",
+    "Defense dry run produces a stored plan and audit trail without real actions",
+    "Grounded Sigma draft is generated and remains pending review",
+    "Generated rule backtest counts supplied labeled events",
+    "Wazuh-format webhook completes triage, storage and correlation",
+    "Local attack-campaign simulation completes"
+  ],
+  "llm_exercised": true,
+  "full": true,
+  "rule_generation_method": "local_llm",
+  "rule_id": "RULE-84a69c72",
+  "alert_id": "smoke-e43d7df2d02d",
+  "incident_id": "INC-20260905002602-dd11",
+  "plan_id": "PLAN-20260905034841-da1a",
+  "verified_at": "2026-09-05T03:51:50.328001+00:00"
+}

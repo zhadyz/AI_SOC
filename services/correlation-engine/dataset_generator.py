@@ -23,8 +23,8 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from environment import Environment
-from simulator import CampaignSimulator, SimulationConfig
+from services.correlation_engine.environment import Environment
+from services.correlation_engine.simulator import CampaignSimulator, SimulationConfig
 
 logger = logging.getLogger(__name__)
 

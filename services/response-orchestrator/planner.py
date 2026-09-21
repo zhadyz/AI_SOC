@@ -19,16 +19,25 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import httpx
 
-from models import (
-    ActionType, AdapterType, BlastRadius, ApprovalTier,
-    PlannedAction, ActionStatus, DefensePlan, PlanStatus,
+from services.response_orchestrator.models import (
+    ActionType,
+    AdapterType,
+    BlastRadius,
+    ApprovalTier,
+    PlannedAction,
+    ActionStatus,
+    DefensePlan,
+    PlanStatus,
 )
-from d3fend import (
+from services.response_orchestrator.d3fend import (
     D3FENDTechnique,
     get_countermeasures,
     get_unique_actions_for_incident,
 )
-from safety import build_planned_action, check_plan_safety
+from services.response_orchestrator.safety import (
+    build_planned_action,
+    check_plan_safety,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +79,7 @@ class DefensePlanner:
         incident_summary: str,
         simulation_results: Optional[Dict[str, Any]] = None,
         environment: Optional[Dict[str, Any]] = None,
-        dry_run: bool = False,
+        dry_run: bool = True,
     ) -> DefensePlan:
         """
         Generate a complete defense plan for an incident.
@@ -89,7 +98,9 @@ class DefensePlanner:
         Returns:
             A DefensePlan with ranked, classified actions
         """
-        plan_id = f"PLAN-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:4]}"
+        plan_id = (
+            f"PLAN-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:4]}"
+        )
 
         logger.info(
             f"Generating defense plan {plan_id} for incident {incident_id}: "
@@ -122,13 +133,12 @@ class DefensePlanner:
                 action_counter += 1
                 action_id = f"{plan_id}-ACT-{action_counter:03d}"
 
-                impact = impact_scores.get(
-                    (d3f_technique.technique_id, target_ip), 0.5
-                )
+                impact = impact_scores.get((d3f_technique.technique_id, target_ip), 0.5)
 
                 # Build which techniques this action counters
                 countered = [
-                    tid for tid in detected_techniques
+                    tid
+                    for tid in detected_techniques
                     if d3f_technique in get_countermeasures(tid)
                 ]
 
@@ -143,7 +153,7 @@ class DefensePlanner:
                         d3f_technique, simulation_results, kill_chain_stage
                     ),
                     counters_techniques=countered,
-                    rationale="",  # Filled by LLM below
+                    rationale="",  # Filled from policy below
                     auto_execute_min=self.auto_execute_min,
                     auto_veto_min=self.auto_veto_min,
                 )
@@ -155,7 +165,7 @@ class DefensePlanner:
         # Step 5: Rank by composite score
         actions.sort(key=lambda a: a.composite_score, reverse=True)
 
-        # Step 6: Generate rationale via LLM
+        # Step 6: Generate an evidence-bounded policy summary
         rationale = await self._generate_rationale(
             incident_summary=incident_summary,
             detected_techniques=detected_techniques,
@@ -179,9 +189,7 @@ class DefensePlanner:
         pre_risk = None
         sim_id = None
         if simulation_results:
-            pre_risk = simulation_results.get("results_summary", {}).get(
-                "success_rate"
-            )
+            pre_risk = simulation_results.get("results_summary", {}).get("success_rate")
             sim_id = simulation_results.get("simulation_id")
 
         plan = DefensePlan(
@@ -236,12 +244,14 @@ class DefensePlanner:
                 for ip in dest_ips or ["0.0.0.0"]:
                     base = 0.5
                     if candidate.action_type in (
-                        ActionType.ISOLATE_HOST, ActionType.BLOCK_IP,
-                        ActionType.REVOKE_CREDENTIALS
+                        ActionType.ISOLATE_HOST,
+                        ActionType.BLOCK_IP,
+                        ActionType.REVOKE_CREDENTIALS,
                     ):
                         base = 0.70
                     elif candidate.action_type in (
-                        ActionType.DEPLOY_EDR, ActionType.ENABLE_MFA
+                        ActionType.DEPLOY_EDR,
+                        ActionType.ENABLE_MFA,
                     ):
                         base = 0.60
                     scores[(candidate.technique_id, ip)] = base
@@ -290,11 +300,20 @@ class DefensePlanner:
                 # Check if this target appears in weakest points
                 for vuln_key in weakest:
                     if ip in vuln_key:
-                        if "no EDR" in vuln_key and candidate.action_type == ActionType.DEPLOY_EDR:
+                        if (
+                            "no EDR" in vuln_key
+                            and candidate.action_type == ActionType.DEPLOY_EDR
+                        ):
                             base = 0.95
-                        elif "no MFA" in vuln_key and candidate.action_type == ActionType.ENABLE_MFA:
+                        elif (
+                            "no MFA" in vuln_key
+                            and candidate.action_type == ActionType.ENABLE_MFA
+                        ):
                             base = 0.95
-                        elif "CVE-" in vuln_key and candidate.action_type == ActionType.PATCH_VULNERABILITY:
+                        elif (
+                            "CVE-" in vuln_key
+                            and candidate.action_type == ActionType.PATCH_VULNERABILITY
+                        ):
                             base = 0.95
 
                 scores[(candidate.technique_id, ip)] = min(base, 1.0)
@@ -316,18 +335,25 @@ class DefensePlanner:
 
         # Containment actions in active attack phases are higher confidence
         active_stages = {
-            "lateral_movement", "execution", "privilege_escalation",
-            "exfiltration", "impact"
+            "lateral_movement",
+            "execution",
+            "privilege_escalation",
+            "exfiltration",
+            "impact",
         }
         if kill_chain_stage in active_stages:
             if technique.action_type in (
-                ActionType.ISOLATE_HOST, ActionType.BLOCK_IP,
-                ActionType.REVOKE_CREDENTIALS
+                ActionType.ISOLATE_HOST,
+                ActionType.BLOCK_IP,
+                ActionType.REVOKE_CREDENTIALS,
             ):
                 base += 0.10
 
         # Detection-only actions always have high confidence (low risk)
-        if technique.action_type in (ActionType.ADD_MONITORING, ActionType.DEPLOY_SIGMA_RULE):
+        if technique.action_type in (
+            ActionType.ADD_MONITORING,
+            ActionType.DEPLOY_SIGMA_RULE,
+        ):
             base = 0.90
 
         return min(round(base, 2), 0.99)
@@ -352,11 +378,21 @@ class DefensePlanner:
         if technique.action_type == ActionType.BLOCK_IP:
             for ip in source_ips:
                 targets.append((ip, f"attacker-{ip}", "low"))
-            return targets or [("0.0.0.0", "unknown", "low")]
+            return targets
 
         # DNS sinkhole targets domains, not IPs
         if technique.action_type == ActionType.SINKHOLE_DOMAIN:
-            return [("malicious.domain", "c2-domain", "low")]
+            return [
+                (domain, domain, "medium")
+                for domain in (environment or {}).get("confirmed_malicious_domains", [])
+            ]
+
+        # Account controls require an explicit identity, never a victim host IP.
+        if technique.action_type in {ActionType.DISABLE_ACCOUNT, ActionType.ENABLE_MFA}:
+            return [
+                (account, account, "high")
+                for account in (environment or {}).get("affected_accounts", [])
+            ]
 
         # Most defense actions target destination (victim) hosts
         hosts_data = {}
@@ -369,13 +405,11 @@ class DefensePlanner:
             criticality = host_data.get("criticality", "medium")
             targets.append((ip, hostname, criticality))
 
-        return targets or [("0.0.0.0", "unknown", "medium")]
+        return targets
 
     # ----- Deduplication -----
 
-    def _deduplicate_actions(
-        self, actions: List[PlannedAction]
-    ) -> List[PlannedAction]:
+    def _deduplicate_actions(self, actions: List[PlannedAction]) -> List[PlannedAction]:
         """Remove duplicate actions (same type + target), keeping highest scoring."""
         seen = {}
         for action in actions:
@@ -394,62 +428,19 @@ class DefensePlanner:
         actions: List[PlannedAction],
         simulation_results: Optional[Dict],
     ) -> str:
-        """Generate a natural-language defense strategy rationale via LLM."""
-        sim_context = ""
-        if simulation_results:
-            summary = simulation_results.get("results_summary", {})
-            sim_context = (
-                f"\nSimulation results ({summary.get('total_actions', 0)} attacker actions):\n"
-                f"- Attack success rate: {summary.get('success_rate', 'N/A')}\n"
-                f"- Detection rate: {summary.get('detection_rate', 'N/A')}\n"
-                f"- Weakest points: {json.dumps(simulation_results.get('weakest_points', [])[:3])}\n"
-            )
-
-        actions_text = "\n".join(
-            f"  {i+1}. {a.action_type.value} on {a.target} "
-            f"(impact={a.impact_score:.2f}, safety={a.safety_score:.2f}, "
-            f"tier={a.approval_tier.name}, D3FEND={a.d3fend_label})"
-            for i, a in enumerate(actions[:8])
+        """Summarize recorded policy and evidence without invented risk reductions."""
+        evidence = (
+            "A research simulation informed ranking."
+            if simulation_results
+            else "No simulation evidence was supplied; ranking uses policy heuristics."
         )
-
-        prompt = f"""You are a senior SOC analyst generating a defense strategy briefing.
-
-INCIDENT: {incident_summary}
-KILL CHAIN STAGE: {kill_chain_stage}
-DETECTED TECHNIQUES: {', '.join(detected_techniques)}
-{sim_context}
-PROPOSED DEFENSE ACTIONS (ranked by priority):
-{actions_text}
-
-Write a concise defense strategy briefing (3-5 sentences) that:
-1. Summarizes the threat and its current stage
-2. Explains WHY these specific defense actions were chosen
-3. Notes which actions will auto-execute vs require approval
-4. Highlights the expected risk reduction
-
-Be direct and actionable. No preamble."""
-
-        try:
-            async with httpx.AsyncClient() as client:
-                resp = await client.post(
-                    f"{self.ollama_host}/api/generate",
-                    json={
-                        "model": self.ollama_model,
-                        "prompt": prompt,
-                        "stream": False,
-                        "options": {"temperature": 0.3, "num_predict": 300},
-                    },
-                    timeout=60.0,
-                )
-                resp.raise_for_status()
-                return resp.json().get("response", "").strip()
-        except Exception as e:
-            logger.error(f"LLM rationale generation failed: {e}")
-            return (
-                f"Defense plan for {incident_summary}. "
-                f"{len(actions)} actions proposed targeting {kill_chain_stage} stage. "
-                f"Techniques countered: {', '.join(detected_techniques)}."
-            )
+        return (
+            f"Proposed response to {kill_chain_stage}; detected techniques: {', '.join(detected_techniques)}. "
+            f"{len(actions)} actions have identifiable targets. {evidence} "
+            "Approval requirements and actual outcomes are recorded on each action. "
+            "Expected real-world risk reduction is unknown; only independent post-action evidence can establish effectiveness. "
+            "Account and domain controls are omitted unless explicit affected_accounts or confirmed_malicious_domains are supplied in the environment."
+        )
 
     def _extract_action_rationale(
         self,
@@ -466,13 +457,15 @@ Be direct and actionable. No preamble."""
         if action.counters_techniques:
             parts.append(f"Counters: {', '.join(action.counters_techniques)}")
 
-        if action.impact_score >= 0.8:
-            parts.append("HIGH IMPACT — simulation shows significant risk reduction")
-        elif action.impact_score >= 0.6:
-            parts.append("Moderate impact based on simulation data")
+        if simulation_results and action.impact_score >= 0.8:
+            parts.append("High heuristic priority in the supplied simulation")
+        elif simulation_results and action.impact_score >= 0.6:
+            parts.append("Moderate heuristic priority in the supplied simulation")
 
         if not action.requires_approval:
-            parts.append(f"Auto-execute (tier {action.approval_tier.name})")
+            parts.append(
+                f"Eligible for configured execution policy (tier {action.approval_tier.name})"
+            )
         else:
             parts.append(f"Requires approval (tier {action.approval_tier.name})")
 
@@ -489,17 +482,17 @@ Be direct and actionable. No preamble."""
 
         return {
             "simulation_id": simulation_results.get("simulation_id"),
-            "total_actions": simulation_results.get(
-                "results_summary", {}
-            ).get("total_actions", 0),
-            "success_rate": simulation_results.get(
-                "results_summary", {}
-            ).get("success_rate", 0),
-            "detection_rate": simulation_results.get(
-                "results_summary", {}
-            ).get("detection_rate", 0),
+            "total_actions": simulation_results.get("results_summary", {}).get(
+                "total_actions", 0
+            ),
+            "success_rate": simulation_results.get("results_summary", {}).get(
+                "success_rate", 0
+            ),
+            "detection_rate": simulation_results.get("results_summary", {}).get(
+                "detection_rate", 0
+            ),
             "weakest_points": simulation_results.get("weakest_points", [])[:5],
-            "recommended_actions": simulation_results.get(
-                "recommended_actions", []
-            )[:5],
+            "recommended_actions": simulation_results.get("recommended_actions", [])[
+                :5
+            ],
         }

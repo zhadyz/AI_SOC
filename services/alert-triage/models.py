@@ -95,6 +95,8 @@ class TriageRecommendation(BaseModel):
 
 
 class TriageResponse(BaseModel):
+    incident_id: Optional[str] = None
+    pipeline_warnings: List[str] = Field(default_factory=list)
     """
     Output model for LLM alert triage analysis.
 

@@ -17,8 +17,9 @@ import logging
 from typing import Optional
 from datetime import datetime, timezone, timedelta
 import httpx
+from services.common.api_security import service_client
 
-from models import SecurityAlert
+from services.alert_triage.models import SecurityAlert
 
 logger = logging.getLogger(__name__)
 
@@ -101,53 +102,9 @@ class ContextManager:
     # ------------------------------------------------------------------
 
     async def _get_environment_context(self) -> str:
-        """
-        Return environment context string.
-
-        First checks the feedback service /contexts endpoint. If that
-        endpoint does not exist or the service is unreachable, falls
-        back to the static string supplied at construction time (which
-        itself can be set via TRIAGE_ENVIRONMENT_CONTEXT).
-
-        Returns:
-            str: Formatted environment context, or "".
-        """
-        # Try the feedback service first
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(f"{self.feedback_url}/contexts")
-
-            if response.status_code == 200:
-                data = response.json()
-                entries = data if isinstance(data, list) else data.get("contexts", [])
-
-                if entries:
-                    lines = []
-                    for entry in entries:
-                        # Accept either {"context": "..."} or plain string
-                        text = (
-                            entry.get("context") or entry.get("value") or str(entry)
-                            if isinstance(entry, dict)
-                            else str(entry)
-                        )
-                        if text:
-                            lines.append(f"- {text}")
-
-                    if lines:
-                        body = "\n".join(lines)
-                        return f"**ENVIRONMENT CONTEXT:**\n{body}"
-
-        except httpx.TimeoutException:
-            logger.debug(
-                "Context fetch timeout — falling back to static environment context"
-            )
-        except Exception as e:
-            logger.debug(f"Environment context fetch failed: {e}")
-
-        # Fall back to static context
+        """Operator-provided environment notes, bounded before prompt insertion."""
         if self.environment_context:
-            return f"**ENVIRONMENT CONTEXT:**\n{self.environment_context}"
-
+            return f"**ENVIRONMENT CONTEXT:**\n{self.environment_context[:4000]}"
         return ""
 
     async def _get_alert_history(self, source_ip: str) -> str:
@@ -162,7 +119,7 @@ class ContextManager:
             str: Formatted history section, or "".
         """
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
+            async with service_client(timeout=self.timeout) as client:
                 response = await client.get(
                     f"{self.feedback_url}/alerts",
                     params={"source_ip": source_ip, "limit": self.history_limit},
@@ -190,26 +147,16 @@ class ContextManager:
             within_24h = 0
 
             for a in alerts:
-                sev = (
-                    a.get("ai_severity")
-                    or a.get("severity")
-                    or "unknown"
-                )
+                sev = a.get("ai_severity") or a.get("severity") or "unknown"
                 severity_counts[sev] = severity_counts.get(sev, 0) + 1
 
-                cat = (
-                    a.get("ai_category")
-                    or a.get("category")
-                    or "unknown"
-                )
+                cat = a.get("ai_category") or a.get("category") or "unknown"
                 category_counts[cat] = category_counts.get(cat, 0) + 1
 
                 ts_raw = a.get("timestamp") or a.get("created_at")
                 if ts_raw:
                     try:
-                        ts = datetime.fromisoformat(
-                            str(ts_raw).replace("Z", "+00:00")
-                        )
+                        ts = datetime.fromisoformat(str(ts_raw).replace("Z", "+00:00"))
                         if ts >= cutoff:
                             within_24h += 1
                     except (ValueError, TypeError):
@@ -251,7 +198,7 @@ class ContextManager:
             str: Formatted feedback patterns section, or "".
         """
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
+            async with service_client(timeout=self.timeout) as client:
                 response = await client.get(
                     f"{self.feedback_url}/alerts",
                     params={
@@ -271,13 +218,26 @@ class ContextManager:
             data = response.json()
             alerts = data if isinstance(data, list) else data.get("alerts", [])
 
-            # Only process entries that actually carry analyst feedback
-            reviewed = [
-                a for a in alerts
-                if a.get("analyst_verdict") is not None
-                or a.get("feedback") is not None
-                or a.get("analyst_notes")
-            ]
+            # The list endpoint contains summaries; read the latest analyst
+            # verdict for each returned alert from its actual feedback endpoint.
+            reviewed = []
+            async with service_client(timeout=self.timeout) as client:
+                for item in alerts[: self.history_limit]:
+                    result = await client.get(
+                        f"{self.feedback_url}/feedback/{item['alert_id']}"
+                    )
+                    result.raise_for_status()
+                    feedback = result.json().get("feedback", [])
+                    if feedback:
+                        latest = feedback[0]
+                        reviewed.append(
+                            {
+                                "analyst_verdict": "false_positive"
+                                if latest["is_false_positive"]
+                                else "true_positive",
+                                "analyst_notes": latest.get("notes", ""),
+                            }
+                        )
 
             if not reviewed:
                 return ""

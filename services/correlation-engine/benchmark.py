@@ -19,9 +19,9 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from environment import Environment
-from swarm import SwarmSimulator, SwarmConfig
-from history_store import HistoryStore
+from services.correlation_engine.environment import Environment
+from services.correlation_engine.swarm import SwarmSimulator, SwarmConfig
+from services.correlation_engine.history_store import HistoryStore
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)

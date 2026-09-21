@@ -13,11 +13,11 @@ API calls against real infrastructure. Each adapter implements:
 Adapters are stateless — all state is in the PlannedAction model.
 """
 
-from adapters.base import BaseAdapter, AdapterResult
-from adapters.wazuh import WazuhAdapter
-from adapters.firewall import FirewallAdapter
-from adapters.edr import EDRAdapter
-from adapters.identity import IdentityAdapter
+from services.response_orchestrator.adapters.base import BaseAdapter, AdapterResult
+from services.response_orchestrator.adapters.wazuh import WazuhAdapter
+from services.response_orchestrator.adapters.firewall import FirewallAdapter
+from services.response_orchestrator.adapters.edr import EDRAdapter
+from services.response_orchestrator.adapters.identity import IdentityAdapter
 
 __all__ = [
     "BaseAdapter",

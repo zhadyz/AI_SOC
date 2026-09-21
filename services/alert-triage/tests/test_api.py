@@ -8,8 +8,8 @@ from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime
 
-from main import app
-from models import SecurityAlert, TriageResponse, SeverityLevel, AlertCategory
+from services.alert_triage.main import app
+from services.alert_triage.models import SecurityAlert, TriageResponse, SeverityLevel, AlertCategory
 
 client = TestClient(app)
 
@@ -29,7 +29,7 @@ def test_root_endpoint():
 
 def test_health_endpoint_healthy():
     """Test GET /health when services are connected"""
-    with patch("main.llm_client") as mock_llm:
+    with patch("services.alert_triage.main.llm_client") as mock_llm:
         mock_llm.check_health = AsyncMock(return_value=True)
         mock_llm.ml_client.check_health = AsyncMock(return_value=True)
 
@@ -45,7 +45,7 @@ def test_health_endpoint_healthy():
 
 def test_health_endpoint_degraded():
     """Test GET /health when Ollama is disconnected"""
-    with patch("main.llm_client") as mock_llm:
+    with patch("services.alert_triage.main.llm_client") as mock_llm:
         mock_llm.check_health = AsyncMock(return_value=False)
         mock_llm.ml_client.check_health = AsyncMock(return_value=False)
 
@@ -82,7 +82,7 @@ def test_analyze_endpoint_success():
         model_used="foundation-sec-8b"
     )
 
-    with patch("main.llm_client") as mock_llm:
+    with patch("services.alert_triage.main.llm_client") as mock_llm:
         mock_llm.analyze_alert = AsyncMock(return_value=mock_triage)
 
         alert_data = {
@@ -105,7 +105,7 @@ def test_analyze_endpoint_success():
 
 def test_analyze_endpoint_llm_failure():
     """Test POST /analyze when LLM analysis fails"""
-    with patch("main.llm_client") as mock_llm:
+    with patch("services.alert_triage.main.llm_client") as mock_llm:
         mock_llm.analyze_alert = AsyncMock(return_value=None)
 
         alert_data = {
@@ -148,7 +148,7 @@ def test_batch_endpoint_success():
         model_used="llama3.1:8b"
     )
 
-    with patch("main.llm_client") as mock_llm:
+    with patch("services.alert_triage.main.llm_client") as mock_llm:
         mock_llm.analyze_alert = AsyncMock(return_value=mock_triage)
 
         alerts_data = [
@@ -202,7 +202,7 @@ def test_batch_endpoint_partial_failure():
             model_used="test"
         )
 
-    with patch("main.llm_client") as mock_llm:
+    with patch("services.alert_triage.main.llm_client") as mock_llm:
         mock_llm.analyze_alert = AsyncMock(side_effect=mock_analyze)
 
         alerts_data = [
@@ -218,3 +218,10 @@ def test_batch_endpoint_partial_failure():
         assert data["total"] == 3
         assert data["successful"] == 2
         assert data["failed"] == 1
+
+
+@pytest.fixture(autouse=True)
+def external_pipeline_dependencies(monkeypatch):
+    from services.alert_triage import main
+    monkeypatch.setattr(main, "_persist_alert", AsyncMock())
+    monkeypatch.setattr(main, "_correlate_alert", AsyncMock())

@@ -1,0 +1,35 @@
+{
+  "status": "passed_with_documented_mitigations",
+  "packages_scanned": 151,
+  "unresolved": [],
+  "mitigated": [
+    {
+      "package": "chromadb",
+      "version": "1.5.9",
+      "id": "PYSEC-2026-311",
+      "fix_versions": [],
+      "mitigation": "These advisories affect Chroma's HTTP server, configurable remote-code embedding functions, and multi-tenant SimpleRBACAuthorizationProvider. The supported stack uses only PersistentClient in the RAG process, no Chroma HTTP listener or SimpleRBAC provider, a fixed checksummed MiniLM ONNX model, and no caller-supplied embedding configuration. The only network interface is the authenticated RAG API. Do not re-enable the Chroma HTTP server without resolving these advisories."
+    },
+    {
+      "package": "chromadb",
+      "version": "1.5.9",
+      "id": "CVE-2026-45830",
+      "fix_versions": [],
+      "mitigation": "These advisories affect Chroma's HTTP server, configurable remote-code embedding functions, and multi-tenant SimpleRBACAuthorizationProvider. The supported stack uses only PersistentClient in the RAG process, no Chroma HTTP listener or SimpleRBAC provider, a fixed checksummed MiniLM ONNX model, and no caller-supplied embedding configuration. The only network interface is the authenticated RAG API. Do not re-enable the Chroma HTTP server without resolving these advisories."
+    },
+    {
+      "package": "chromadb",
+      "version": "1.5.9",
+      "id": "CVE-2026-45833",
+      "fix_versions": [],
+      "mitigation": "These advisories affect Chroma's HTTP server, configurable remote-code embedding functions, and multi-tenant SimpleRBACAuthorizationProvider. The supported stack uses only PersistentClient in the RAG process, no Chroma HTTP listener or SimpleRBAC provider, a fixed checksummed MiniLM ONNX model, and no caller-supplied embedding configuration. The only network interface is the authenticated RAG API. Do not re-enable the Chroma HTTP server without resolving these advisories."
+    },
+    {
+      "package": "chromadb",
+      "version": "1.5.9",
+      "id": "CVE-2026-45831",
+      "fix_versions": [],
+      "mitigation": "These advisories affect Chroma's HTTP server, configurable remote-code embedding functions, and multi-tenant SimpleRBACAuthorizationProvider. The supported stack uses only PersistentClient in the RAG process, no Chroma HTTP listener or SimpleRBAC provider, a fixed checksummed MiniLM ONNX model, and no caller-supplied embedding configuration. The only network interface is the authenticated RAG API. Do not re-enable the Chroma HTTP server without resolving these advisories."
+    }
+  ]
+}
