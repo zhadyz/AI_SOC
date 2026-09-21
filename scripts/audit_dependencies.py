@@ -40,6 +40,9 @@ def main():
     if args.output:
         args.output.write_text(json.dumps(result, indent=2) + "\n")
     print(f"Scanned {len(data['dependencies'])} packages: {len(unresolved)} unresolved, {len(mitigated)} documented mitigations")
+    for item in unresolved:
+        fixes = ", ".join(item["fix_versions"]) or "none published"
+        print(f"Unresolved: {item['package']}=={item['version']} {item['id']} (fix versions: {fixes})")
     return bool(unresolved)
 
 
